@@ -68,8 +68,12 @@ export const Store = {
         const querySnapshot = await getDocs(q);
         
         if (!querySnapshot.empty) {
-            console.log("User found:", querySnapshot.docs[0].data());
-            return querySnapshot.docs[0].data() as User;
+        const docSnap = querySnapshot.docs[0];
+        const data = docSnap.data() as User;
+        // ensure uid is populated (some records may not have uid as a field)
+        if (!data.uid) data.uid = docSnap.id;
+        console.log("User found:", data);
+        return data;
         }
 
         // Auto-create Admin if logging in with admin email and doesn't exist
@@ -160,15 +164,28 @@ export const Store = {
   loginUser: async (user: User) => {
     try {
       console.log("Logging in user:", user.email);
-      // Check if banned
+      // Resolve server-side user record to get authoritative UID and ban status
       const serverUser = await Store.checkUserExists(user.email);
-      if (serverUser && serverUser.isBanned) {
+      const effectiveUser = serverUser || user;
+      if (effectiveUser.isBanned) {
           throw new Error("Account Banned by Admin");
       }
 
-      localStorage.setItem('currentUserUid', user.uid);
-      console.log("User logged in successfully");
-      return serverUser || user;
+      // Ensure we have a uid to persist
+      if (!effectiveUser.uid) {
+        // try to read by email to find doc id
+        const q = query(collection(db, "users"), where("email", "==", user.email));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          effectiveUser.uid = snap.docs[0].id;
+        }
+      }
+
+      if (effectiveUser.uid) {
+        localStorage.setItem('currentUserUid', effectiveUser.uid);
+      }
+      console.log("User logged in successfully", effectiveUser.uid);
+      return effectiveUser;
     } catch (e) {
       console.error("Login Error", e);
       throw e;
@@ -199,6 +216,16 @@ export const Store = {
         console.error("Get Current User Error", e);
     }
     return null;
+  },
+
+  updateUser: async (uid: string, updates: Partial<User>): Promise<void> => {
+    try {
+      await updateDoc(doc(db, "users", uid), updates as any);
+      console.log("User updated:", uid, updates);
+    } catch (e) {
+      console.error("Update user failed", e);
+      throw e;
+    }
   },
 
   getAllUsers: async (): Promise<User[]> => {

@@ -27,7 +27,6 @@ const Login: React.FC = () => {
     gender: 'Male',
     dob: '',
     district: '',
-    state: '',
     country: 'India'
   });
 
@@ -293,8 +292,7 @@ const Login: React.FC = () => {
       name.trim().length > 1 &&
       /^\d{10}$/.test(mobile) &&
       dob.trim().length > 0 &&
-      district.trim().length > 0 &&
-      st.trim().length > 0
+      district.trim().length > 0
     );
   }, [email, formData]);
 
@@ -307,9 +305,19 @@ const Login: React.FC = () => {
   };
 
   const handleRegister = async () => {
-    const { name, mobile, dob, district, state } = formData;
-    if (!canRegister) {
-      notify("Please fill all required fields correctly", 'error');
+    const { name, mobile, dob, district } = formData;
+
+    // Explicit, developer-friendly validation with clear messages
+    const errors: string[] = [];
+    if (!email || email.trim().length <= 5 || !email.includes('@')) errors.push('Valid email');
+    if (!name || name.trim().length <= 1) errors.push('Full name');
+    const digits = String(mobile || '').replace(/\D/g, '');
+    if (!/^[0-9]{10}$/.test(digits)) errors.push('10-digit mobile');
+    if (!dob || dob.trim().length === 0) errors.push('Date of birth');
+    if (!district || district.trim().length === 0) errors.push('District');
+
+    if (errors.length > 0) {
+      notify(`Please provide: ${errors.join(', ')}`, 'error');
       return;
     }
     setLoading(true);
@@ -553,18 +561,18 @@ const Login: React.FC = () => {
                 </div>
               </div>
 
-              <button 
-                 onClick={handleRegister}
-                 disabled={loading || !canRegister}
-                 className={`w-full mt-2 font-bold py-4 rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center space-x-2 ${
-                     (loading || !canRegister)
-                     ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-300 cursor-not-allowed' 
-                     : 'bg-blue-600 text-white hover:bg-blue-700'
-                 }`}
-              >
-                 {loading ? "Creating Account..." : "Start Earning"}
-                 {!loading && <ChevronRight size={18} />}
-              </button>
+                <button 
+                  onClick={handleRegister}
+                  disabled={loading}
+                  className={`w-full mt-2 font-bold py-4 rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center space-x-2 ${
+                    loading
+                    ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-300 cursor-not-allowed' 
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  {loading ? "Creating Account..." : "Start Earning"}
+                  {!loading && <ChevronRight size={18} />}
+                </button>
             </div>
           </div>
         )}

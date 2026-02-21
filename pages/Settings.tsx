@@ -68,6 +68,11 @@ const Settings: React.FC = () => {
           />
           <SettingItem 
             icon={<User size={20}/>} 
+            label="Edit Profile" 
+            action={() => navigate('/profile/edit')} 
+          />
+          <SettingItem 
+            icon={<User size={20}/>} 
             label="About Us"
             action={() => navigate('/about')}
           />

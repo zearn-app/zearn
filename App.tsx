@@ -18,6 +18,7 @@ import Leaderboard from './pages/Leaderboard';
 import RandomWinner from './pages/RandomWinner';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings'; // New
+import EditProfile from './pages/EditProfile';
 import About from './pages/About';
 import AdminDashboard from './pages/AdminDashboard';
 
@@ -81,7 +82,7 @@ const App: React.FC = () => {
         <UserContext.Provider value={{ user, refreshUser }}>
           <HashRouter>
             <Routes>
-              <Route path="/" element={<Navigate to="/onboarding" />} />
+              <Route path="/" element={<Navigate to="/login" />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/login" element={<Login />} />
               
@@ -93,6 +94,7 @@ const App: React.FC = () => {
               <Route path="/leaderboard" element={user ? <Leaderboard /> : <Navigate to="/login" />} />
               <Route path="/winner" element={user ? <RandomWinner /> : <Navigate to="/login" />} />
               <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
+              <Route path="/profile/edit" element={user ? <EditProfile /> : <Navigate to="/login" />} />
               <Route path="/settings" element={user ? <Settings /> : <Navigate to="/login" />} />
               <Route path="/about" element={<About />} />
               

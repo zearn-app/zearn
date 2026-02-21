@@ -3,6 +3,7 @@ import { Layout } from '../components/Layout';
 import { UserContext } from '../App';
 import { Store } from '../services/store';
 import { User, LogOut, ChevronRight, Settings, Gem } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Profile: React.FC = () => {
   const { user, refreshUser } = useContext(UserContext);
@@ -16,6 +17,12 @@ const Profile: React.FC = () => {
     // when user becomes null, the protected route renders <Navigate to="/login" />
   };
 
+  const navigate = useNavigate();
+
+  const handleEditProfile = () => {
+    navigate('/profile/edit');
+  };
+
   return (
     <Layout title="Profile" showBack>
       {/* Header */}
@@ -27,6 +34,9 @@ const Profile: React.FC = () => {
             <h2 className="text-xl font-bold text-gray-900">{user.name}</h2>
             <p className="text-gray-500 text-sm">{user.email}</p>
          </div>
+        <div className="ml-auto">
+          <button onClick={handleEditProfile} className="text-sm text-blue-600 font-bold bg-blue-50 px-3 py-2 rounded-md">Edit</button>
+        </div>
       </div>
 
       <h3 className="text-sm font-bold text-gray-500 mb-2 uppercase tracking-wide ml-1">Account Overview</h3>
