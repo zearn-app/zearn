@@ -1,0 +1,10 @@
+/* Minimal global styles for the app */
+:root {
+  --bg: #f3f4f6;
+}
+html, body, #root {
+  height: 100%;
+}
+body {
+  background: var(--bg);
+}
