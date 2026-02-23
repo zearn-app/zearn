@@ -94,7 +94,7 @@ const TaskList: React.FC = () => {
   /* ---------------- UI ---------------- */
   return (
     <Layout title={isSpecial ? "Special Tasks" : "Standard Tasks"} showBack>
-
+      <div className="min-h-screen bg-blue-50 px-4 py-4">
       {/* Tabs */}
       <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
         {['all', 'process', 'completed'].map(tab => (
@@ -187,6 +187,7 @@ const TaskList: React.FC = () => {
           })}
         </div>
       )}
+        </div>
     </Layout>
   );
 };
