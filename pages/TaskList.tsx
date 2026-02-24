@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useContext, useMemo } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { Store } from '../services/store';
 import { Task, UserTask, TaskStatus } from '../types';
 import { UserContext } from '../App';
-import { ChevronRight, CheckCircle, Download, Gem } from 'lucide-react';
+import { ChevronRight, CheckCircle, Download, Gem, ArrowLeft } from 'lucide-react';
 
 const TaskList: React.FC = () => {
   const { type } = useParams<{ type: string }>();
@@ -15,111 +15,98 @@ const TaskList: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'process' | 'completed'>('all');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [userTasks, setUserTasks] = useState<UserTask[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [startingTaskId, setStartingTaskId] = useState<string | null>(null);
 
-  /* ---------------- FETCH DATA ---------------- */
   useEffect(() => {
     const fetchData = async () => {
-      if (!user) return;
-      setLoading(true);
-      const [taskList, userTaskList] = await Promise.all([
-        Store.getTasks(isSpecial),
-        Store.getUserTasks(user.uid),
-      ]);
-      setTasks(taskList);
-      setUserTasks(userTaskList);
-      setLoading(false);
+      if (user) {
+        setTasks(await Store.getTasks(isSpecial));
+        setUserTasks(await Store.getUserTasks(user.uid));
+      }
     };
     fetchData();
-  }, [user, isSpecial]);
+  }, [user, isSpecial, activeTab]);
 
-  /* ---------------- MAP OPTIMIZATION ---------------- */
-  const userTaskMap = useMemo(() => {
-    const map = new Map<string, UserTask>();
-    userTasks.forEach(ut => map.set(ut.taskId, ut));
-    return map;
-  }, [userTasks]);
-
-  /* ---------------- TASK NAME FRAUD LOGIC ---------------- */
-  const mutateTaskName = (taskName: string) => {
-    const numbers = taskName.match(/\d/g)?.map(Number) || [];
-    const sum = numbers.reduce((a, b) => a + b, 0);
-    const reversed = taskName.split('').reverse().join('');
-    return `${reversed}_${sum}`;
-  };
-
-  /* ---------------- START TASK ---------------- */
   const handleStartTask = async (task: Task) => {
-    if (!user || startingTaskId) return;
-
-    setStartingTaskId(task.id);
-
-    try {
-      const mutatedName = mutateTaskName(task.title);
-
-      const link = await Store.startTask(user.uid, {
-        taskId: task.id,
-        mutatedName,
-        originalName: task.title,
-      });
-
-      refreshUser();
-
-      if (link) {
-        window.open(link, '_blank');
-      }
-
-      setActiveTab('process');
-    } catch (err) {
-      console.error(err);
+    if (!user) return;
+    const link = await Store.startTask(user.uid, task.id);
+    refreshUser();
+    if (link) {
+      window.open(link, '_blank');
     }
-
-    setStartingTaskId(null);
+    setActiveTab('process');
   };
 
-  /* ---------------- FILTER ---------------- */
+  const getUserTaskEntry = (taskId: string) =>
+    userTasks.find(ut => ut.taskId === taskId);
+
   const filteredTasks = tasks.filter(task => {
-    const entry = userTaskMap.get(task.id);
+    const entry = getUserTaskEntry(task.id);
 
     if (activeTab === 'all') return !entry;
     if (activeTab === 'process')
-      return entry && [TaskStatus.IN_PROCESS, TaskStatus.FAILED].includes(entry.status);
+      return entry && (entry.status === TaskStatus.IN_PROCESS || entry.status === TaskStatus.FAILED);
     if (activeTab === 'completed')
       return entry && entry.status === TaskStatus.COMPLETED;
 
     return false;
   });
 
-  /* ---------------- UI ---------------- */
   return (
-    <Layout title={isSpecial ? "Special Tasks" : "Standard Tasks"} showBack>
-      <div className="min-h-screen bg-blue-50 px-4 py-4">
-      {/* Tabs */}
-      <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
-        {['all', 'process', 'completed'].map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab as any)}
-            className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all
-            ${activeTab === tab
-              ? 'bg-white shadow-sm text-gray-900'
-              : 'text-gray-500'}`}
-          >
-            {tab === 'all' && 'All Tasks'}
-            {tab === 'process' && 'In Process'}
-            {tab === 'completed' && 'Completed'}
-          </button>
-        ))}
+    <div className="min-h-screen bg-blue-500"> {/* Medium Blue Background */}
+
+      {/* Top Header with Back Button */}
+      <div className="flex items-center px-4 py-4 text-white">
+        <button
+          onClick={() => navigate(-1)}
+          className="mr-3 p-2 rounded-full hover:bg-blue-600 transition"
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <h1 className="text-lg font-bold">
+          {isSpecial ? "Special Tasks" : "Standard Tasks"}
+        </h1>
       </div>
 
-      {loading && (
-        <div className="text-center py-10 text-gray-400">
-          Loading tasks...
-        </div>
-      )}
+      {/* Content Container */}
+      <div className="bg-white rounded-t-3xl p-4 min-h-[85vh]">
 
-      {!loading && (
+        {/* Tabs */}
+        <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
+          <button
+            className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
+              activeTab === 'all'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500'
+            }`}
+            onClick={() => setActiveTab('all')}
+          >
+            All Tasks
+          </button>
+
+          <button
+            className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
+              activeTab === 'process'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-500'
+            }`}
+            onClick={() => setActiveTab('process')}
+          >
+            In Process
+          </button>
+
+          <button
+            className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
+              activeTab === 'completed'
+                ? 'bg-white text-green-600 shadow-sm'
+                : 'text-gray-500'
+            }`}
+            onClick={() => setActiveTab('completed')}
+          >
+            Completed
+          </button>
+        </div>
+
+        {/* Task List */}
         <div className="space-y-4">
           {filteredTasks.length === 0 && (
             <div className="text-center text-gray-400 py-10">
@@ -128,7 +115,7 @@ const TaskList: React.FC = () => {
           )}
 
           {filteredTasks.map(task => {
-            const entry = userTaskMap.get(task.id);
+            const entry = getUserTaskEntry(task.id);
 
             return (
               <div
@@ -137,10 +124,10 @@ const TaskList: React.FC = () => {
                   if (activeTab === 'all') handleStartTask(task);
                   else if (activeTab === 'process') navigate(`/task-check/${task.id}`);
                 }}
-                className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between cursor-pointer active:scale-[0.99] transition"
+                className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between cursor-pointer active:scale-[0.99] transition"
               >
                 <div className="flex-1">
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 mb-1">
                     <h3 className="font-bold text-gray-800 line-clamp-1">
                       {task.title}
                     </h3>
@@ -151,7 +138,7 @@ const TaskList: React.FC = () => {
                     )}
                   </div>
 
-                  <div className="flex items-center space-x-3 mt-2">
+                  <div className="flex items-center space-x-3 mt-1">
                     <span className="text-xs font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded">
                       ₹{task.reward}
                     </span>
@@ -186,9 +173,8 @@ const TaskList: React.FC = () => {
             );
           })}
         </div>
-      )}
-        </div>
-    </Layout>
+      </div>
+    </div>
   );
 };
 
