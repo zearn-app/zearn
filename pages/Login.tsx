@@ -4,16 +4,15 @@ import { Layout } from '../components/Layout';
 import { Store } from '../services/store';
 import { UserContext } from '../App';
 import { useNotification } from '../components/NotificationSystem';
-import { Mail, User, Phone, Lock, X, Loader2 } from 'lucide-react';
+import { Mail, User, Lock, X, Loader2 } from 'lucide-react';
 
 const Login: React.FC = () => {
+
   const navigate = useNavigate();
   const { refreshUser } = useContext(UserContext);
   const { notify } = useNotification();
 
-  const [viewState, setViewState] =
-    useState<'landing' | 'manual_email' | 'register'>('landing');
-
+  const [viewState, setViewState] = useState<'landing' | 'manual_email' | 'register'>('landing');
   const [loading, setLoading] = useState(false);
 
   const [email, setEmail] = useState('');
@@ -22,14 +21,13 @@ const Login: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     mobile: '',
-    password: '',
-    gender: 'Male',
     dob: '',
     district: '',
-    country: 'India'
+    password: ''
   });
 
-  // ---------------- ADMIN ENTRY (UNCHANGED) ----------------
+  /* ================= ADMIN MULTI TAP ================= */
+
   const [tapCount, setTapCount] = useState(0);
   const [tapTarget, setTapTarget] = useState(5);
   const [showAdminDialog, setShowAdminDialog] = useState(false);
@@ -56,94 +54,91 @@ const Login: React.FC = () => {
     if (adminPass === 'admin') {
       isValid = true;
     } else {
-      try {
-        const settings = await Store.getSettings();
-        if (adminPass === settings.adminPassword) {
-          isValid = true;
-        }
-      } catch (e) {
-        isValid = false;
+      const settings = await Store.getSettings();
+      if (adminPass === settings.adminPassword) {
+        isValid = true;
       }
     }
 
     if (isValid) {
       setLoading(true);
-      try {
-        const adminUser = await Store.checkUserExists('admin@zearn.app');
-        if (adminUser) {
-          await Store.loginUser(adminUser);
-          await refreshUser();
-          setShowAdminDialog(false);
-          setAdminPass('');
-          navigate('/admin');
-          notify("Welcome Admin", 'success');
-        }
-      } catch {
-        notify("Admin Login Failed", 'error');
-      } finally {
-        setLoading(false);
+      const adminUser = await Store.checkUserExists('admin@zearn.app');
+      if (adminUser) {
+        await Store.loginUser(adminUser);
+        await refreshUser();
+        navigate('/admin');
+        notify("Welcome Admin", 'success');
       }
+      setLoading(false);
+      setShowAdminDialog(false);
+      setAdminPass('');
     } else {
       notify("Invalid Admin Password", 'error');
     }
   };
 
-  // ---------------- EMAIL LOGIN ----------------
+  /* ================= LOGIN FLOW ================= */
 
   const processEmailLogin = async () => {
-    if (!email || email.length < 5) {
-      notify("Enter valid email", "error");
+
+    if (!email || !email.includes('@')) {
+      notify("Enter valid email", 'error');
+      return;
+    }
+
+    if (!password) {
+      notify("Enter password", 'error');
       return;
     }
 
     setLoading(true);
+
     try {
       const existingUser = await Store.checkUserExists(email);
 
       if (existingUser) {
-        if (!password) {
-          notify("Enter password", "error");
-          setLoading(false);
-          return;
-        }
 
-        if (password !== existingUser.password) {
-          notify("Incorrect password", "error");
+        if (existingUser.password !== password) {
+          notify("Incorrect Password", 'error');
           setLoading(false);
           return;
         }
 
         await Store.loginUser(existingUser);
         await refreshUser();
-        notify(`Welcome back ${existingUser.name}`, "success");
+        notify(`Welcome back, ${existingUser.name}!`, 'success');
         navigate('/home');
+
       } else {
         setViewState('register');
-        notify("New account! Please complete profile.", "info");
+        notify("New account! Please complete profile.", 'info');
       }
-    } catch {
-      notify("Login failed. Try again.", "error");
+
+    } catch (e) {
+      notify("Connection error", 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  // ---------------- VALIDATION ----------------
-
-  const isStrongPassword = (pwd: string) => {
-    return /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$/.test(pwd);
-  };
+  /* ================= REGISTER ================= */
 
   const handleRegister = async () => {
-    const { name, mobile, password, dob, district } = formData;
 
+    const { name, mobile, dob, district, password } = formData;
     const errors: string[] = [];
 
-    if (!email) errors.push('Valid email');
+    if (!email || !email.includes('@')) errors.push('Valid email');
     if (!name) errors.push('Full name');
     if (!/^\d{10}$/.test(mobile)) errors.push('10-digit mobile');
-    if (!password || !isStrongPassword(password))
-      errors.push('Password must contain letter, number & special character');
+
+    if (!password ||
+        !/[A-Za-z]/.test(password) ||
+        !/[0-9]/.test(password) ||
+        !/[!@#$%^&*]/.test(password)) {
+      errors.push('Password must contain letter, number, special character');
+    }
+
     if (!dob) errors.push('Date of birth');
     if (!district) errors.push('District');
 
@@ -153,28 +148,33 @@ const Login: React.FC = () => {
     }
 
     setLoading(true);
+
     try {
-      const user = await Store.registerUser({
+      const newUser = await Store.registerUser({
         email,
         ...formData
       });
 
-      await Store.loginUser(user);
+      await Store.loginUser(newUser);
       await refreshUser();
-      notify("Registration Successful!", "success");
+
+      notify("Registration Successful!", 'success');
       navigate('/home');
-    } catch {
-      notify("Registration failed", "error");
+
+    } catch (e) {
+      notify("Registration Failed", 'error');
     } finally {
       setLoading(false);
     }
   };
 
+  /* ================= UI ================= */
+
   return (
     <Layout noPadding>
       <div className="min-h-screen bg-white flex flex-col relative overflow-hidden dark:bg-gray-900">
 
-        {/* LANDING VIEW */}
+        {/* LANDING */}
         {viewState === 'landing' && (
           <div className="flex-1 flex flex-col items-center justify-center p-8">
 
@@ -189,18 +189,12 @@ const Login: React.FC = () => {
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                 Zearn App
               </h1>
-
-              <p className="text-gray-500 dark:text-gray-400 text-center max-w-xs">
-                Complete tasks, earn coins, and withdraw real rewards instantly.
-              </p>
             </div>
-
-            {/* REMOVED GOOGLE BUTTON */}
 
             <div className="w-full max-w-sm mb-12 space-y-4">
               <button
                 onClick={() => setViewState('manual_email')}
-                className="w-full bg-blue-600 text-white font-bold py-4 rounded-full shadow-lg hover:bg-blue-700 transition active:scale-95"
+                className="w-full bg-blue-600 text-white font-bold py-4 rounded-full shadow-lg hover:bg-blue-700 transition"
               >
                 Sign in with Email
               </button>
@@ -208,16 +202,17 @@ const Login: React.FC = () => {
           </div>
         )}
 
-        {/* EMAIL LOGIN VIEW */}
+        {/* LOGIN VIEW */}
         {viewState === 'manual_email' && (
           <div className="p-8 flex flex-col items-center h-full">
 
             <div className="w-full max-w-sm space-y-4">
+
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type="email"
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl outline-none"
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl"
                   placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -228,7 +223,7 @@ const Login: React.FC = () => {
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type="password"
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl outline-none"
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl"
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -238,7 +233,7 @@ const Login: React.FC = () => {
               <button
                 onClick={processEmailLogin}
                 disabled={loading}
-                className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg"
+                className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl"
               >
                 {loading ? <Loader2 className="animate-spin mx-auto" /> : "Login"}
               </button>
