@@ -1,10 +1,10 @@
-import React, { useState, useContext, useEffect, useMemo } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { Store } from '../services/store';
 import { UserContext } from '../App';
 import { useNotification } from '../components/NotificationSystem';
-import { Mail, User, Lock, X, Loader2 } from 'lucide-react';
+import { Mail, User, Lock, X, Loader2, Eye, EyeOff } from 'lucide-react';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -15,6 +15,10 @@ const Login: React.FC = () => {
     useState<'landing' | 'manual_email' | 'register'>('landing');
 
   const [loading, setLoading] = useState(false);
+
+  // 👇 NEW: Password Toggle States
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
 
   // Login State
   const [email, setEmail] = useState('');
@@ -101,7 +105,6 @@ const Login: React.FC = () => {
       const existingUser = await Store.checkUserExists(email);
 
       if (existingUser) {
-        // 🔹 PASSWORD CHECK
         if (existingUser.password !== password) {
           notify("Incorrect Password", "error");
           setLoading(false);
@@ -113,7 +116,6 @@ const Login: React.FC = () => {
         notify(`Welcome back, ${existingUser.name}!`, "success");
         navigate('/home');
       } else {
-        // New user → go to register
         setViewState('register');
         notify("New account! Complete profile.", "info");
       }
@@ -199,7 +201,6 @@ const Login: React.FC = () => {
 
             <div className="w-full max-w-sm mb-12 space-y-4">
 
-              {/* EMAIL INPUT */}
               <input
                 type="email"
                 placeholder="Email"
@@ -208,14 +209,23 @@ const Login: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
               />
 
-              {/* PASSWORD INPUT */}
-              <input
-                type="password"
-                placeholder="Password"
-                className="w-full p-4 border rounded-xl"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              {/* LOGIN PASSWORD WITH TOGGLE */}
+              <div className="relative">
+                <input
+                  type={showLoginPassword ? "text" : "password"}
+                  placeholder="Password"
+                  className="w-full p-4 border rounded-xl pr-12"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2"
+                >
+                  {showLoginPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
 
               <button
                 onClick={processEmailLogin}
@@ -250,15 +260,25 @@ const Login: React.FC = () => {
               }
             />
 
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full p-3 border rounded-xl mb-3"
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-            />
+            {/* REGISTER PASSWORD WITH TOGGLE */}
+            <div className="relative mb-3">
+              <input
+                type={showRegisterPassword ? "text" : "password"}
+                placeholder="Password"
+                className="w-full p-3 border rounded-xl pr-12"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+              />
+              <button
+                type="button"
+                onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2"
+              >
+                {showRegisterPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
 
             <input
               type="date"
