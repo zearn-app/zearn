@@ -2,28 +2,18 @@ import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { Store } from '../services/store';
-import { auth, googleProvider } from '../services/firebase';
-import {
-  signInWithRedirect,
-  getRedirectResult,
-  signInWithPopup,
-  GoogleAuthProvider,
-  signInWithCredential
-} from 'firebase/auth';
 import { UserContext } from '../App';
 import { useNotification } from '../components/NotificationSystem';
-import { Mail, User, Phone, Lock, X, Loader2 } from 'lucide-react';
+import { Mail, User, Lock, X, Loader2 } from 'lucide-react';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { refreshUser } = useContext(UserContext);
   const { notify } = useNotification();
 
-  const [viewState, setViewState] = useState<
-    'landing' | 'manual_email' | 'password' | 'register'
-  >('landing');
-
+  const [viewState, setViewState] = useState<'landing' | 'manual_email' | 'register'>('landing');
   const [loading, setLoading] = useState(false);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -32,301 +22,226 @@ const Login: React.FC = () => {
     mobile: '',
     dob: '',
     district: '',
-    country: 'India'
+    password: ''
   });
 
-  /* ==============================
-        GOOGLE LOGIN (FIXED)
-  ============================== */
+  // ------------------------------
+  // EMAIL + PASSWORD LOGIN FLOW
+  // ------------------------------
 
-  useEffect(() => {
-    getRedirectResult(auth)
-      .then(async (result) => {
-        if (!result?.user) return;
-
-        const gEmail = result.user.email || '';
-        if (!gEmail) return;
-
-        const exists = await Store.checkUserExists(gEmail);
-
-        if (exists) {
-          await Store.loginUser(exists);
-          await refreshUser();
-          navigate('/home');
-          notify('Logged in with Google', 'success');
-        } else {
-          setEmail(gEmail);
-          setFormData(prev => ({
-            ...prev,
-            name: result.user.displayName || '',
-            mobile: result.user.phoneNumber
-              ? result.user.phoneNumber.replace(/\D/g, '').slice(-10)
-              : ''
-          }));
-          setViewState('register');
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  const handleGoogleLogin = async () => {
-    try {
-      setLoading(true);
-
-      try {
-        const res = await signInWithPopup(auth, googleProvider);
-        await handleGoogleSuccess(res.user);
-      } catch (popupError: any) {
-        if (popupError.code === 'auth/popup-blocked') {
-          await signInWithRedirect(auth, googleProvider);
-        } else {
-          throw popupError;
-        }
-      }
-    } catch (error: any) {
-      notify(error.message || 'Google Sign-in failed', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleSuccess = async (gUser: any) => {
-    const gEmail = gUser.email || '';
-    if (!gEmail) return;
-
-    const exists = await Store.checkUserExists(gEmail);
-
-    if (exists) {
-      await Store.loginUser(exists);
-      await refreshUser();
-      navigate('/home');
-      notify('Logged in with Google', 'success');
-    } else {
-      setEmail(gEmail);
-      setFormData(prev => ({
-        ...prev,
-        name: gUser.displayName || '',
-        mobile: gUser.phoneNumber
-          ? gUser.phoneNumber.replace(/\D/g, '').slice(-10)
-          : ''
-      }));
-      setViewState('register');
-    }
-  };
-
-  /* ==============================
-        EMAIL CHECK
-  ============================== */
-
-  const handleEmailCheck = async () => {
-    if (!email.includes('@')) {
-      notify('Enter valid email', 'error');
+  const processEmailLogin = async () => {
+    if (!email) {
+      notify("Please enter a valid Email", 'error');
       return;
     }
 
-    setLoading(true);
-    const existingUser = await Store.checkUserExists(email);
-
-    if (existingUser) {
-      setViewState('password');
-    } else {
-      setViewState('register');
-    }
-
-    setLoading(false);
-  };
-
-  /* ==============================
-        PASSWORD LOGIN
-  ============================== */
-
-  const handlePasswordLogin = async () => {
     if (!password) {
-      notify('Password required', 'error');
+      notify("Please enter password", 'error');
       return;
     }
 
     setLoading(true);
-
     try {
-      const user = await Store.verifyUserPassword(email, password);
+      const existingUser = await Store.checkUserExists(email);
 
-      if (!user) {
-        notify('Invalid password', 'error');
-        return;
+      if (existingUser) {
+        if (existingUser.password === password) {
+          await Store.loginUser(existingUser);
+          await refreshUser();
+          notify(`Welcome back, ${existingUser.name}!`, 'success');
+          navigate('/home');
+        } else {
+          notify("Incorrect password", 'error');
+        }
+      } else {
+        // New user → Go to register
+        setViewState('register');
+        notify("New account! Please complete profile.", 'info');
       }
-
-      await Store.loginUser(user);
-      await refreshUser();
-      navigate('/home');
-    } catch {
-      notify('Login failed', 'error');
+    } catch (e) {
+      console.error(e);
+      notify("Login failed. Try again.", 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  /* ==============================
-        REGISTER
-  ============================== */
+  // ------------------------------
+  // REGISTER FLOW
+  // ------------------------------
 
   const handleRegister = async () => {
+    const { name, mobile, dob, district, password } = formData;
+
     const errors: string[] = [];
 
-    const passwordRegex =
-      /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&]).{6,}$/;
-
     if (!email) errors.push('Valid email');
-    if (!formData.name) errors.push('Full name');
-    if (!/^\d{10}$/.test(formData.mobile))
-      errors.push('10-digit mobile');
-    if (!passwordRegex.test(password))
-      errors.push(
-        'Password must contain letter, number & special character'
-      );
-    if (!formData.dob) errors.push('Date of birth');
-    if (!formData.district) errors.push('District');
+    if (!name) errors.push('Full name');
+    if (!/^\d{10}$/.test(mobile)) errors.push('10-digit mobile');
+    if (!password || !/(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&]).{6,}/.test(password)) {
+      errors.push('Password must contain letter, number and special character');
+    }
+    if (!dob) errors.push('Date of birth');
+    if (!district) errors.push('District');
 
-    if (errors.length) {
+    if (errors.length > 0) {
       notify(`Please provide: ${errors.join(', ')}`, 'error');
       return;
     }
 
     setLoading(true);
-
     try {
-      const newUser = await Store.registerUser({
+      const registeredUser = await Store.registerUser({
         email,
-        password,
         ...formData
       });
 
-      await Store.loginUser(newUser);
+      await Store.loginUser(registeredUser);
       await refreshUser();
+      notify("Registration Successful!", 'success');
       navigate('/home');
-      notify('Registration Successful', 'success');
-    } catch {
-      notify('Registration failed', 'error');
+    } catch (e) {
+      console.error(e);
+      notify("Registration Failed", 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  /* ==============================
-        UI
-  ============================== */
+  // ------------------------------
+  // UI
+  // ------------------------------
 
   return (
-    <Layout>
-      <div className="p-6 max-w-md mx-auto">
+    <Layout noPadding>
+      <div className="min-h-screen bg-white flex flex-col relative overflow-hidden dark:bg-gray-900 transition-colors">
 
+        {/* LANDING */}
         {viewState === 'landing' && (
-          <>
-            <button
-              onClick={handleGoogleLogin}
-              className="w-full bg-white border p-3 rounded-lg mb-4"
-            >
-              {loading ? <Loader2 className="animate-spin" /> : 'Continue with Google'}
-            </button>
+          <div className="flex-1 flex flex-col items-center justify-center p-8">
 
-            <button
-              onClick={() => setViewState('manual_email')}
-              className="text-blue-600"
-            >
-              Sign in with Email
-            </button>
-          </>
+            <div className="flex-1 flex flex-col items-center justify-center w-full select-none">
+              <div className="w-28 h-28 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl mb-8">
+                <span className="text-6xl font-black text-white">Z</span>
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Zearn App</h1>
+              <p className="text-gray-500 dark:text-gray-400 text-center max-w-xs">
+                Complete tasks, earn coins, and withdraw real rewards instantly.
+              </p>
+            </div>
+
+            <div className="w-full max-w-sm mb-12 space-y-4">
+
+              {/* Google button removed */}
+
+              <button
+                onClick={() => setViewState('manual_email')}
+                className="w-full bg-blue-600 text-white font-bold py-4 rounded-full shadow-lg hover:bg-blue-700 transition active:scale-95"
+              >
+                Sign in with Email
+              </button>
+            </div>
+          </div>
         )}
 
+        {/* EMAIL LOGIN */}
         {viewState === 'manual_email' && (
-          <>
-            <input
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border p-3 rounded mb-3"
-            />
-            <button
-              onClick={handleEmailCheck}
-              className="w-full bg-blue-600 text-white p-3 rounded"
-            >
-              Next
-            </button>
-          </>
+          <div className="p-8 flex flex-col items-center h-full">
+
+            <div className="w-full max-w-sm space-y-4">
+
+              {/* Email */}
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="email"
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl outline-none"
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+
+              {/* Password */}
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="password"
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl outline-none"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+
+              <button
+                onClick={processEmailLogin}
+                disabled={loading}
+                className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-700 transition"
+              >
+                {loading ? <Loader2 className="animate-spin mx-auto" /> : "Login"}
+              </button>
+            </div>
+          </div>
         )}
 
-        {viewState === 'password' && (
-          <>
-            <input
-              type="password"
-              placeholder="Enter Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border p-3 rounded mb-3"
-            />
-            <button
-              onClick={handlePasswordLogin}
-              className="w-full bg-blue-600 text-white p-3 rounded"
-            >
-              Login
-            </button>
-          </>
-        )}
-
+        {/* REGISTER */}
         {viewState === 'register' && (
-          <>
-            <input
-              placeholder="Full Name"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              className="w-full border p-3 rounded mb-3"
-            />
+          <div className="p-6 h-full overflow-y-auto bg-white dark:bg-gray-900">
 
-            <input
-              placeholder="Mobile"
-              value={formData.mobile}
-              onChange={(e) =>
-                setFormData({ ...formData, mobile: e.target.value })
-              }
-              className="w-full border p-3 rounded mb-3"
-            />
+            <div className="space-y-5 max-w-lg mx-auto">
 
-            <input
-              type="date"
-              value={formData.dob}
-              onChange={(e) =>
-                setFormData({ ...formData, dob: e.target.value })
-              }
-              className="w-full border p-3 rounded mb-3"
-            />
+              {/* Name */}
+              <input
+                placeholder="Full Name"
+                className="w-full p-3 border rounded-xl"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
 
-            <input
-              placeholder="District"
-              value={formData.district}
-              onChange={(e) =>
-                setFormData({ ...formData, district: e.target.value })
-              }
-              className="w-full border p-3 rounded mb-3"
-            />
+              {/* Mobile */}
+              <input
+                placeholder="Mobile"
+                className="w-full p-3 border rounded-xl"
+                value={formData.mobile}
+                onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+              />
 
-            <input
-              type="password"
-              placeholder="Create Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border p-3 rounded mb-4"
-            />
+              {/* Password */}
+              <input
+                type="password"
+                placeholder="Create Password"
+                className="w-full p-3 border rounded-xl"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              />
 
-            <button
-              onClick={handleRegister}
-              className="w-full bg-green-600 text-white p-3 rounded"
-            >
-              Register
-            </button>
-          </>
+              {/* DOB */}
+              <input
+                type="date"
+                className="w-full p-3 border rounded-xl"
+                value={formData.dob}
+                onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+              />
+
+              {/* District */}
+              <input
+                placeholder="District"
+                className="w-full p-3 border rounded-xl"
+                value={formData.district}
+                onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+              />
+
+              <button
+                onClick={handleRegister}
+                className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl"
+              >
+                Register
+              </button>
+            </div>
+          </div>
         )}
+
       </div>
     </Layout>
   );
