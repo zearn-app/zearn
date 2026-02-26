@@ -1,4 +1,4 @@
-
+import { ZipWriter, BlobWriter, TextReader } from "@zip.js/zip.js";
 import React, { useState, useContext, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
