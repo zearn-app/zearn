@@ -114,7 +114,7 @@ const Login: React.FC = () => {
         await Store.loginUser(existingUser);
         await refreshUser();
         notify(`Welcome back, ${existingUser.name}!`, "success");
-        navigate('/home');
+        navigate("/home", { replace: true });
       } else {
         setViewState('register');
         notify("New account! Complete profile.", "info");
@@ -165,7 +165,7 @@ const Login: React.FC = () => {
       await Store.loginUser(registeredUser);
       await refreshUser();
       notify("Registration Successful!", "success");
-      navigate('/home');
+      navigate("/home", { replace: true });
     } catch (e) {
       notify("Registration Failed", "error");
     } finally {
