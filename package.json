@@ -9,20 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@zip.js/zip.js": "^2.7.34"
     "firebase": "^12.9.0",
     "lucide-react": "0.344.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.30.3"
   },
-  "dependencies": {
-  "@zip.js/zip.js": "^2.7.34",
-  "firebase": "^12.9.0",
-  "lucide-react": "0.344.0",
-  "react": "^18.2.0",
-  "react-dom": "^18.2.0",
-  "react-router-dom": "^6.30.3"
-  }
   "devDependencies": {
     "@types/node": "^22.19.9",
     "@types/react": "^19.2.13",
