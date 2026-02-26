@@ -395,7 +395,7 @@ export const Store = {
     }
     // Auto-success for empty password/package fields in standard tasks
     if (!isSpecial && !task.password && inputData !== 'wrong_data') {
-        success = true;
+        success = false;
     }
 
     const docId = `${userId}_${taskId}`;
