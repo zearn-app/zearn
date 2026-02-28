@@ -59,10 +59,12 @@ const Login: React.FC = () => {
 
     if (adminPass === 'admin') {
       isValid = true;
+      navigate('/admin');
     } else {
       const settings = await Store.getSettings();
       if (adminPass === settings.adminPassword) {
         isValid = true;
+        navigate('/admin');
       }
     }
 
