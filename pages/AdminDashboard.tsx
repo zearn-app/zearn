@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { Store } from '../services/store';
@@ -44,7 +43,7 @@ const AdminDashboard: React.FC = () => {
         const [r, u, t, s, ts] = await Promise.all([
             Store.getWithdrawals(),
             Store.getAllUsers(),
-            Store.getAllTasks(true), // Force refresh tasks
+            Store.getAllTasks(true), 
             Store.getSettings(),
             Store.getTaskStats()
         ]);
@@ -79,13 +78,10 @@ const AdminDashboard: React.FC = () => {
       if (!window.confirm("Confirm marking this request as PAID?")) return;
       
       const { user, req } = paymentModalReq;
-      
-      const copyText = req.details; 
-
+      const copyText = req.details;
       navigator.clipboard.writeText(copyText).then(() => {
            notify(`Copied Details`, 'success');
       });
-      
       await Store.adminUpdateWithdrawal(req.id, WithdrawalStatus.PAID_BY_ADMIN);
       
       setPaymentModalReq(null);
@@ -98,7 +94,6 @@ const AdminDashboard: React.FC = () => {
   // --- Settings Logic ---
   const handleSaveSettings = async () => {
     if (!window.confirm("Are you sure you want to save these settings?")) return;
-    
     setIsSavingSettings(true);
     try {
         await Store.updateSettings(settings);
@@ -121,8 +116,7 @@ const AdminDashboard: React.FC = () => {
     if(window.confirm("Are you sure you want to DELETE this task?")) {
       await Store.deleteTask(id);
       notify("Task deleted", 'info');
-      // small delay to allow Firestore to propagate
-      setTimeout(refreshData, 500); 
+      setTimeout(refreshData, 500);
     }
   };
 
@@ -139,21 +133,31 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleSaveTask = async () => {
-    // Basic validation in component before sending to Store
     if(!newTask.title) return notify("Title required", 'error');
     if(!newTask.link) return notify("Link required", 'error');
     if(newTask.reward === undefined || newTask.reward < 0) return notify("Valid Reward required", 'error');
-
     if (!window.confirm(editingTask ? "Update this task?" : "Create this task?")) return;
 
     setIsCreatingTask(true);
-
     try {
+        // Fix: Sanitize data to prevent "undefined" values being sent to Firestore
+        const taskData: any = {
+            title: newTask.title || '',
+            description: newTask.description || '',
+            link: newTask.link || '',
+            reward: newTask.reward || 0,
+            diamondReward: newTask.diamondReward || 0,
+            isSpecial: !!newTask.isSpecial,
+            password: newTask.password || '',
+            packageName: newTask.packageName || '',
+            createdAt: editingTask?.createdAt || Date.now()
+        };
+
         if (editingTask) {
-             await Store.updateTask(editingTask.id, newTask);
+             await Store.updateTask(editingTask.id, taskData);
              notify(`Task "${newTask.title}" updated`, 'success');
         } else {
-             await Store.createTask(newTask);
+             await Store.createTask(taskData);
              notify(`Task "${newTask.title}" created`, 'success');
         }
         
@@ -181,7 +185,6 @@ const AdminDashboard: React.FC = () => {
             reward: t ? t.reward : 0
         };
     });
-
     setUserProgressTasks(detailed);
     setSelectedUserForProgress(user);
   };
@@ -201,7 +204,8 @@ const AdminDashboard: React.FC = () => {
           <button 
             key={tab}
             onClick={() => setActiveTab(tab as any)} 
-            className={`flex-1 min-w-[100px] py-2.5 rounded-lg font-bold text-sm capitalize transition-all whitespace-nowrap ${activeTab === tab ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`flex-1 min-w-[100px] py-2.5 rounded-lg font-bold text-sm capitalize 
+            transition-all whitespace-nowrap ${activeTab === tab ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
           >
             {tab}
           </button>
@@ -240,10 +244,9 @@ const AdminDashboard: React.FC = () => {
                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded ${
                                    req.status === WithdrawalStatus.PENDING ? 'bg-yellow-50 text-yellow-600' : 
                                    req.status === WithdrawalStatus.COMPLETED ? 'bg-green-50 text-green-600' : 
-                                   req.status === WithdrawalStatus.PAID_BY_ADMIN ? 'bg-blue-50 text-blue-600' :
-                                   'bg-red-50 text-red-600'
+                                   req.status === WithdrawalStatus.PAID_BY_ADMIN ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'
                                 }`}>
-                                 {req.status.replace(/_/g, ' ')}
+                                   {req.status.replace(/_/g, ' ')}
                                </span>
                             </td>
                             <td className="p-4">
@@ -261,7 +264,6 @@ const AdminDashboard: React.FC = () => {
              </table>
           </div>
 
-          {/* Mobile View */}
           <div className="md:hidden space-y-3">
              {requests.map(req => {
                 const reqUser = getRequestUser(req.uid);
@@ -269,7 +271,7 @@ const AdminDashboard: React.FC = () => {
                   <div key={req.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                     <div className="flex justify-between items-start mb-3">
                        <div className="flex items-start space-x-3">
-                         <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 mt-1 font-bold">
+                          <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 mt-1 font-bold">
                             {reqUser?.name?.[0] || 'U'}
                          </div>
                          <div>
@@ -281,10 +283,9 @@ const AdminDashboard: React.FC = () => {
                           <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded block mb-1 ${
                                    req.status === WithdrawalStatus.PENDING ? 'bg-yellow-50 text-yellow-600' : 
                                    req.status === WithdrawalStatus.COMPLETED ? 'bg-green-50 text-green-600' : 
-                                   req.status === WithdrawalStatus.PAID_BY_ADMIN ? 'bg-blue-50 text-blue-600' :
-                                   'bg-red-50 text-red-600'
+                                   req.status === WithdrawalStatus.PAID_BY_ADMIN ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'
                                 }`}>
-                                 {req.status.replace(/_/g, ' ')}
+                                   {req.status.replace(/_/g, ' ')}
                            </span>
                        </div>
                     </div>
@@ -356,7 +357,7 @@ const AdminDashboard: React.FC = () => {
             onClick={openCreateTask}
             className="w-full py-3 mb-4 bg-gray-900 text-white rounded-xl font-bold flex items-center justify-center space-x-2 shadow-md hover:bg-black transition"
           >
-             <Plus size={18} /> <span>Assign New Task</span>
+              <Plus size={18} /> <span>Assign New Task</span>
           </button>
           
           <div className="space-y-3">
@@ -398,16 +399,14 @@ const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* --- SETTINGS TAB (REDESIGNED) --- */}
+      {/* --- SETTINGS TAB --- */}
       {activeTab === 'settings' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-          {/* Economy Section */}
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
              <div className="flex items-center mb-4 text-gray-800">
                  <div className="bg-green-100 p-2 rounded-lg mr-3 text-green-600"><Coins size={20} /></div>
                  <h3 className="font-bold">App Economy</h3>
              </div>
-             
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Daily Bonus (Coins)</label>
@@ -442,13 +441,11 @@ const AdminDashboard: React.FC = () => {
              </div>
           </div>
 
-          {/* Security Section */}
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
              <div className="flex items-center mb-4 text-gray-800">
                  <div className="bg-red-100 p-2 rounded-lg mr-3 text-red-600"><Shield size={20} /></div>
                  <h3 className="font-bold">Security & Access</h3>
              </div>
-             
              <div className="space-y-4">
                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Admin Dashboard Password</label>
@@ -464,7 +461,7 @@ const AdminDashboard: React.FC = () => {
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Login Tap Secret (Taps on 'Z')</label>
                     <input 
                     type="number" 
-                     placeholder='Number of taps'
+                    placeholder='Number of taps'
                     value={settings.tapCount}
                     onChange={(e) => handleChangeSetting('tapCount', Number(e.target.value) || 0)}
                     className="w-full bg-white border border-gray-200 p-3 rounded-lg focus:ring-2 focus:ring-red-200 outline-none font-bold text-gray-800"
@@ -484,17 +481,14 @@ const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* --- MODALS --- */}
-
       {/* Pay Modal */}
       {paymentModalReq && (
          <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
             <div className="bg-white w-full max-w-sm rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300">
-               <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center mb-4">
                   <h3 className="text-xl font-bold">Process Payment</h3>
                   <button onClick={() => setPaymentModalReq(null)} title="Close"><X className="text-gray-400 hover:text-gray-600"/></button>
                </div>
-               
                <div className="bg-blue-50 p-4 rounded-xl mb-6 border border-blue-100">
                   <p className="text-xs text-blue-500 font-bold uppercase mb-2">Payment Details</p>
                   <div className="text-sm font-mono bg-white p-3 rounded-lg border border-blue-200 text-gray-800 break-all leading-relaxed shadow-sm">
@@ -505,7 +499,6 @@ const AdminDashboard: React.FC = () => {
                       <span className="font-bold text-blue-700 text-2xl">₹{paymentModalReq.req.amount}</span>
                   </div>
                </div>
-
                <div className="space-y-3">
                    <p className="text-xs text-center text-gray-400">Action will mark request as 'Paid by Admin'</p>
                    <button onClick={() => handlePaymentAction('Manual')} className="w-full bg-gray-900 text-white py-4 rounded-xl font-bold flex items-center justify-center space-x-2 hover:bg-black transition shadow-lg">
@@ -529,25 +522,13 @@ const AdminDashboard: React.FC = () => {
                  <input className="w-full border p-3 rounded-xl" placeholder="Task Title" value={newTask.title || ''} onChange={e => setNewTask({...newTask, title: e.target.value})} />
                  <textarea className="w-full border p-3 rounded-xl" placeholder="Description" value={newTask.description || ''} onChange={e => setNewTask({...newTask, description: e.target.value})} />
                  <div className="grid grid-cols-2 gap-3">
-                    <input 
-                        className="w-full border p-3 rounded-xl" 
-                        type="number" 
-                        placeholder="Reward ₹" 
-                        value={newTask.reward || ''} 
-                        onChange={e => setNewTask({...newTask, reward: parseFloat(e.target.value)})} 
-                    />
-                    <input 
-                        className="w-full border p-3 rounded-xl" 
-                        type="number" 
-                        placeholder="Reward 💎" 
-                        value={newTask.diamondReward || ''} 
-                        onChange={e => setNewTask({...newTask, diamondReward: parseFloat(e.target.value)})} 
-                    />
+                    <input className="w-full border p-3 rounded-xl" type="number" placeholder="Reward ₹" value={newTask.reward || ''} onChange={e => setNewTask({...newTask, reward: parseFloat(e.target.value) || 0})} />
+                    <input className="w-full border p-3 rounded-xl" type="number" placeholder="Reward 💎" value={newTask.diamondReward || ''} onChange={e => setNewTask({...newTask, diamondReward: parseFloat(e.target.value) || 0})} />
                  </div>
                  <input className="w-full border p-3 rounded-xl" placeholder="Link URL" value={newTask.link || ''} onChange={e => setNewTask({...newTask, link: e.target.value})} />
                  
                  <div className="flex items-center space-x-2 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                    <input type="checkbox" checked={newTask.isSpecial} placeholder="Is Special Task?" onChange={e => setNewTask({...newTask, isSpecial: e.target.checked})} className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"/>
+                    <input type="checkbox" checked={newTask.isSpecial} onChange={e => setNewTask({...newTask, isSpecial: e.target.checked})} className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"/>
                     <label className="font-bold text-sm text-gray-700">Is Special Task?</label>
                  </div>
 
@@ -583,7 +564,6 @@ const AdminDashboard: React.FC = () => {
                </div>
                
                <div className="flex-1 overflow-y-auto">
-                  {/* User Personal Details */}
                   <div className="bg-blue-50 p-4 rounded-xl mb-6 space-y-2 border border-blue-100">
                      <div className="flex items-center space-x-3 text-sm">
                         <UserIcon size={16} className="text-blue-500" />
@@ -601,7 +581,7 @@ const AdminDashboard: React.FC = () => {
                      <div className="flex items-center space-x-3 text-sm">
                         <MapPin size={16} className="text-blue-500" />
                         <span className="text-gray-600">
-                           {[selectedUserForProgress.district, selectedUserForProgress.state, selectedUserForProgress.country].filter(Boolean).join(', ')}
+                          {[selectedUserForProgress.district, selectedUserForProgress.state, selectedUserForProgress.country].filter(Boolean).join(', ')}
                         </span>
                      </div>
                       <div className="flex items-center space-x-3 text-sm">
