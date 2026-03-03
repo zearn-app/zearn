@@ -89,10 +89,6 @@ if (!task.password) {
 throw new Error("Task password not configured");
 }
 
-/* ============================= */
-/* ✅ NEW ZIP NAME VALIDATION */
-/* ============================= */
-
 if (!task.expectedZipName) {
 throw new Error("Expected ZIP name not configured");
 }
@@ -100,10 +96,6 @@ throw new Error("Expected ZIP name not configured");
 if (fileSelected.name !== task.expectedZipName) {
 throw new Error("Wrong ZIP filename");
 }
-
-/* ============================= */
-/* ✅ ZIP PASSWORD CHECK */
-/* ============================= */
 
 const reader = new ZipReader(
 new BlobReader(fileSelected),
@@ -116,10 +108,6 @@ if (entries.length === 0) {
 throw new Error("Zip extraction failed");
 }
 
-/* ============================= */
-/* ✅ INTERNAL FILE NAME CHECK */
-/* ============================= */
-
 if (!task.expectedInnerFileName) {
 throw new Error("Expected inner filename not configured");
 }
@@ -130,9 +118,7 @@ if (!innerFile) {
 throw new Error("Wrong internal file");
 }
 
-/* Try extracting to validate password */
 await innerFile.getData(new TextWriter());
-
 await reader.close();
 }
 
@@ -148,9 +134,35 @@ task.isSpecial
 );
 
 if (result.success) {
+
+/* ===================================================== */
+/* ✅ NEW REWARD UPDATE INSERTED (NO LOGIC CHANGED) */
+/* ===================================================== */
+
+const rewardAmount = task.reward || 0;
+
+const updatedData: any = {
+balance: (user.balance || 0) + rewardAmount,
+lifetimeEarnings: (user.lifetimeEarnings || 0) + rewardAmount,
+noOfTodayTask: (user.noOfTodayTask || 0) + 1
+};
+
+if (task.isSpecial) {
+updatedData.diamond = (user.diamond || 0) + 1;
+updatedData.lifetimeDiamond = (user.lifetimeDiamond || 0) + 1;
+} else {
+updatedData.gold = (user.gold || 0) + 1;
+updatedData.lifetimeGold = (user.lifetimeGold || 0) + 1;
+}
+
+await Store.updateUser(user.uid, updatedData);
+
+/* ===================================================== */
+
 notify(result.message || "Verification successful! Reward added.", "success");
 refreshUser();
 navigate('/tasks/' + (task.isSpecial ? 'special' : 'standard'));
+
 } else {
 throw new Error(result.message);
 }
