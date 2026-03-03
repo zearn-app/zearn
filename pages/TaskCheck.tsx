@@ -7,7 +7,6 @@ import { Task, TaskStatus } from '../types';
 import { Upload, Check, AlertCircle, FileArchive, Smartphone, Info, Clock } from 'lucide-react';
 import { useNotification } from '../components/NotificationSystem';
 
-// ✅ Added ZIP extraction library
 import { ZipReader, BlobReader, TextWriter } from "@zip.js/zip.js";
 
 const TaskCheck: React.FC = () => {
@@ -20,8 +19,6 @@ const [task, setTask] = useState<Task | null>(null);
 const [fileSelected, setFileSelected] = useState<File | null>(null);
 const [status, setStatus] = useState<TaskStatus>(TaskStatus.IN_PROCESS);
 const [isVerifying, setIsVerifying] = useState(false);
-
-// Timer State
 const [timeLeft, setTimeLeft] = useState(0);
 
 useEffect(() => {
@@ -32,6 +29,7 @@ const spc = await Store.getTasks(true);
 const allTasks = [...std, ...spc];
 const t = allTasks.find(t => t.id === taskId);
 setTask(t || null);
+
 const userTasks = await Store.getUserTasks(user.uid);
 const ut = userTasks.find(ut => ut.taskId === taskId);
 if(ut) setStatus(ut.status);
@@ -40,7 +38,6 @@ if(ut) setStatus(ut.status);
 fetchTaskInfo();
 }, [user, taskId]);
 
-// Timer Effect
 useEffect(() => {
 if (timeLeft > 0) {
 const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
@@ -51,23 +48,32 @@ return () => clearTimeout(timer);
 const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 if (e.target.files && e.target.files[0]) {
 const file = e.target.files[0];
-// Basic Validation
+
 if (task?.isSpecial) {
-if (!file.name.endsWith('.apk')) { notify("Only .apk files allowed", 'error'); return; }
-} else {
-if (!file.name.endsWith('.zip')) { notify("Only .zip files allowed", 'error'); return; }
+if (!file.name.endsWith('.apk')) {
+notify("Only .apk files allowed", 'error');
+return;
 }
+} else {
+if (!file.name.endsWith('.zip')) {
+notify("Only .zip files allowed", 'error');
+return;
+}
+}
+
 setFileSelected(file);
-setTimeLeft(10); // Start 10s timer on upload
+setTimeLeft(10);
 }
 };
 
-
-
-// ✅ UPDATED HANDLE CHECK (Only logic changed here)
 const handleCheck = async () => {
 if (!user || !task || !fileSelected) {
 notify("Please upload the required file", "error");
+return;
+}
+
+if (status === TaskStatus.FAILED) {
+notify("This task is already failed and cannot be retried.", "error");
 return;
 }
 
@@ -75,15 +81,29 @@ setIsVerifying(true);
 
 try {
 
-// Simulate small delay (kept your behavior style)
 await new Promise(r => setTimeout(r, 2000));
 
-// Only for ZIP tasks
 if (!task.isSpecial) {
 
 if (!task.password) {
 throw new Error("Task password not configured");
 }
+
+/* ============================= */
+/* ✅ NEW ZIP NAME VALIDATION */
+/* ============================= */
+
+if (!task.expectedZipName) {
+throw new Error("Expected ZIP name not configured");
+}
+
+if (fileSelected.name !== task.expectedZipName) {
+throw new Error("Wrong ZIP filename");
+}
+
+/* ============================= */
+/* ✅ ZIP PASSWORD CHECK */
+/* ============================= */
 
 const reader = new ZipReader(
 new BlobReader(fileSelected),
@@ -96,13 +116,30 @@ if (entries.length === 0) {
 throw new Error("Zip extraction failed");
 }
 
-// Try extracting first file to validate password
-await entries[0].getData(new TextWriter());
+/* ============================= */
+/* ✅ INTERNAL FILE NAME CHECK */
+/* ============================= */
+
+if (!task.expectedInnerFileName) {
+throw new Error("Expected inner filename not configured");
+}
+
+const innerFile = entries.find(e => e.filename === task.expectedInnerFileName);
+
+if (!innerFile) {
+throw new Error("Wrong internal file");
+}
+
+/* Try extracting to validate password */
+await innerFile.getData(new TextWriter());
 
 await reader.close();
 }
 
-// If extraction success → call original Store.verifyTask
+/* ============================= */
+/* ORIGINAL STORE VERIFY */
+/* ============================= */
+
 const result = await Store.verifyTask(
 user.uid,
 task.id,
@@ -121,20 +158,26 @@ throw new Error(result.message);
 } catch (err) {
 
 setStatus(TaskStatus.FAILED);
+
+await Store.verifyTask(
+user.uid,
+task.id,
+"failed",
+task.isSpecial
+);
+
 notify("Verification failed. Wrong file or password.", "error");
 refreshUser();
-
 }
 
 setIsVerifying(false);
 };
 
-
-
 if (!task) return <Layout>Loading...</Layout>;
 
 return (
 <Layout>
+
 <div className="bg-gray-900 rounded-2xl p-6 text-white text-center mb-6 shadow-md">
 <h2 className="text-xl font-bold mb-2">
 {task.isSpecial ? "Upload .APK File" : "Upload .ZIP File"}
@@ -153,6 +196,7 @@ return (
 </div>
 
 <div className="space-y-6">
+
 {status === TaskStatus.FAILED && (
 <div className="bg-red-50 p-4 rounded-xl border border-red-200 text-center animate-in fade-in slide-in-from-top-4">
 <AlertCircle className="mx-auto text-red-500 mb-2" />
@@ -162,12 +206,15 @@ return (
 )}
 
 {status === TaskStatus.COMPLETED ? (
+
 <div className="text-center p-10 bg-green-50 rounded-2xl border border-green-200">
 <Check className="mx-auto text-green-600 w-16 h-16 mb-4" />
 <h3 className="text-green-800 font-bold text-xl">Completed</h3>
 <p className="text-green-600 text-sm mt-2">Rewards added to wallet.</p>
 </div>
+
 ) : (
+
 status !== TaskStatus.FAILED && (
 <>
 <div className={`border-2 border-dashed rounded-2xl p-10 text-center transition-all relative overflow-hidden ${fileSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'}`}>
@@ -219,6 +266,7 @@ isVerifying || !fileSelected || timeLeft > 0
 </>
 )
 )}
+
 </div>
 </Layout>
 );
