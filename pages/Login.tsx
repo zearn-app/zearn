@@ -136,7 +136,6 @@ const Login: React.FC = () => {
 
   const handleRegister = async () => {
     const { name, mobile, dob, district, password } = formData;
-
     const errors: string[] = [];
 
     if (!email) errors.push('Valid email');
@@ -179,106 +178,187 @@ const Login: React.FC = () => {
     }
   };
 
-  /* ================= UI ================= */
-
   return (
     <Layout noPadding>
       <div className="min-h-screen bg-white flex flex-col relative overflow-hidden dark:bg-gray-900 transition-colors">
-
-        {/* ===== ADMIN PASSWORD DIALOG ADDED HERE ===== */}
         {showAdminDialog && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl w-80 shadow-2xl relative">
+  <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl w-80 shadow-2xl relative">
 
-              <button
-                onClick={() => setShowAdminDialog(false)}
-                className="absolute top-3 right-3"
-              >
-                <X size={20} />
-              </button>
+      <button
+        onClick={() => setShowAdminDialog(false)}
+        className="absolute top-3 right-3"
+      >
+        <X size={20} />
+      </button>
 
-              <h2 className="text-lg font-bold mb-4 text-center dark:text-white">
-                Admin Login
+      <h2 className="text-lg font-bold mb-4 text-center dark:text-white">
+        Admin Login
+      </h2>
+
+      <input
+        type="password"
+        placeholder="Enter Admin Password"
+        className="w-full p-3 border rounded-xl mb-4"
+        value={adminPass}
+        onChange={(e) => setAdminPass(e.target.value)}
+      />
+
+      <button
+        onClick={handleAdminLogin}
+        disabled={loading}
+        className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl"
+      >
+        {loading ? <Loader2 className="animate-spin mx-auto" /> : "Login"}
+      </button>
+    </div>
+  </div>
+)}
+        {/* ================= REGISTER PAGE UI ================= */}
+        {viewState === 'register' && (
+          <div className="flex-1 flex flex-col justify-center items-center p-8">
+            <div className="w-full max-w-sm space-y-4">
+
+              <h2 className="text-2xl font-bold text-center dark:text-white">
+                Complete Your Profile
               </h2>
 
               <input
-                type="password"
-                placeholder="Enter Admin Password"
-                className="w-full p-3 border rounded-xl mb-4"
-                value={adminPass}
-                onChange={(e) => setAdminPass(e.target.value)}
+                type="text"
+                placeholder="Full Name"
+                className="w-full p-4 border rounded-xl"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
               />
 
-              <button
-                onClick={handleAdminLogin}
-                disabled={loading}
-                className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl"
-              >
-                {loading ? <Loader2 className="animate-spin mx-auto" /> : "Login"}
-              </button>
-            </div>
-          </div>
-        )}
-        {/* ===== END ADMIN DIALOG ===== */}
-
-        {/* YOUR EXISTING UI BELOW (UNCHANGED) */}
-
-        {viewState === 'landing' && (
-          <div className="flex-1 flex flex-col items-center justify-center p-8">
-
-            <div className="flex-1 flex flex-col items-center justify-center w-full select-none">
-              <div
-                onClick={handleLogoTap}
-                className="w-28 h-28 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl mb-8 cursor-pointer active:scale-95 transition-transform"
-              >
-                <span className="text-6xl font-black text-white">Z</span>
-              </div>
-
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                Zearn App
-              </h1>
-              <p className="text-gray-500 dark:text-gray-400 text-center max-w-xs">
-                Complete tasks, earn coins, and withdraw real rewards instantly.
-              </p>
-            </div>
-
-            <div className="w-full max-w-sm mb-12 space-y-4">
+              <input
+                type="text"
+                placeholder="Mobile (10 digits)"
+                className="w-full p-4 border rounded-xl"
+                value={formData.mobile}
+                onChange={(e) =>
+                  setFormData({ ...formData, mobile: e.target.value })
+                }
+              />
 
               <input
-                type="email"
-                placeholder="Email"
+                type="date"
                 className="w-full p-4 border rounded-xl"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.dob}
+                onChange={(e) =>
+                  setFormData({ ...formData, dob: e.target.value })
+                }
+              />
+
+              <input
+                type="text"
+                placeholder="District"
+                className="w-full p-4 border rounded-xl"
+                value={formData.district}
+                onChange={(e) =>
+                  setFormData({ ...formData, district: e.target.value })
+                }
               />
 
               <div className="relative">
                 <input
-                  type={showLoginPassword ? "text" : "password"}
-                  placeholder="Password"
+                  type={showRegisterPassword ? "text" : "password"}
+                  placeholder="Create Password"
                   className="w-full p-4 border rounded-xl pr-12"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
                 />
                 <button
                   type="button"
-                  onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  onClick={() =>
+                    setShowRegisterPassword(!showRegisterPassword)
+                  }
                   className="absolute right-4 top-1/2 -translate-y-1/2"
                 >
-                  {showLoginPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showRegisterPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
 
               <button
-                onClick={processEmailLogin}
+                onClick={handleRegister}
                 disabled={loading}
                 className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl"
               >
-                {loading ? <Loader2 className="animate-spin mx-auto" /> : "Login"}
+                {loading ? <Loader2 className="animate-spin mx-auto" /> : "Register"}
               </button>
+
+              <button
+                onClick={() => setViewState('landing')}
+                className="w-full text-sm text-gray-500 underline"
+              >
+                Back to Login
+              </button>
+
             </div>
           </div>
         )}
+        {/* ================= END REGISTER UI ================= */}
+
+        {viewState === 'landing' && (
+  <div className="flex-1 flex flex-col items-center justify-center p-8">
+
+    <div className="flex-1 flex flex-col items-center justify-center w-full select-none">
+      <div
+        onClick={handleLogoTap}
+        className="w-28 h-28 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl mb-8 cursor-pointer active:scale-95 transition-transform"
+      >
+        <span className="text-6xl font-black text-white">Z</span>
+      </div>
+
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        Zearn App
+      </h1>
+      <p className="text-gray-500 dark:text-gray-400 text-center max-w-xs">
+        Complete tasks, earn coins, and withdraw real rewards instantly.
+      </p>
+    </div>
+
+    <div className="w-full max-w-sm mb-12 space-y-4">
+
+      <input
+        type="email"
+        placeholder="Email"
+        className="w-full p-4 border rounded-xl"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+
+      <div className="relative">
+        <input
+          type={showLoginPassword ? "text" : "password"}
+          placeholder="Password"
+          className="w-full p-4 border rounded-xl pr-12"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button
+          type="button"
+          onClick={() => setShowLoginPassword(!showLoginPassword)}
+          className="absolute right-4 top-1/2 -translate-y-1/2"
+        >
+          {showLoginPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+        </button>
+      </div>
+
+      <button
+        onClick={processEmailLogin}
+        disabled={loading}
+        className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl"
+      >
+        {loading ? <Loader2 className="animate-spin mx-auto" /> : "Login"}
+      </button>
+    </div>
+  </div>
+)}
 
       </div>
     </Layout>
