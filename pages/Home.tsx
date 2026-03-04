@@ -21,10 +21,21 @@ const Home: React.FC = () => {
 
   const handleDailyClaim = async () => {
     if (!user) return;
+
+    /* ========================= */
+    /* ✅ NEW CONDITION INSERTED */
+    /* ========================= */
+    if ((user.noOfTodayTask || 0) < 5) {
+        notify("Complete 5 tasks today to unlock Daily Bonus.", 'info');
+        return;
+    }
+    /* ========================= */
+
     if (claimedToday) {
         notify("Already claimed today! Come back tomorrow.", 'info');
         return;
     }
+
     try {
       const result = await Store.claimDaily(user.uid);
       if (result.success) {
@@ -70,7 +81,6 @@ const Home: React.FC = () => {
 
   return (
     <Layout>
-      {/* Header Override for Settings Icon */}
       <div className="absolute top-4 right-4 z-20">
          <button 
             type="button"
@@ -82,7 +92,6 @@ const Home: React.FC = () => {
          </button>
       </div>
 
-      {/* Balance Card */}
       <div className="bg-gray-900 rounded-2xl p-6 text-white shadow-xl mb-6 relative overflow-hidden max-w-3xl mx-auto border border-gray-800 mt-2">
         <div className="relative z-10 flex justify-between items-start">
             <div>
@@ -93,24 +102,20 @@ const Home: React.FC = () => {
                 </div>
                 
                 <div className="mt-4 flex items-center space-x-3">
+                    <div className="inline-flex items-center space-x-2 bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700">
+                        <Zap size={14} className="text-yellow-400" />
+                        <span className="text-sm font-bold text-yellow-200">
+                            {user?.gold || 0} Gold
+                        </span>
+                    </div>
 
-    {/* Gold */}
-    <div className="inline-flex items-center space-x-2 bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700">
-        <Zap size={14} className="text-yellow-400" />
-        <span className="text-sm font-bold text-yellow-200">
-            {user?.gold || 0} Gold
-        </span>
-    </div>
-
-    {/* Diamond */}
-    <div className="inline-flex items-center space-x-2 bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700">
-        <Gem size={14} className="text-cyan-400" />
-        <span className="text-sm font-bold text-cyan-100">
-            {user?.diamond || 0} Diamonds
-        </span>
-    </div>
-
-</div>
+                    <div className="inline-flex items-center space-x-2 bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700">
+                        <Gem size={14} className="text-cyan-400" />
+                        <span className="text-sm font-bold text-cyan-100">
+                            {user?.diamond || 0} Diamonds
+                        </span>
+                    </div>
+                </div>
             </div>
             
             <div className="bg-gradient-to-br from-blue-600 to-blue-800 px-4 py-2 rounded-xl shadow-lg border border-blue-500/30">
@@ -119,11 +124,9 @@ const Home: React.FC = () => {
             </div>
         </div>
         
-        {/* Background Decorations */}
         <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-blue-600/20 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Referral Banner */}
       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-4 mb-6 text-white flex justify-between items-center shadow-md relative overflow-hidden">
           <div className="z-10">
               <h3 className="font-bold text-lg">Refer & Earn ₹50</h3>
@@ -138,7 +141,6 @@ const Home: React.FC = () => {
           <div className="absolute -left-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
       </div>
 
-      {/* Grid Menu */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
         {menuItems.map((item, idx) => (
           <Card 
