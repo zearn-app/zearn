@@ -92,10 +92,25 @@ const Home: React.FC = () => {
                     <h1 className="text-5xl font-black tracking-tighter">{user?.balance}</h1>
                 </div>
                 
-                <div className="mt-4 inline-flex items-center space-x-2 bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700">
-                    <Gem size={14} className="text-cyan-400" />
-                    <span className="text-sm font-bold text-cyan-100">{user?.diamonds} Diamonds</span>
-                </div>
+                <div className="mt-4 flex items-center space-x-3">
+
+    {/* Gold */}
+    <div className="inline-flex items-center space-x-2 bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700">
+        <Zap size={14} className="text-yellow-400" />
+        <span className="text-sm font-bold text-yellow-200">
+            {user?.gold || 0} Gold
+        </span>
+    </div>
+
+    {/* Diamond */}
+    <div className="inline-flex items-center space-x-2 bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-700">
+        <Gem size={14} className="text-cyan-400" />
+        <span className="text-sm font-bold text-cyan-100">
+            {user?.diamond || 0} Diamonds
+        </span>
+    </div>
+
+</div>
             </div>
             
             <div className="bg-gradient-to-br from-blue-600 to-blue-800 px-4 py-2 rounded-xl shadow-lg border border-blue-500/30">
