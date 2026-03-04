@@ -152,7 +152,9 @@ const AdminDashboard: React.FC = () => {
 await Store.updateTask(editingTask.id, taskData);
 notify(`Task "${newTask.title}" updated`, 'success');
 
-  User Logic ---
+  // =====================
+// User Logic
+// =====================
   const handleViewProgress = async (user: User) => {
     const progress = await Store.getUserTasks(user.uid);
     const allTasks = await Store.getAllTasks();
