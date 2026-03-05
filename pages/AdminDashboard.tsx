@@ -395,7 +395,9 @@ notify(`Task "${newTask.title}" updated`, 'success');
                     />
                 </div>
                 <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">
-                    <  xt-xs font-mono max-w-xs truncate" title={req.details}>{req.details}</td>
+                    <td className="text-xs font-mono max-w-xs truncate" title={req.details}>
+  {req.details}
+</td>
                             <td className="p-4">
                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded ${
                                    req.status === WithdrawalStatus.PENDING ? 'bg-yellow-50 text-yellow-600' : 
