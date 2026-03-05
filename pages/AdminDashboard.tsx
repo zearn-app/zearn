@@ -287,7 +287,7 @@ notify(`Task "${newTask.title}" updated`, 'success');
         </div>
       )}
 
-      {/* --- USERS TAB --- */}
+      {/* --- USERS TaB --- */}
       {activeTab === 'users' && (
         <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
           <div className="bg-blue-50 p-4 rounded-xl text-blue-800 text-sm font-medium mb-2 border border-blue-100 flex justify-between items-center">
