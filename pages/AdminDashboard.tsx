@@ -394,21 +394,22 @@ notify(`Task "${newTask.title}" updated`, 'success');
                     className="w-full bg-white border border-gray-200 p-3 rounded-lg focus:ring-2 focus:ring-green-200 outline-none font-bold text-gray-800"
                     />
                 </div>
-                <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">
-                    <td className="text-xs font-mono max-w-xs truncate" title={req.details}>
-  {req.details}
-</td>
-                            <td className="p-4">
-                               <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded ${
-                                   req.status === WithdrawalStatus.PENDING ? 'bg-yellow-50 text-yellow-600' : 
-                                   req.status === WithdrawalStatus.COMPLETED ? 'bg-green-50 text-green-600' : 
-                                   req.status === WithdrawalStatus.PAID_BY_ADMIN ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'
-                                }`}>
-                                   {req.status.replace(/_/g, ' ')}
-                               </span>
-                            </td>
-                            <td className="p-4">
-                                {req.status === WithdrawalStatus.PENDING && (
+                <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">  
+                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">
+  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">
+    Min Withdrawal (₹)
+  </label>
+  <input
+    type="number"
+    placeholder="50"
+    value={settings.minWithdrawal}
+    onChange={(e) =>
+      handleChangeSetting("minWithdrawal", Number(e.target.value) || 0)
+    }
+    className="w-full bg-white border border-gray-200 p-3 rounded-lg"
+  />
+</div>
+                  {req.status === WithdrawalStatus.PENDING && (
                                      <div className="flex space-x-2">
                                         <button onClick={() => initiatePayment(req)} className="bg-gray-900 text-white p-2 rounded-lg hover:bg-black" title="Process Payment"><CreditCard size={14}/></button>
                                         <button onClick={() => handleUpdateStatus(req.id, WithdrawalStatus.REJECTED)} className="bg-red-50 text-red-600 p-2 rounded-lg hover:bg-red-100" title="Reject"><X size={14}/></button>
