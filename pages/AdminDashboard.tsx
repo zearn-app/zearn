@@ -150,7 +150,8 @@ const AdminDashboard: React.FC = () => {
         if (!editingTask) return;
 
 await Store.updateTask(editingTask.id, taskData);
-notify(`Task "${newTask.title}" updated`, 'success'); }
+notify(`Task "${newTask.title}" updated`, 'success'); 
+    };
 
   // =====================
 // User Logic
