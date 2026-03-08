@@ -147,11 +147,13 @@ const AdminDashboard: React.FC = () => {
             createdAt: editingTask?.createdAt || Date.now()
         };
 
-        if (!editingTask) return;
-
-await Store.updateTask(editingTask.id, taskData);
-notify(`Task "${newTask.title}" updated`, 'success'); 
-    };
+        try {
+  await Store.updateTask(editingTask.id, taskData);
+  notify(`Task "${newTask.title}" updated`, 'success');
+} catch (error) {
+  console.error(error);
+  notify('Failed to update task', 'error');
+        }
 
   // =====================
 // User Logic
