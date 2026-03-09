@@ -46,11 +46,15 @@ password:"",
 expectedInnerFileName:""
 })
 
+////////////////////////////////////////////////////
+
 useEffect(()=>{
 loadAll()
 },[])
 
-//////////////// LOAD DATA //////////////////
+////////////////////////////////////////////////////
+//////////////// LOAD DATA /////////////////////////
+////////////////////////////////////////////////////
 
 const loadAll = async()=>{
 
@@ -61,8 +65,8 @@ const s = await Store.getSettings()
 
 let j:any[] = []
 
-if(Store.getAllJackpotWinners){
-j = await Store.getAllJackpotWinners()
+if((Store as any).getAllJackpotWinners){
+j = await (Store as any).getAllJackpotWinners()
 }
 
 setWithdrawals(w)
@@ -73,12 +77,16 @@ setJackpotHistory(j)
 
 }
 
-//////////////// WITHDRAW STATS //////////////////
+////////////////////////////////////////////////////
+//////////////// WITHDRAW STATS ////////////////////
+////////////////////////////////////////////////////
 
 const pendingWithdrawals = withdrawals.filter(w=>w.status==="PENDING")
 const pendingAmount = pendingWithdrawals.reduce((a,b)=>a+b.amount,0)
 
-//////////////// FILTER WITHDRAW //////////////////
+////////////////////////////////////////////////////
+//////////////// FILTER WITHDRAW ///////////////////
+////////////////////////////////////////////////////
 
 const filteredWithdrawals = withdrawals.filter(w=>{
 
@@ -98,7 +106,9 @@ return matchSearch && matchStatus && matchType
 
 })
 
-//////////////// FILTER USERS //////////////////
+////////////////////////////////////////////////////
+//////////////// FILTER USERS //////////////////////
+////////////////////////////////////////////////////
 
 const filteredUsers = users.filter(u=>{
 
@@ -122,7 +132,9 @@ return matchSearch && matchCoins && matchRank && matchPlace
 
 })
 
-//////////////// WITHDRAW ACTION //////////////////
+////////////////////////////////////////////////////
+//////////////// WITHDRAW ACTION ///////////////////
+////////////////////////////////////////////////////
 
 const approveWithdrawal = async(id:string)=>{
 await Store.adminUpdateWithdrawal(id,WithdrawalStatus.COMPLETED)
@@ -134,7 +146,9 @@ await Store.adminUpdateWithdrawal(id,WithdrawalStatus.REJECTED)
 loadAll()
 }
 
-//////////////// USER ACTION //////////////////
+////////////////////////////////////////////////////
+//////////////// USER ACTION ///////////////////////
+////////////////////////////////////////////////////
 
 const banUser = async(user:User)=>{
 await Store.toggleUserBan(user.uid,user.isBanned)
@@ -144,13 +158,16 @@ loadAll()
 const addCoins = async(uid:string)=>{
 const amount = prompt("Enter coins")
 if(!amount) return
-await Store.adminAddCoins(uid,Number(amount))
+await (Store as any).adminAddCoins(uid,Number(amount))
 loadAll()
 }
 
-//////////////// TASK //////////////////
+////////////////////////////////////////////////////
+//////////////// TASK //////////////////////////////
+////////////////////////////////////////////////////
 
 const openCreateTask=()=>{
+
 setEditingTask(null)
 
 setTaskForm({
@@ -164,6 +181,7 @@ expectedInnerFileName:""
 })
 
 setTaskModal(true)
+
 }
 
 const openEditTask=(task:Task)=>{
@@ -217,7 +235,9 @@ await Store.deleteTask(id)
 loadAll()
 }
 
-//////////////// SETTINGS //////////////////
+////////////////////////////////////////////////////
+//////////////// SETTINGS //////////////////////////
+////////////////////////////////////////////////////
 
 const updateSetting=(key:string,value:any)=>{
 if(!settings) return
@@ -230,13 +250,15 @@ await Store.updateSettings(settings)
 alert("Settings Updated")
 }
 
-//////////////// JACKPOT //////////////////
+////////////////////////////////////////////////////
+//////////////// JACKPOT ///////////////////////////
+////////////////////////////////////////////////////
 
 const selectJackpotWinner=async()=>{
 
 const monthKey = new Date().getMonth()
 
-const lastWinner = await Store.getJackpotWinner(monthKey)
+const lastWinner = await (Store as any).getJackpotWinner(monthKey)
 
 if(lastWinner){
 alert("Winner already selected")
@@ -252,7 +274,7 @@ return
 
 const winner = eligible[Math.floor(Math.random()*eligible.length)]
 
-await Store.saveJackpotWinner(monthKey,winner.uid)
+await (Store as any).saveJackpotWinner(monthKey,winner.uid)
 
 alert("Winner: "+winner.name)
 
@@ -260,7 +282,9 @@ loadAll()
 
 }
 
-///////////////////////////////////////////////////////////
+////////////////////////////////////////////////////
+//////////////// UI ////////////////////////////////
+////////////////////////////////////////////////////
 
 return(
 
@@ -288,7 +312,7 @@ tab===t ? "bg-black text-white":"bg-gray-200"
 
 </div>
 
-{/* TASKS */}
+{/* TASKS TAB */}
 
 {tab==="tasks" &&(
 
@@ -303,11 +327,19 @@ Create Task
 
 {tasks.map(t=>(
 
-<div key={t.id} className="border bg-white p-3 rounded flex justify-between">
+<div
+key={t.id}
+className="border bg-white p-3 rounded flex justify-between"
+>
 
 <div>
+
 <b>{t.title}</b>
-<div className="text-xs">Reward {t.reward}</div>
+
+<div className="text-xs">
+Reward {t.reward}
+</div>
+
 </div>
 
 <div className="flex gap-2">
@@ -349,7 +381,10 @@ onSubmit={saveTask}
 className="bg-white p-5 rounded w-[90%] space-y-2"
 >
 
-<button type="button" onClick={()=>setTaskModal(false)}>
+<button
+type="button"
+onClick={()=>setTaskModal(false)}
+>
 <X/>
 </button>
 
