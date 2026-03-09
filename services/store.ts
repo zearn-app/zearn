@@ -52,6 +52,16 @@ uid:d.id,
 
 },
 
+updateUser: async (uid: string, data: Partial<User>) => {
+
+  const ref = doc(db, "users", uid);
+
+  await updateDoc(ref, {
+    ...data,
+    updatedAt: new Date().toISOString()
+  });
+
+},
 toggleUserBan: async(uid:string,current:boolean)=>{
 
 await updateDoc(doc(db,"users",uid),{
