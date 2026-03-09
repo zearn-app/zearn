@@ -75,6 +75,41 @@ checkUserExists: async (email: string) => {
 
 },
 
+loginUser: async (user:any) => {
+
+  localStorage.setItem("zearn_user", JSON.stringify(user));
+
+  return user;
+
+},
+
+registerUser: async (data:any) => {
+
+  const ref = doc(collection(db,"users"))
+
+  const user = {
+    uid: ref.id,
+    email: data.email,
+    name: data.name,
+    mobile: data.mobile,
+    dob: data.dob,
+    district: data.district,
+    password: data.password,
+    country: data.country,
+    balance: 0,
+    isBanned:false,
+    isAdmin:false,
+    createdAt:new Date().toISOString()
+  }
+
+  await setDoc(ref,user)
+
+  return user
+
+},
+
+
+
 //////////////////////////// SETTINGS ////////////////////////////
 
 getSettings: async (): Promise<AdminSettings> => {
