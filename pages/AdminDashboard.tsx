@@ -2,464 +2,609 @@ import React, { useEffect, useState } from "react";
 import { Layout } from "../components/Layout";
 import { Store } from "../services/store";
 import {
-  WithdrawalRequest,
-  WithdrawalStatus,
-  User,
-  Task,
-  AdminSettings
+User,
+Task,
+WithdrawalRequest,
+WithdrawalStatus,
+AdminSettings
 } from "../types";
 
-import {
-  Search,
-  Ban,
-  Check,
-  X,
-  Coins,
-  Edit,
-  Trash2,
-  Plus,
-  Eye,
-  Settings,
-  Trophy
-} from "lucide-react";
+import { X } from "lucide-react";
 
 const AdminDashboard: React.FC = () => {
 
-  const [tab,setTab] = useState("withdrawals")
+const [tab,setTab] = useState("withdrawals")
 
-  const [withdrawals,setWithdrawals] = useState<WithdrawalRequest[]>([])
-  const [users,setUsers] = useState<User[]>([])
-  const [tasks,setTasks] = useState<Task[]>([])
-  const [settings,setSettings] = useState<AdminSettings | null>(null)
+const [withdrawals,setWithdrawals] = useState<WithdrawalRequest[]>([])
+const [users,setUsers] = useState<User[]>([])
+const [tasks,setTasks] = useState<Task[]>([])
+const [settings,setSettings] = useState<AdminSettings | null>(null)
 
-  const [search,setSearch] = useState("")
-  const [statusFilter,setStatusFilter] = useState("ALL")
-
-  const [selectedUser,setSelectedUser] = useState<User | null>(null)
-  const [selectedWithdrawal,setSelectedWithdrawal] = useState<WithdrawalRequest | null>(null)
+const [search,setSearch] = useState("")
+const [filter,setFilter] = useState("ALL")
 
-  const [taskModal,setTaskModal] = useState(false)
-  const [editingTask,setEditingTask] = useState<Task | null>(null)
+const [selectedUser,setSelectedUser] = useState<User|null>(null)
+const [selectedWithdrawal,setSelectedWithdrawal] = useState<WithdrawalRequest|null>(null)
 
-  const [newTask,setNewTask] = useState<any>({
-    id:"",
-    title:"",
-    reward:0,
-    isSpecial:false,
-    expectedZipName:"",
-    password:"",
-    expectedInnerFileName:""
-  })
+const [taskModal,setTaskModal] = useState(false)
+const [editingTask,setEditingTask] = useState<Task|null>(null)
 
-  useEffect(()=>{
-    loadData()
-  },[])
+const [taskForm,setTaskForm] = useState<any>({
+id:"",
+title:"",
+reward:0,
+isSpecial:false,
+expectedZipName:"",
+password:"",
+expectedInnerFileName:""
+})
 
-  const loadData = async()=>{
-    const w = await Store.getWithdrawals()
-    const u = await Store.getAllUsers()
-    const t = await Store.getAllTasks()
-    const s = await Store.getSettings()
+useEffect(()=>{
+loadAll()
+},[])
 
-    setWithdrawals(w)
-    setUsers(u)
-    setTasks(t)
-    setSettings(s)
-  }
+const loadAll = async()=>{
 
-  // -------------------------
-  // Withdrawals
-  // -------------------------
+const w = await Store.getWithdrawals()
+const u = await Store.getAllUsers()
+const t = await Store.getAllTasks()
+const s = await Store.getSettings()
 
-  const approveWithdrawal = async(id:string)=>{
-    await Store.adminUpdateWithdrawal(id,WithdrawalStatus.COMPLETED)
-    loadData()
-  }
+setWithdrawals(w)
+setUsers(u)
+setTasks(t)
+setSettings(s)
 
-  const rejectWithdrawal = async(id:string)=>{
-    await Store.adminUpdateWithdrawal(id,WithdrawalStatus.REJECTED)
-    loadData()
-  }
+}
 
-  const filteredWithdrawals = withdrawals.filter(w=>{
+//////////////////////////////
+// Withdrawals
+//////////////////////////////
 
-    const user = users.find(u=>u.uid === w.uid)
+const approveWithdrawal = async(id:string)=>{
+await Store.adminUpdateWithdrawal(id,WithdrawalStatus.COMPLETED)
+loadAll()
+}
 
-    const matchSearch =
-      user?.name?.toLowerCase().includes(search.toLowerCase()) ||
-      user?.email?.toLowerCase().includes(search.toLowerCase())
+const rejectWithdrawal = async(id:string)=>{
+await Store.adminUpdateWithdrawal(id,WithdrawalStatus.REJECTED)
+loadAll()
+}
 
-    const matchStatus =
-      statusFilter==="ALL" || w.status === statusFilter
+const filteredWithdrawals = withdrawals.filter(w=>{
 
-    return matchSearch && matchStatus
+const user = users.find(u=>u.uid===w.uid)
 
-  })
+const matchSearch =
+user?.name?.toLowerCase().includes(search.toLowerCase()) ||
+user?.email?.toLowerCase().includes(search.toLowerCase())
 
-  // -------------------------
-  // Users
-  // -------------------------
+const matchFilter =
+filter==="ALL" || w.status===filter
 
-  const banUser = async(user:User)=>{
-    await Store.toggleUserBan(user.uid,user.isBanned)
-    loadData()
-  }
+return matchSearch && matchFilter
 
-  const addCoins = async(uid:string)=>{
-    const amount = prompt("Enter coins to add")
+})
 
-    if(!amount) return
+//////////////////////////////
+// Users
+//////////////////////////////
 
-    await Store.adminAddCoins(uid,Number(amount))
-    loadData()
-  }
+const banUser = async(user:User)=>{
+await Store.toggleUserBan(user.uid,user.isBanned)
+loadAll()
+}
 
-  const filteredUsers = users.filter(u=>
-    u.name.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase())
-  )
+const addCoins = async(uid:string)=>{
 
-  // -------------------------
-  // Tasks
-  // -------------------------
+const amount = prompt("Enter coins to add")
 
-  const saveTask = async()=>{
+if(!amount) return
 
-    if(editingTask){
-      await Store.updateTask(editingTask.id,newTask)
-    }else{
-      await Store.createTask(newTask)
-    }
+await Store.adminAddCoins(uid,Number(amount))
 
-    setTaskModal(false)
-    setEditingTask(null)
-    loadData()
-  }
+loadAll()
 
-  const deleteTask = async(id:string)=>{
-    if(!window.confirm("Delete task?")) return
+}
 
-    await Store.deleteTask(id)
-    loadData()
-  }
+const filteredUsers = users.filter(u=>
+u.name.toLowerCase().includes(search.toLowerCase()) ||
+u.email.toLowerCase().includes(search.toLowerCase())
+)
 
-  // -------------------------
-  // Jackpot
-  // -------------------------
+//////////////////////////////
+// Tasks
+//////////////////////////////
 
-  const selectJackpotWinner = ()=>{
+const openCreateTask=()=>{
+setEditingTask(null)
 
-    const eligible = users.filter(u=>u.balance > (settings?.randomWinnerEntryFee || 0))
+setTaskForm({
+id:"",
+title:"",
+reward:0,
+isSpecial:false,
+expectedZipName:"",
+password:"",
+expectedInnerFileName:""
+})
 
-    const winner = eligible[Math.floor(Math.random()*eligible.length)]
+setTaskModal(true)
+}
 
-    alert("Winner: "+winner.name)
-  }
+const openEditTask=(task:Task)=>{
+setEditingTask(task)
+setTaskForm(task)
+setTaskModal(true)
+}
 
-  // -------------------------
-  // UI
-  // -------------------------
+const saveTask=async()=>{
 
-  return(
-  <Layout>
+if(!taskForm.title) return alert("Title required")
 
-  <div className="flex gap-2 mb-6">
+if(editingTask){
 
-    {["withdrawals","users","tasks","settings","jackpot"].map(t=>(
-      <button
-      key={t}
-      onClick={()=>setTab(t)}
-      className={`px-4 py-2 rounded-lg font-bold
-      ${tab===t?"bg-black text-white":"bg-gray-100"}`}
-      >
-      {t}
-      </button>
-    ))}
+await Store.updateTask(editingTask.id,taskForm)
 
-  </div>
+}else{
 
-  {/* ---------------- Withdrawals ---------------- */}
+await Store.createTask(taskForm)
 
-  {tab==="withdrawals" && (
+}
 
-  <div>
+setTaskModal(false)
 
-  <div className="flex gap-2 mb-4">
+loadAll()
 
-    <input
-    placeholder="Search user"
-    value={search}
-    onChange={(e)=>setSearch(e.target.value)}
-    className="border p-2 rounded-lg flex-1"
-    />
+}
 
-    <select
-    value={statusFilter}
-    onChange={(e)=>setStatusFilter(e.target.value)}
-    className="border p-2 rounded-lg"
-    >
-      <option value="ALL">All</option>
-      <option value="PENDING">Pending</option>
-      <option value="COMPLETED">Completed</option>
-      <option value="REJECTED">Rejected</option>
-    </select>
+const deleteTask=async(id:string)=>{
 
-  </div>
+if(!window.confirm("Delete task?")) return
 
-  {filteredWithdrawals.map(w=>{
+await Store.deleteTask(id)
 
-    const user = users.find(u=>u.uid===w.uid)
+loadAll()
 
-    return(
+}
 
-    <div
-    key={w.id}
-    className="bg-white border p-4 rounded-xl mb-2"
-    >
+//////////////////////////////
+// Settings
+//////////////////////////////
 
-    <div className="flex justify-between">
+const updateSetting=(key:string,value:any)=>{
 
-      <div>
-        <div className="font-bold">{user?.name}</div>
-        <div className="text-xs">{user?.email}</div>
-      </div>
+if(!settings) return
 
-      <div className="font-bold">
-        ₹{w.amount}
-      </div>
+setSettings({
+...settings,
+[key]:value
+})
 
-    </div>
+}
 
-    <div className="text-xs mt-2 break-all">
-      {w.details}
-    </div>
+const saveSettings=async()=>{
 
-    <div className="flex gap-2 mt-3">
+if(!settings) return
 
-      <button
-      onClick={()=>approveWithdrawal(w.id)}
-      className="bg-green-600 text-white px-3 py-1 rounded"
-      >
-      Approve
-      </button>
+await Store.updateSettings(settings)
 
-      <button
-      onClick={()=>rejectWithdrawal(w.id)}
-      className="bg-red-600 text-white px-3 py-1 rounded"
-      >
-      Reject
-      </button>
+alert("Settings Updated")
 
-      <button
-      onClick={()=>setSelectedWithdrawal(w)}
-      className="bg-gray-200 px-3 py-1 rounded"
-      >
-      View
-      </button>
+}
 
-    </div>
+//////////////////////////////
+// Jackpot Winner
+//////////////////////////////
 
-    </div>
+const selectJackpotWinner=async()=>{
 
-    )
+const monthKey = new Date().getMonth()
 
-  })}
+const lastWinner = await Store.getJackpotWinner(monthKey)
 
-  </div>
+if(lastWinner){
 
-  )}
+alert("Winner already selected for this month")
 
-  {/* ---------------- Users ---------------- */}
+return
 
-  {tab==="users" && (
+}
 
-  <div>
+const eligible = users.filter(u=>!u.isBanned)
 
-  <input
-  placeholder="Search user"
-  value={search}
-  onChange={(e)=>setSearch(e.target.value)}
-  className="border p-2 rounded-lg mb-4 w-full"
-  />
+if(eligible.length===0){
 
-  {filteredUsers.map(u=>(
+alert("No eligible users")
 
-  <div
-  key={u.uid}
-  className="bg-white border p-4 rounded-xl mb-2 flex justify-between"
-  >
+return
 
-  <div>
+}
 
-  <div className="font-bold">{u.name}</div>
-  <div className="text-xs">{u.email}</div>
-  <div className="text-xs">
-  Coins: {u.balance}
-  </div>
+const winner = eligible[Math.floor(Math.random()*eligible.length)]
 
-  </div>
+await Store.saveJackpotWinner(monthKey,winner.uid)
 
-  <div className="flex gap-2">
+alert("Winner: "+winner.name)
 
-  <button
-  onClick={()=>addCoins(u.uid)}
-  className="bg-yellow-500 text-white px-3 py-1 rounded"
-  >
-  Add Coins
-  </button>
+}
 
-  <button
-  onClick={()=>banUser(u)}
-  className="bg-red-500 text-white px-3 py-1 rounded"
-  >
-  {u.isBanned?"Unban":"Ban"}
-  </button>
+//////////////////////////////////////////////////
 
-  <button
-  onClick={()=>setSelectedUser(u)}
-  className="bg-gray-200 px-3 py-1 rounded"
-  >
-  View
-  </button>
+return(
 
-  </div>
+<Layout>
 
-  </div>
+<div className="flex gap-2 mb-6">
 
-  ))}
+{["withdrawals","users","tasks","settings","jackpot"].map(t=>(
 
-  </div>
+<button
+key={t}
+onClick={()=>setTab(t)}
+className={`px-4 py-2 rounded-lg font-bold ${tab===t?"bg-black text-white":"bg-gray-200"}`}
+>
+{t}
+</button>
 
-  )}
+))}
 
-  {/* ---------------- Tasks ---------------- */}
+</div>
 
-  {tab==="tasks" && (
+{/* Withdrawals */}
 
-  <div>
+{tab==="withdrawals" && (
 
-  <button
-  onClick={()=>setTaskModal(true)}
-  className="bg-blue-600 text-white px-4 py-2 rounded-lg mb-4"
-  >
-  Create Task
-  </button>
+<div>
 
-  {tasks.map(t=>(
+<input
+placeholder="Search user"
+className="border p-2 rounded w-full mb-3"
+value={search}
+onChange={e=>setSearch(e.target.value)}
+/>
 
-  <div
-  key={t.id}
-  className="bg-white border p-4 rounded-xl mb-2 flex justify-between"
-  >
+<select
+value={filter}
+onChange={e=>setFilter(e.target.value)}
+className="border p-2 rounded mb-4"
+>
 
-  <div>
+<option value="ALL">All</option>
+<option value="PENDING">Pending</option>
+<option value="COMPLETED">Completed</option>
+<option value="REJECTED">Rejected</option>
 
-  <div className="font-bold">{t.title}</div>
-  <div className="text-xs">
-  Reward: {t.reward}
-  </div>
+</select>
 
-  </div>
+{filteredWithdrawals.map(w=>{
 
-  <div className="flex gap-2">
+const user = users.find(u=>u.uid===w.uid)
 
-  <button
-  onClick={()=>{
-    setEditingTask(t)
-    setNewTask(t)
-    setTaskModal(true)
-  }}
-  className="bg-yellow-400 px-3 py-1 rounded"
-  >
-  Edit
-  </button>
+return(
 
-  <button
-  onClick={()=>deleteTask(t.id)}
-  className="bg-red-500 text-white px-3 py-1 rounded"
-  >
-  Delete
-  </button>
+<div key={w.id} className="border p-4 rounded mb-2 bg-white">
 
-  </div>
+<div className="flex justify-between">
 
-  </div>
+<div>
+<b>{user?.name}</b>
+<div className="text-xs">{user?.email}</div>
+</div>
 
-  ))}
+<div>₹{w.amount}</div>
 
-  </div>
+</div>
 
-  )}
+<div className="flex gap-2 mt-3">
 
-  {/* ---------------- Settings ---------------- */}
+<button
+onClick={()=>setSelectedWithdrawal(w)}
+className="bg-gray-300 px-3 py-1 rounded"
+>
+View
+</button>
 
-  {tab==="settings" && settings && (
+<button
+onClick={()=>approveWithdrawal(w.id)}
+className="bg-green-600 text-white px-3 py-1 rounded"
+>
+Approve
+</button>
 
-  <div className="space-y-4">
+<button
+onClick={()=>rejectWithdrawal(w.id)}
+className="bg-red-600 text-white px-3 py-1 rounded"
+>
+Reject
+</button>
 
-  <div>
-  <label>Minimum Withdrawal</label>
-  <input
-  type="number"
-  value={settings.minWithdrawal}
-  className="border p-2 rounded w-full"
-  />
-  </div>
+</div>
 
-  <div>
-  <label>Daily Claim Amount</label>
-  <input
-  type="number"
-  value={settings.dailyClaimLimit}
-  className="border p-2 rounded w-full"
-  />
-  </div>
+</div>
 
-  <div>
-  <label>Admin Password</label>
-  <input
-  type="text"
-  value={settings.adminPassword}
-  className="border p-2 rounded w-full"
-  />
-  </div>
+)
 
-  <div>
-  <label>Jackpot Entry Amount</label>
-  <input
-  type="number"
-  value={settings.randomWinnerEntryFee}
-  className="border p-2 rounded w-full"
-  />
-  </div>
+})}
 
-  <button className="bg-black text-white px-4 py-2 rounded">
-  Save Settings
-  </button>
+</div>
 
-  </div>
+)}
 
-  )}
+{/* Users */}
 
-  {/* ---------------- Jackpot ---------------- */}
+{tab==="users" && (
 
-  {tab==="jackpot" && (
+<div>
 
-  <div className="text-center">
+<input
+placeholder="Search user"
+className="border p-2 rounded w-full mb-3"
+value={search}
+onChange={e=>setSearch(e.target.value)}
+/>
 
-  <button
-  onClick={selectJackpotWinner}
-  className="bg-purple-600 text-white px-6 py-3 rounded-xl text-lg"
-  >
-  Select Jackpot Winner
-  </button>
+{filteredUsers.map(u=>(
 
-  </div>
+<div key={u.uid} className="border p-4 mb-2 rounded bg-white flex justify-between">
 
-  )}
+<div>
 
-  </Layout>
-  )
+<b>{u.name}</b>
+<div className="text-xs">{u.email}</div>
+<div className="text-xs">Coins: {u.balance}</div>
+
+</div>
+
+<div className="flex gap-2">
+
+<button
+onClick={()=>setSelectedUser(u)}
+className="bg-gray-300 px-3 py-1 rounded"
+>
+View
+</button>
+
+<button
+onClick={()=>addCoins(u.uid)}
+className="bg-yellow-500 text-white px-3 py-1 rounded"
+>
+Add Coins
+</button>
+
+<button
+onClick={()=>banUser(u)}
+className="bg-red-500 text-white px-3 py-1 rounded"
+>
+{u.isBanned?"Unban":"Ban"}
+</button>
+
+</div>
+
+</div>
+
+))}
+
+</div>
+
+)}
+
+{/* Tasks */}
+
+{tab==="tasks" && (
+
+<div>
+
+<button
+onClick={openCreateTask}
+className="bg-blue-600 text-white px-4 py-2 rounded mb-4"
+>
+Create Task
+</button>
+
+{tasks.map(t=>(
+
+<div key={t.id} className="border p-4 rounded mb-2 bg-white flex justify-between">
+
+<div>
+
+<b>{t.title}</b>
+<div className="text-xs">Reward: {t.reward}</div>
+
+</div>
+
+<div className="flex gap-2">
+
+<button
+onClick={()=>openEditTask(t)}
+className="bg-yellow-400 px-3 py-1 rounded"
+>
+Edit
+</button>
+
+<button
+onClick={()=>deleteTask(t.id)}
+className="bg-red-500 text-white px-3 py-1 rounded"
+>
+Delete
+</button>
+
+</div>
+
+</div>
+
+))}
+
+</div>
+
+)}
+
+{/* Settings */}
+
+{tab==="settings" && settings && (
+
+<div className="space-y-3">
+
+<input
+type="number"
+value={settings.minWithdrawal}
+onChange={e=>updateSetting("minWithdrawal",Number(e.target.value))}
+className="border p-2 rounded w-full"
+/>
+
+<input
+type="number"
+value={settings.dailyClaimLimit}
+onChange={e=>updateSetting("dailyClaimLimit",Number(e.target.value))}
+className="border p-2 rounded w-full"
+/>
+
+<input
+type="text"
+value={settings.adminPassword}
+onChange={e=>updateSetting("adminPassword",e.target.value)}
+className="border p-2 rounded w-full"
+/>
+
+<input
+type="number"
+value={settings.randomWinnerEntryFee}
+onChange={e=>updateSetting("randomWinnerEntryFee",Number(e.target.value))}
+className="border p-2 rounded w-full"
+/>
+
+<button
+onClick={saveSettings}
+className="bg-black text-white px-4 py-2 rounded"
+>
+Save Settings
+</button>
+
+</div>
+
+)}
+
+{/* Jackpot */}
+
+{tab==="jackpot" && (
+
+<div>
+
+<button
+onClick={selectJackpotWinner}
+className="bg-purple-600 text-white px-6 py-3 rounded"
+>
+Select Monthly Winner
+</button>
+
+</div>
+
+)}
+
+{/* Withdrawal Modal */}
+
+{selectedWithdrawal &&(
+
+<div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+
+<div className="bg-white p-6 rounded w-[400px]">
+
+<button onClick={()=>setSelectedWithdrawal(null)}>
+<X/>
+</button>
+
+<div>Amount: {selectedWithdrawal.amount}</div>
+<div>{selectedWithdrawal.details}</div>
+
+</div>
+
+</div>
+
+)}
+
+{/* User Modal */}
+
+{selectedUser &&(
+
+<div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+
+<div className="bg-white p-6 rounded w-[400px]">
+
+<button onClick={()=>setSelectedUser(null)}>
+<X/>
+</button>
+
+<div>Name: {selectedUser.name}</div>
+<div>Email: {selectedUser.email}</div>
+<div>Coins: {selectedUser.balance}</div>
+
+</div>
+
+</div>
+
+)}
+
+{/* Task Modal */}
+
+{taskModal &&(
+
+<div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+
+<div className="bg-white p-6 rounded w-[450px]">
+
+<input
+placeholder="Task ID"
+value={taskForm.id}
+onChange={e=>setTaskForm({...taskForm,id:e.target.value})}
+/>
+
+<input
+placeholder="Title"
+value={taskForm.title}
+onChange={e=>setTaskForm({...taskForm,title:e.target.value})}
+/>
+
+<input
+type="number"
+placeholder="Reward"
+value={taskForm.reward}
+onChange={e=>setTaskForm({...taskForm,reward:Number(e.target.value)})}
+/>
+
+<input
+placeholder="Zip Name"
+value={taskForm.expectedZipName}
+onChange={e=>setTaskForm({...taskForm,expectedZipName:e.target.value})}
+/>
+
+<input
+placeholder="Password"
+value={taskForm.password}
+onChange={e=>setTaskForm({...taskForm,password:e.target.value})}
+/>
+
+<input
+placeholder="Inner File"
+value={taskForm.expectedInnerFileName}
+onChange={e=>setTaskForm({...taskForm,expectedInnerFileName:e.target.value})}
+/>
+
+<button
+onClick={saveTask}
+className="bg-blue-600 text-white px-4 py-2 mt-3 rounded"
+>
+Save Task
+</button>
+
+</div>
+
+</div>
+
+)}
+
+</Layout>
+
+)
 
 }
 
