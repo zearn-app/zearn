@@ -11,35 +11,6 @@ AdminSettings
 
 import { X } from "lucide-react";
 
-import {
-Bar,
-Line,
-Pie
-} from "react-chartjs-2";
-
-import {
-Chart as ChartJS,
-CategoryScale,
-LinearScale,
-BarElement,
-PointElement,
-LineElement,
-ArcElement,
-Tooltip,
-Legend
-} from "chart.js";
-
-ChartJS.register(
-CategoryScale,
-LinearScale,
-BarElement,
-PointElement,
-LineElement,
-ArcElement,
-Tooltip,
-Legend
-);
-
 const AdminDashboard: React.FC = () => {
 
 const [tab,setTab] = useState("withdrawals")
@@ -49,11 +20,14 @@ const [users,setUsers] = useState<User[]>([])
 const [tasks,setTasks] = useState<Task[]>([])
 const [settings,setSettings] = useState<AdminSettings | null>(null)
 
+const [jackpotHistory,setJackpotHistory] = useState<any[]>([])
+
 const [search,setSearch] = useState("")
 const [filter,setFilter] = useState("ALL")
+const [withdrawType,setWithdrawType] = useState("ALL")
 
-const [coinFilter,setCoinFilter] = useState("")
-const [rankFilter,setRankFilter] = useState("")
+const [coinFilter,setCoinFilter] = useState("ALL")
+const [rankFilter,setRankFilter] = useState("ALL")
 const [placeFilter,setPlaceFilter] = useState("")
 
 const [selectedUser,setSelectedUser] = useState<User|null>(null)
@@ -61,9 +35,6 @@ const [selectedWithdrawal,setSelectedWithdrawal] = useState<WithdrawalRequest|nu
 
 const [taskModal,setTaskModal] = useState(false)
 const [editingTask,setEditingTask] = useState<Task|null>(null)
-
-const [logs,setLogs] = useState<string[]>([])
-const [jackpotHistory,setJackpotHistory] = useState<any[]>([])
 
 const [taskForm,setTaskForm] = useState<any>({
 id:"",
@@ -85,51 +56,27 @@ const w = await Store.getWithdrawals()
 const u = await Store.getAllUsers()
 const t = await Store.getAllTasks()
 const s = await Store.getSettings()
-const j = await Store.getJackpotHistory()
+const j = await Store.getAllJackpotWinners?.()
 
 setWithdrawals(w)
 setUsers(u)
 setTasks(t)
 setSettings(s)
-setJackpotHistory(j)
+setJackpotHistory(j || [])
 
 }
 
 //////////////////////////////
-// LOG SYSTEM
+// Withdrawal Stats
 //////////////////////////////
 
-const logAction=(text:string)=>{
+const pendingWithdrawals = withdrawals.filter(w=>w.status==="PENDING")
 
-const newLogs=[`${new Date().toLocaleString()} - ${text}`,...logs]
-
-setLogs(newLogs.slice(0,100))
-
-}
+const pendingAmount = pendingWithdrawals.reduce((a,b)=>a+b.amount,0)
 
 //////////////////////////////
-// Withdrawals
+// Withdrawals Filter
 //////////////////////////////
-
-const approveWithdrawal = async(id:string)=>{
-
-await Store.adminUpdateWithdrawal(id,WithdrawalStatus.COMPLETED)
-
-logAction("Withdrawal approved "+id)
-
-loadAll()
-
-}
-
-const rejectWithdrawal = async(id:string)=>{
-
-await Store.adminUpdateWithdrawal(id,WithdrawalStatus.REJECTED)
-
-logAction("Withdrawal rejected "+id)
-
-loadAll()
-
-}
 
 const filteredWithdrawals = withdrawals.filter(w=>{
 
@@ -139,61 +86,74 @@ const matchSearch =
 user?.name?.toLowerCase().includes(search.toLowerCase()) ||
 user?.email?.toLowerCase().includes(search.toLowerCase())
 
-const matchFilter =
+const matchStatus =
 filter==="ALL" || w.status===filter
 
-return matchSearch && matchFilter
+const matchType =
+withdrawType==="ALL" || w.type===withdrawType
+
+return matchSearch && matchStatus && matchType
 
 })
 
 //////////////////////////////
-// Users
+// Users Filter
 //////////////////////////////
-
-const banUser = async(user:User)=>{
-
-await Store.toggleUserBan(user.uid,user.isBanned)
-
-logAction("User ban toggle "+user.name)
-
-loadAll()
-
-}
-
-const addCoins = async(uid:string)=>{
-
-const amount = prompt("Enter coins")
-
-if(!amount) return
-
-await Store.adminAddCoins(uid,Number(amount))
-
-logAction("Coins added "+amount+" to "+uid)
-
-loadAll()
-
-}
 
 const filteredUsers = users.filter(u=>{
 
 const matchSearch =
-u.name.toLowerCase().includes(search.toLowerCase())
+u.name.toLowerCase().includes(search.toLowerCase()) ||
+u.email.toLowerCase().includes(search.toLowerCase())
 
 const matchCoins =
-!coinFilter || u.balance >= Number(coinFilter)
+coinFilter==="ALL" ||
+(coinFilter==="LOW" && u.balance < 500) ||
+(coinFilter==="MEDIUM" && u.balance >=500 && u.balance <2000) ||
+(coinFilter==="HIGH" && u.balance >=2000)
 
 const matchRank =
-!rankFilter || u.rank === rankFilter
+rankFilter==="ALL" || u.rank===rankFilter
 
 const matchPlace =
-!placeFilter || u.place === placeFilter
+placeFilter==="" || u.place?.toLowerCase().includes(placeFilter.toLowerCase())
 
 return matchSearch && matchCoins && matchRank && matchPlace
 
 })
 
 //////////////////////////////
-// TASKS
+// Withdraw Actions
+//////////////////////////////
+
+const approveWithdrawal = async(id:string)=>{
+await Store.adminUpdateWithdrawal(id,WithdrawalStatus.COMPLETED)
+loadAll()
+}
+
+const rejectWithdrawal = async(id:string)=>{
+await Store.adminUpdateWithdrawal(id,WithdrawalStatus.REJECTED)
+loadAll()
+}
+
+//////////////////////////////
+// User Actions
+//////////////////////////////
+
+const banUser = async(user:User)=>{
+await Store.toggleUserBan(user.uid,user.isBanned)
+loadAll()
+}
+
+const addCoins = async(uid:string)=>{
+const amount = prompt("Enter coins")
+if(!amount) return
+await Store.adminAddCoins(uid,Number(amount))
+loadAll()
+}
+
+//////////////////////////////
+// Tasks
 //////////////////////////////
 
 const openCreateTask=()=>{
@@ -210,17 +170,12 @@ expectedInnerFileName:""
 })
 
 setTaskModal(true)
-
 }
 
 const openEditTask=(task:Task)=>{
-
 setEditingTask(task)
-
 setTaskForm(task)
-
 setTaskModal(true)
-
 }
 
 const saveTask=async()=>{
@@ -231,18 +186,13 @@ if(editingTask){
 
 await Store.updateTask(editingTask.id,taskForm)
 
-logAction("Task updated "+editingTask.title)
-
 }else{
 
 await Store.createTask(taskForm)
 
-logAction("Task created "+taskForm.title)
-
 }
 
 setTaskModal(false)
-
 loadAll()
 
 }
@@ -252,15 +202,12 @@ const deleteTask=async(id:string)=>{
 if(!window.confirm("Delete task?")) return
 
 await Store.deleteTask(id)
-
-logAction("Task deleted "+id)
-
 loadAll()
 
 }
 
 //////////////////////////////
-// SETTINGS
+// Settings
 //////////////////////////////
 
 const updateSetting=(key:string,value:any)=>{
@@ -280,14 +227,12 @@ if(!settings) return
 
 await Store.updateSettings(settings)
 
-logAction("Settings updated")
-
 alert("Settings Updated")
 
 }
 
 //////////////////////////////
-// JACKPOT
+// Jackpot
 //////////////////////////////
 
 const selectJackpotWinner=async()=>{
@@ -298,7 +243,7 @@ const lastWinner = await Store.getJackpotWinner(monthKey)
 
 if(lastWinner){
 
-alert("Already selected")
+alert("Winner already selected")
 
 return
 
@@ -306,65 +251,18 @@ return
 
 const eligible = users.filter(u=>!u.isBanned)
 
+if(eligible.length===0){
+alert("No eligible users")
+return
+}
+
 const winner = eligible[Math.floor(Math.random()*eligible.length)]
 
 await Store.saveJackpotWinner(monthKey,winner.uid)
 
-logAction("Jackpot winner "+winner.name)
-
-alert("Winner "+winner.name)
+alert("Winner: "+winner.name)
 
 loadAll()
-
-}
-
-//////////////////////////////
-// ANALYTICS
-//////////////////////////////
-
-const withdrawalChart={
-
-labels:["Pending","Completed","Rejected"],
-
-datasets:[{
-
-label:"Withdrawals",
-
-data:[
-withdrawals.filter(w=>w.status==="PENDING").length,
-withdrawals.filter(w=>w.status==="COMPLETED").length,
-withdrawals.filter(w=>w.status==="REJECTED").length
-]
-
-}]
-
-}
-
-const userGrowthChart={
-
-labels:users.map(u=>u.createdAt?.slice(0,10) || ""),
-
-datasets:[{
-
-label:"Users",
-
-data:users.map((_,i)=>i+1)
-
-}]
-
-}
-
-const taskChart={
-
-labels:tasks.map(t=>t.title),
-
-datasets:[{
-
-label:"Task rewards",
-
-data:tasks.map(t=>t.reward)
-
-}]
 
 }
 
@@ -374,72 +272,123 @@ return(
 
 <Layout>
 
-<div className="grid grid-cols-5 gap-2 mb-4">
+<div className="p-3 space-y-4">
+
+{/* Tabs */}
+
+<div className="flex overflow-x-auto gap-2">
 
 {["withdrawals","users","tasks","settings","jackpot"].map(t=>(
 
 <button
 key={t}
 onClick={()=>setTab(t)}
-className={`p-2 rounded font-bold ${tab===t?"bg-black text-white":"bg-gray-200"}`}
+className={`px-4 py-2 rounded-xl text-sm font-bold ${
+tab===t ? "bg-black text-white":"bg-gray-200"
+}`}
+
 >
+
 {t}
+
 </button>
 
 ))}
 
 </div>
 
-{/* WITHDRAWAL TAB */}
+{/* WITHDRAWALS */}
 
-{tab==="withdrawals" &&(
+{tab==="withdrawals" && (
 
-<div className="space-y-4">
+<div className="space-y-3">
 
-<div className="bg-white p-4 rounded shadow">
-
-<h2 className="font-bold mb-2">Withdrawal Analytics</h2>
-
-<Pie data={withdrawalChart}/>
-
+<div className="bg-yellow-100 p-3 rounded-lg text-sm">
+Pending Requests: {pendingWithdrawals.length} <br/>
+Pending Amount: ₹{pendingAmount}
 </div>
 
 <input
-placeholder="Search"
+placeholder="Search user"
 value={search}
 onChange={e=>setSearch(e.target.value)}
 className="border p-2 rounded w-full"
 />
 
+<div className="flex gap-2">
+
+<select
+value={filter}
+onChange={e=>setFilter(e.target.value)}
+className="border p-2 rounded w-full"
+>
+
+<option value="ALL">Status</option>
+<option value="PENDING">Pending</option>
+<option value="COMPLETED">Completed</option>
+<option value="REJECTED">Rejected</option>
+
+</select>
+
+<select
+value={withdrawType}
+onChange={e=>setWithdrawType(e.target.value)}
+className="border p-2 rounded w-full"
+>
+
+<option value="ALL">Type</option>
+<option value="UPI">UPI</option>
+<option value="BANK">Bank</option>
+
+</select>
+
+</div>
+
 {filteredWithdrawals.map(w=>{
 
-const user=users.find(u=>u.uid===w.uid)
+const user = users.find(u=>u.uid===w.uid)
 
 return(
 
-<div key={w.id} className="bg-white p-3 rounded shadow flex justify-between">
-
-<div>
+<div
+key={w.id}
+onClick={()=>setSelectedWithdrawal(w)}
+className="bg-white border rounded-xl p-3 space-y-1"
+>
 
 <b>{user?.name}</b>
 
 <div className="text-xs">{user?.email}</div>
 
-<div>₹{w.amount}</div>
+<div className="text-sm font-bold">₹{w.amount}</div>
 
-</div>
+<div className="text-xs">{w.status}</div>
 
-<div className="flex gap-2">
+{w.status==="PENDING" && (
 
-<button onClick={()=>approveWithdrawal(w.id)} className="bg-green-600 text-white px-2 rounded">
+<div className="flex gap-2 pt-2">
+
+<button
+onClick={(e)=>{e.stopPropagation();approveWithdrawal(w.id)}}
+className="bg-green-600 text-white px-3 py-1 rounded"
+>
+
 Approve
+
 </button>
 
-<button onClick={()=>rejectWithdrawal(w.id)} className="bg-red-600 text-white px-2 rounded">
+<button
+onClick={(e)=>{e.stopPropagation();rejectWithdrawal(w.id)}}
+className="bg-red-500 text-white px-3 py-1 rounded"
+>
+
 Reject
+
 </button>
 
 </div>
+
+)}
 
 </div>
 
@@ -453,52 +402,56 @@ Reject
 
 {/* USERS */}
 
-{tab==="users" &&(
+{tab==="users" && (
 
-<div>
+<div className="space-y-3">
 
-<div className="grid grid-cols-2 gap-2 mb-3">
-
-<input placeholder="Search"
+<input
+placeholder="Search name/email"
 value={search}
 onChange={e=>setSearch(e.target.value)}
-className="border p-2 rounded"/>
+className="border p-2 rounded w-full"
+/>
 
-<input placeholder="Min Coins"
+<select
 value={coinFilter}
 onChange={e=>setCoinFilter(e.target.value)}
-className="border p-2 rounded"/>
+className="border p-2 rounded w-full"
+>
+
+<option value="ALL">Coins</option>
+<option value="LOW">0-500</option>
+<option value="MEDIUM">500-2000</option>
+<option value="HIGH">2000+</option>
+
+</select>
 
 <select
 value={rankFilter}
 onChange={e=>setRankFilter(e.target.value)}
-className="border p-2 rounded"
+className="border p-2 rounded w-full"
 >
 
-<option value="">All Rank</option>
+<option value="ALL">Rank</option>
 <option value="gold">Gold</option>
 <option value="diamond">Diamond</option>
 
 </select>
 
-<input placeholder="Place"
+<input
+placeholder="Place"
 value={placeFilter}
 onChange={e=>setPlaceFilter(e.target.value)}
-className="border p-2 rounded"/>
-
-</div>
-
-<div className="bg-white p-4 rounded mb-4">
-
-<h2>User Growth</h2>
-
-<Line data={userGrowthChart}/>
-
-</div>
+className="border p-2 rounded w-full"
+/>
 
 {filteredUsers.map(u=>(
 
-<div key={u.uid} className="bg-white p-3 rounded shadow flex justify-between">
+<div
+key={u.uid}
+onClick={()=>setSelectedUser(u)}
+className="bg-white border rounded-xl p-3 flex justify-between"
+>
 
 <div>
 
@@ -506,18 +459,28 @@ className="border p-2 rounded"/>
 
 <div className="text-xs">{u.email}</div>
 
-Coins: {u.balance}
+<div className="text-xs">Coins: {u.balance}</div>
 
 </div>
 
 <div className="flex gap-2">
 
-<button onClick={()=>addCoins(u.uid)} className="bg-yellow-500 px-2 rounded text-white">
-Coins
+<button
+onClick={(e)=>{e.stopPropagation();addCoins(u.uid)}}
+className="bg-yellow-500 text-white px-3 py-1 rounded"
+>
+
+Add
+
 </button>
 
-<button onClick={()=>banUser(u)} className="bg-red-600 text-white px-2 rounded">
+<button
+onClick={(e)=>{e.stopPropagation();banUser(u)}}
+className="bg-red-500 text-white px-3 py-1 rounded"
+>
+
 {u.isBanned?"Unban":"Ban"}
+
 </button>
 
 </div>
@@ -532,45 +495,49 @@ Coins
 
 {/* TASKS */}
 
-{tab==="tasks" &&(
+{tab==="tasks" && (
 
-<div>
-
-<div className="bg-white p-4 rounded mb-4">
-
-<h2>Task Stats</h2>
-
-<Bar data={taskChart}/>
-
-</div>
+<div className="space-y-3">
 
 <button
 onClick={openCreateTask}
-className="bg-blue-600 text-white px-4 py-2 rounded mb-4"
+className="bg-blue-600 text-white px-4 py-2 rounded"
 >
+
 Create Task
+
 </button>
 
 {tasks.map(t=>(
 
-<div key={t.id} className="bg-white p-3 rounded shadow flex justify-between">
+<div key={t.id} className="bg-white border p-3 rounded-xl flex justify-between">
 
 <div>
 
 <b>{t.title}</b>
 
-<div>Reward: {t.reward}</div>
+<div className="text-xs">Reward {t.reward}</div>
 
 </div>
 
 <div className="flex gap-2">
 
-<button onClick={()=>openEditTask(t)} className="bg-yellow-400 px-2 rounded">
+<button
+onClick={()=>openEditTask(t)}
+className="bg-yellow-400 px-3 py-1 rounded"
+>
+
 Edit
+
 </button>
 
-<button onClick={()=>deleteTask(t.id)} className="bg-red-600 text-white px-2 rounded">
+<button
+onClick={()=>deleteTask(t.id)}
+className="bg-red-500 text-white px-3 py-1 rounded"
+>
+
 Delete
+
 </button>
 
 </div>
@@ -578,6 +545,52 @@ Delete
 </div>
 
 ))}
+
+</div>
+
+)}
+
+{/* SETTINGS */}
+
+{tab==="settings" && settings && (
+
+<div className="space-y-3">
+
+<input
+type="number"
+value={settings.minWithdrawal}
+onChange={e=>updateSetting("minWithdrawal",Number(e.target.value))}
+className="border p-2 rounded w-full"
+/>
+
+<input
+type="number"
+value={settings.dailyClaimLimit}
+onChange={e=>updateSetting("dailyClaimLimit",Number(e.target.value))}
+className="border p-2 rounded w-full"
+/>
+
+<input
+value={settings.adminPassword}
+onChange={e=>updateSetting("adminPassword",e.target.value)}
+className="border p-2 rounded w-full"
+/>
+
+<input
+type="number"
+value={settings.randomWinnerEntryFee}
+onChange={e=>updateSetting("randomWinnerEntryFee",Number(e.target.value))}
+className="border p-2 rounded w-full"
+/>
+
+<button
+onClick={saveSettings}
+className="bg-black text-white px-4 py-2 rounded"
+>
+
+Save Settings
+
+</button>
 
 </div>
 
@@ -585,7 +598,7 @@ Delete
 
 {/* JACKPOT */}
 
-{tab==="jackpot" &&(
+{tab==="jackpot" && (
 
 <div className="space-y-4">
 
@@ -593,22 +606,30 @@ Delete
 onClick={selectJackpotWinner}
 className="bg-purple-600 text-white px-6 py-3 rounded"
 >
+
 Select Monthly Winner
+
 </button>
 
-<div className="bg-white p-4 rounded">
+<div className="space-y-2">
 
-<h2 className="font-bold mb-2">Jackpot History</h2>
+{jackpotHistory.map((j,i)=>{
 
-{jackpotHistory.map((j,i)=>(
+const user = users.find(u=>u.uid===j.uid)
 
-<div key={i} className="border-b py-2">
+return(
 
-Month: {j.month} | Winner: {j.userName}
+<div key={i} className="bg-white border p-3 rounded">
+
+<b>{user?.name}</b>
+
+<div className="text-xs">Month: {j.month}</div>
 
 </div>
 
-))}
+)
+
+})}
 
 </div>
 
@@ -616,23 +637,85 @@ Month: {j.month} | Winner: {j.userName}
 
 )}
 
-{/* ADMIN LOGS */}
+</div>
 
-<div className="bg-white p-4 mt-6 rounded">
+{/* USER MODAL */}
 
-<h2 className="font-bold mb-2">Admin Action Logs</h2>
+{selectedUser &&(
 
-<div className="max-h-40 overflow-y-auto text-xs">
+<div className="fixed inset-0 bg-black/40 flex items-center justify-center">
 
-{logs.map((l,i)=>(
+<div className="bg-white p-6 rounded-xl w-[90%]">
 
-<div key={i}>{l}</div>
+<button onClick={()=>setSelectedUser(null)}>
 
-))}
+<X/>
+
+</button>
+
+<div className="space-y-1">
+
+<b>{selectedUser.name}</b>
+
+<div>{selectedUser.email}</div>
+
+<div>Coins: {selectedUser.balance}</div>
+
+<div>Place: {selectedUser.place}</div>
+
+<div>Rank: {selectedUser.rank}</div>
 
 </div>
 
 </div>
+
+</div>
+
+)}
+
+{/* WITHDRAW MODAL */}
+
+{selectedWithdrawal &&(
+
+<div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+
+<div className="bg-white p-6 rounded-xl w-[90%]">
+
+<button onClick={()=>setSelectedWithdrawal(null)}>
+
+<X/>
+
+</button>
+
+<div>
+
+Amount: ₹{selectedWithdrawal.amount}
+
+</div>
+
+<div>
+
+Type: {selectedWithdrawal.type}
+
+</div>
+
+<div>
+
+Details: {selectedWithdrawal.details}
+
+</div>
+
+<div>
+
+Status: {selectedWithdrawal.status}
+
+</div>
+
+</div>
+
+</div>
+
+)}
 
 </Layout>
 
