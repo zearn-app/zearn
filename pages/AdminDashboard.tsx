@@ -50,7 +50,7 @@ useEffect(()=>{
 loadAll()
 },[])
 
-//////////////////////////////////////////////////
+//////////////////////// LOAD DATA ////////////////////////
 
 const loadAll = async()=>{
 
@@ -73,17 +73,12 @@ setJackpotHistory(j)
 
 }
 
-//////////////////////////////////////////////////
-// Withdrawal Stats
-//////////////////////////////////////////////////
+//////////////////////// WITHDRAW STATS ////////////////////////
 
 const pendingWithdrawals = withdrawals.filter(w=>w.status==="PENDING")
-
 const pendingAmount = pendingWithdrawals.reduce((a,b)=>a+b.amount,0)
 
-//////////////////////////////////////////////////
-// Withdraw Filters
-//////////////////////////////////////////////////
+//////////////////////// FILTER WITHDRAW ////////////////////////
 
 const filteredWithdrawals = withdrawals.filter(w=>{
 
@@ -103,9 +98,7 @@ return matchSearch && matchStatus && matchType
 
 })
 
-//////////////////////////////////////////////////
-// User Filters
-//////////////////////////////////////////////////
+//////////////////////// FILTER USERS ////////////////////////
 
 const filteredUsers = users.filter(u=>{
 
@@ -129,9 +122,7 @@ return matchSearch && matchCoins && matchRank && matchPlace
 
 })
 
-//////////////////////////////////////////////////
-// Withdraw Actions
-//////////////////////////////////////////////////
+//////////////////////// WITHDRAW ACTION ////////////////////////
 
 const approveWithdrawal = async(id:string)=>{
 await Store.adminUpdateWithdrawal(id,WithdrawalStatus.COMPLETED)
@@ -143,9 +134,7 @@ await Store.adminUpdateWithdrawal(id,WithdrawalStatus.REJECTED)
 loadAll()
 }
 
-//////////////////////////////////////////////////
-// User Actions
-//////////////////////////////////////////////////
+//////////////////////// USER ACTION ////////////////////////
 
 const banUser = async(user:User)=>{
 await Store.toggleUserBan(user.uid,user.isBanned)
@@ -159,11 +148,9 @@ await Store.adminAddCoins(uid,Number(amount))
 loadAll()
 }
 
-//////////////////////////////////////////////////
-// Tasks
-//////////////////////////////////////////////////
+//////////////////////// TASK ////////////////////////
 
-const openCreateTask = ()=>{
+const openCreateTask=()=>{
 setEditingTask(null)
 
 setTaskForm({
@@ -179,13 +166,15 @@ expectedInnerFileName:""
 setTaskModal(true)
 }
 
-const openEditTask = (task:Task)=>{
+const openEditTask=(task:Task)=>{
 setEditingTask(task)
 setTaskForm(task)
 setTaskModal(true)
 }
 
-const saveTask = async()=>{
+const saveTask=async(e?:any)=>{
+
+if(e) e.preventDefault()
 
 if(!taskForm.title){
 alert("Title required")
@@ -193,61 +182,38 @@ return
 }
 
 if(editingTask){
-
 await Store.updateTask(editingTask.id,taskForm)
-
 }else{
-
 await Store.createTask(taskForm)
-
 }
 
 setTaskModal(false)
-
 loadAll()
 
 }
 
-const deleteTask = async(id:string)=>{
-
+const deleteTask=async(id:string)=>{
 if(!window.confirm("Delete task?")) return
-
 await Store.deleteTask(id)
-
 loadAll()
-
 }
 
-//////////////////////////////////////////////////
-// Settings
-//////////////////////////////////////////////////
+//////////////////////// SETTINGS ////////////////////////
 
 const updateSetting=(key:string,value:any)=>{
-
 if(!settings) return
-
-setSettings({
-...settings,
-[key]:value
-})
-
+setSettings({...settings,[key]:value})
 }
 
 const saveSettings=async()=>{
-
 if(!settings) return
-
 await Store.updateSettings(settings)
-
 alert("Settings Updated")
-
 }
 
-//////////////////////////////////////////////////
-// Jackpot
-//////////////////////////////////////////////////
+//////////////////////// JACKPOT ////////////////////////
 
-const selectJackpotWinner = async()=>{
+const selectJackpotWinner=async()=>{
 
 const monthKey = new Date().getMonth()
 
@@ -275,7 +241,7 @@ loadAll()
 
 }
 
-//////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
 
 return(
 
@@ -285,36 +251,32 @@ return(
 
 {/* Tabs */}
 
-<div className="flex overflow-x-auto gap-2">
+<div className="flex gap-2 overflow-x-auto">
 
 {["withdrawals","users","tasks","settings","jackpot"].map(t=>(
 
 <button
 key={t}
 onClick={()=>setTab(t)}
-className={`px-4 py-2 rounded-lg text-sm font-bold ${
+className={`px-4 py-2 rounded font-bold ${
 tab===t ? "bg-black text-white":"bg-gray-200"
 }`}
 >
-
 {t}
-
 </button>
 
 ))}
 
 </div>
 
-//////////////////////////////////////////////////
 {/* WITHDRAWALS */}
-//////////////////////////////////////////////////
 
 {tab==="withdrawals" &&(
 
 <div className="space-y-3">
 
 <div className="bg-yellow-100 p-3 rounded text-sm">
-Pending Requests: {pendingWithdrawals.length} <br/>
+Pending Requests: {pendingWithdrawals.length}<br/>
 Pending Amount: ₹{pendingAmount}
 </div>
 
@@ -325,35 +287,6 @@ onChange={e=>setSearch(e.target.value)}
 className="border p-2 rounded w-full"
 />
 
-<div className="flex gap-2">
-
-<select
-value={filter}
-onChange={e=>setFilter(e.target.value)}
-className="border p-2 rounded w-full"
->
-
-<option value="ALL">Status</option>
-<option value="PENDING">Pending</option>
-<option value="COMPLETED">Completed</option>
-<option value="REJECTED">Rejected</option>
-
-</select>
-
-<select
-value={withdrawType}
-onChange={e=>setWithdrawType(e.target.value)}
-className="border p-2 rounded w-full"
->
-
-<option value="ALL">Type</option>
-<option value="UPI">UPI</option>
-<option value="BANK">Bank</option>
-
-</select>
-
-</div>
-
 {filteredWithdrawals.map(w=>{
 
 const user = users.find(u=>u.uid===w.uid)
@@ -362,21 +295,19 @@ return(
 
 <div
 key={w.id}
-className="border bg-white rounded p-3 space-y-1"
 onClick={()=>setSelectedWithdrawal(w)}
+className="border bg-white rounded p-3"
 >
 
 <b>{user?.name}</b>
 
 <div className="text-xs">{user?.email}</div>
 
-<div className="text-sm font-bold">₹{w.amount}</div>
-
-<div className="text-xs">{w.status}</div>
+<div>₹{w.amount}</div>
 
 {w.status==="PENDING" &&(
 
-<div className="flex gap-2 pt-2">
+<div className="flex gap-2 mt-2">
 
 <button
 onClick={(e)=>{e.stopPropagation();approveWithdrawal(w.id)}}
@@ -406,63 +337,24 @@ Reject
 
 )}
 
-//////////////////////////////////////////////////
 {/* USERS */}
-//////////////////////////////////////////////////
 
 {tab==="users" &&(
 
-<div className="space-y-3">
-
-<input
-placeholder="Search name/email"
-value={search}
-onChange={e=>setSearch(e.target.value)}
-className="border p-2 rounded w-full"
-/>
-
-<select
-value={coinFilter}
-onChange={e=>setCoinFilter(e.target.value)}
-className="border p-2 rounded w-full"
->
-<option value="ALL">Coins</option>
-<option value="LOW">0-500</option>
-<option value="MEDIUM">500-2000</option>
-<option value="HIGH">2000+</option>
-</select>
-
-<select
-value={rankFilter}
-onChange={e=>setRankFilter(e.target.value)}
-className="border p-2 rounded w-full"
->
-<option value="ALL">Rank</option>
-<option value="gold">Gold</option>
-<option value="diamond">Diamond</option>
-</select>
-
-<input
-placeholder="Place"
-value={placeFilter}
-onChange={e=>setPlaceFilter(e.target.value)}
-className="border p-2 rounded w-full"
-/>
+<div className="space-y-2">
 
 {filteredUsers.map(u=>(
 
 <div
 key={u.uid}
-className="border bg-white rounded p-3 flex justify-between"
 onClick={()=>setSelectedUser(u)}
+className="border bg-white p-3 rounded flex justify-between"
 >
 
 <div>
 
 <b>{u.name}</b>
-
 <div className="text-xs">{u.email}</div>
-
 <div className="text-xs">Coins: {u.balance}</div>
 
 </div>
@@ -493,9 +385,7 @@ className="bg-red-500 text-white px-3 py-1 rounded"
 
 )}
 
-//////////////////////////////////////////////////
 {/* TASKS */}
-//////////////////////////////////////////////////
 
 {tab==="tasks" &&(
 
@@ -510,14 +400,11 @@ Create Task
 
 {tasks.map(t=>(
 
-<div key={t.id} className="border bg-white rounded p-3 flex justify-between">
+<div key={t.id} className="border bg-white p-3 rounded flex justify-between">
 
 <div>
-
 <b>{t.title}</b>
-
-<div className="text-xs">Reward: {t.reward}</div>
-
+<div className="text-xs">Reward {t.reward}</div>
 </div>
 
 <div className="flex gap-2">
@@ -546,17 +433,15 @@ Delete
 
 )}
 
-//////////////////////////////////////////////////
 {/* JACKPOT */}
-//////////////////////////////////////////////////
 
 {tab==="jackpot" &&(
 
-<div className="space-y-4">
+<div className="space-y-3">
 
 <button
 onClick={selectJackpotWinner}
-className="bg-purple-600 text-white px-6 py-3 rounded"
+className="bg-purple-600 text-white px-4 py-2 rounded"
 >
 Select Monthly Winner
 </button>
@@ -567,10 +452,9 @@ const user = users.find(u=>u.uid===j.uid)
 
 return(
 
-<div key={i} className="border bg-white p-3 rounded">
+<div key={i} className="border p-3 bg-white rounded">
 
 <b>{user?.name}</b>
-
 <div className="text-xs">Month: {j.month}</div>
 
 </div>
@@ -585,17 +469,61 @@ return(
 
 </div>
 
-//////////////////////////////////////////////////
+{/* USER MODAL */}
+
+{selectedUser &&(
+
+<div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+
+<div className="bg-white p-5 rounded w-[90%]">
+
+<button onClick={()=>setSelectedUser(null)}><X/></button>
+
+<h2 className="font-bold">{selectedUser.name}</h2>
+<p>{selectedUser.email}</p>
+<p>Coins: {selectedUser.balance}</p>
+<p>Place: {selectedUser.place}</p>
+<p>Rank: {selectedUser.rank}</p>
+
+</div>
+
+</div>
+
+)}
+
+{/* WITHDRAW MODAL */}
+
+{selectedWithdrawal &&(
+
+<div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+
+<div className="bg-white p-5 rounded w-[90%]">
+
+<button onClick={()=>setSelectedWithdrawal(null)}><X/></button>
+
+<p>Amount: ₹{selectedWithdrawal.amount}</p>
+<p>Type: {selectedWithdrawal.type}</p>
+<p>Status: {selectedWithdrawal.status}</p>
+<p>{selectedWithdrawal.details}</p>
+
+</div>
+
+</div>
+
+)}
+
 {/* TASK MODAL */}
-//////////////////////////////////////////////////
 
 {taskModal &&(
 
 <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
 
-<div className="bg-white p-6 rounded-xl w-[90%] space-y-2">
+<form
+onSubmit={saveTask}
+className="bg-white p-5 rounded w-[90%] space-y-2"
+>
 
-<button onClick={()=>setTaskModal(false)}><X/></button>
+<button type="button" onClick={()=>setTaskModal(false)}><X/></button>
 
 <input
 placeholder="Task ID"
@@ -619,35 +547,14 @@ onChange={e=>setTaskForm({...taskForm,reward:Number(e.target.value)})}
 className="border p-2 rounded w-full"
 />
 
-<input
-placeholder="Zip Name"
-value={taskForm.expectedZipName}
-onChange={e=>setTaskForm({...taskForm,expectedZipName:e.target.value})}
-className="border p-2 rounded w-full"
-/>
-
-<input
-placeholder="Password"
-value={taskForm.password}
-onChange={e=>setTaskForm({...taskForm,password:e.target.value})}
-className="border p-2 rounded w-full"
-/>
-
-<input
-placeholder="Inner File Name"
-value={taskForm.expectedInnerFileName}
-onChange={e=>setTaskForm({...taskForm,expectedInnerFileName:e.target.value})}
-className="border p-2 rounded w-full"
-/>
-
 <button
-onClick={saveTask}
+type="submit"
 className="bg-blue-600 text-white px-4 py-2 rounded w-full"
 >
 Save Task
 </button>
 
-</div>
+</form>
 
 </div>
 
