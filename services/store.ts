@@ -57,6 +57,24 @@ isBanned:!current
 })
 },
 
+checkUserExists: async (email: string) => {
+
+  const q = query(
+    collection(db, "users"),
+    where("email", "==", email)
+  );
+
+  const snap = await getDocs(q);
+
+  if (snap.empty) return null;
+
+  return {
+    uid: snap.docs[0].id,
+    ...snap.docs[0].data()
+  };
+
+},
+
 //////////////////////////// SETTINGS ////////////////////////////
 
 getSettings: async (): Promise<AdminSettings> => {
