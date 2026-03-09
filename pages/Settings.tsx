@@ -24,7 +24,7 @@ const Settings: React.FC = () => {
 
   const handleLogout = async () => {
     if (window.confirm("Are you sure you want to logout?")) {
-        await Store.logout();
+        Store.logoutUser();
         await refreshUser(); 
     }
   };
