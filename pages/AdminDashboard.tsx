@@ -20,16 +20,6 @@ const [users,setUsers] = useState<User[]>([])
 const [tasks,setTasks] = useState<Task[]>([])
 const [settings,setSettings] = useState<AdminSettings | null>(null)
 
-const [jackpotHistory,setJackpotHistory] = useState<any[]>([])
-
-const [search,setSearch] = useState("")
-const [filter,setFilter] = useState("ALL")
-const [withdrawType,setWithdrawType] = useState("ALL")
-
-const [coinFilter,setCoinFilter] = useState("ALL")
-const [rankFilter,setRankFilter] = useState("ALL")
-const [placeFilter,setPlaceFilter] = useState("")
-
 const [selectedUser,setSelectedUser] = useState<User|null>(null)
 const [selectedWithdrawal,setSelectedWithdrawal] = useState<WithdrawalRequest|null>(null)
 
@@ -56,74 +46,16 @@ const w = await Store.getWithdrawals()
 const u = await Store.getAllUsers()
 const t = await Store.getAllTasks()
 const s = await Store.getSettings()
-const j = await Store.getAllJackpotWinners?.()
 
 setWithdrawals(w)
 setUsers(u)
 setTasks(t)
 setSettings(s)
-setJackpotHistory(j || [])
 
 }
 
 //////////////////////////////
-// Withdrawal Stats
-//////////////////////////////
-
-const pendingWithdrawals = withdrawals.filter(w=>w.status==="PENDING")
-
-const pendingAmount = pendingWithdrawals.reduce((a,b)=>a+b.amount,0)
-
-//////////////////////////////
-// Withdrawals Filter
-//////////////////////////////
-
-const filteredWithdrawals = withdrawals.filter(w=>{
-
-const user = users.find(u=>u.uid===w.uid)
-
-const matchSearch =
-user?.name?.toLowerCase().includes(search.toLowerCase()) ||
-user?.email?.toLowerCase().includes(search.toLowerCase())
-
-const matchStatus =
-filter==="ALL" || w.status===filter
-
-const matchType =
-withdrawType==="ALL" || w.type===withdrawType
-
-return matchSearch && matchStatus && matchType
-
-})
-
-//////////////////////////////
-// Users Filter
-//////////////////////////////
-
-const filteredUsers = users.filter(u=>{
-
-const matchSearch =
-u.name.toLowerCase().includes(search.toLowerCase()) ||
-u.email.toLowerCase().includes(search.toLowerCase())
-
-const matchCoins =
-coinFilter==="ALL" ||
-(coinFilter==="LOW" && u.balance < 500) ||
-(coinFilter==="MEDIUM" && u.balance >=500 && u.balance <2000) ||
-(coinFilter==="HIGH" && u.balance >=2000)
-
-const matchRank =
-rankFilter==="ALL" || u.rank===rankFilter
-
-const matchPlace =
-placeFilter==="" || u.place?.toLowerCase().includes(placeFilter.toLowerCase())
-
-return matchSearch && matchCoins && matchRank && matchPlace
-
-})
-
-//////////////////////////////
-// Withdraw Actions
+// Withdrawals
 //////////////////////////////
 
 const approveWithdrawal = async(id:string)=>{
@@ -137,7 +69,7 @@ loadAll()
 }
 
 //////////////////////////////
-// User Actions
+// Users
 //////////////////////////////
 
 const banUser = async(user:User)=>{
@@ -157,6 +89,7 @@ loadAll()
 //////////////////////////////
 
 const openCreateTask=()=>{
+
 setEditingTask(null)
 
 setTaskForm({
@@ -170,17 +103,25 @@ expectedInnerFileName:""
 })
 
 setTaskModal(true)
+
 }
 
 const openEditTask=(task:Task)=>{
+
 setEditingTask(task)
+
 setTaskForm(task)
+
 setTaskModal(true)
+
 }
 
 const saveTask=async()=>{
 
-if(!taskForm.title) return alert("Title required")
+if(!taskForm.title){
+alert("Title required")
+return
+}
 
 if(editingTask){
 
@@ -193,6 +134,7 @@ await Store.createTask(taskForm)
 }
 
 setTaskModal(false)
+
 loadAll()
 
 }
@@ -202,6 +144,7 @@ const deleteTask=async(id:string)=>{
 if(!window.confirm("Delete task?")) return
 
 await Store.deleteTask(id)
+
 loadAll()
 
 }
@@ -242,11 +185,8 @@ const monthKey = new Date().getMonth()
 const lastWinner = await Store.getJackpotWinner(monthKey)
 
 if(lastWinner){
-
 alert("Winner already selected")
-
 return
-
 }
 
 const eligible = users.filter(u=>!u.isBanned)
@@ -272,21 +212,21 @@ return(
 
 <Layout>
 
-<div className="p-3 space-y-4">
+<div className="p-4 space-y-4">
 
 {/* Tabs */}
 
-<div className="flex overflow-x-auto gap-2">
+<div className="flex gap-2 overflow-x-auto">
 
 {["withdrawals","users","tasks","settings","jackpot"].map(t=>(
 
 <button
 key={t}
+type="button"
 onClick={()=>setTab(t)}
-className={`px-4 py-2 rounded-xl text-sm font-bold ${
+className={`px-4 py-2 rounded-lg ${
 tab===t ? "bg-black text-white":"bg-gray-200"
 }`}
-
 >
 
 {t}
@@ -303,48 +243,7 @@ tab===t ? "bg-black text-white":"bg-gray-200"
 
 <div className="space-y-3">
 
-<div className="bg-yellow-100 p-3 rounded-lg text-sm">
-Pending Requests: {pendingWithdrawals.length} <br/>
-Pending Amount: ₹{pendingAmount}
-</div>
-
-<input
-placeholder="Search user"
-value={search}
-onChange={e=>setSearch(e.target.value)}
-className="border p-2 rounded w-full"
-/>
-
-<div className="flex gap-2">
-
-<select
-value={filter}
-onChange={e=>setFilter(e.target.value)}
-className="border p-2 rounded w-full"
->
-
-<option value="ALL">Status</option>
-<option value="PENDING">Pending</option>
-<option value="COMPLETED">Completed</option>
-<option value="REJECTED">Rejected</option>
-
-</select>
-
-<select
-value={withdrawType}
-onChange={e=>setWithdrawType(e.target.value)}
-className="border p-2 rounded w-full"
->
-
-<option value="ALL">Type</option>
-<option value="UPI">UPI</option>
-<option value="BANK">Bank</option>
-
-</select>
-
-</div>
-
-{filteredWithdrawals.map(w=>{
+{withdrawals.map(w=>{
 
 const user = users.find(u=>u.uid===w.uid)
 
@@ -352,24 +251,31 @@ return(
 
 <div
 key={w.id}
+className="border rounded-lg p-3 bg-white"
+>
+
+<div
 onClick={()=>setSelectedWithdrawal(w)}
-className="bg-white border rounded-xl p-3 space-y-1"
+className="cursor-pointer"
 >
 
 <b>{user?.name}</b>
 
 <div className="text-xs">{user?.email}</div>
 
-<div className="text-sm font-bold">₹{w.amount}</div>
+<div className="font-bold">₹{w.amount}</div>
 
 <div className="text-xs">{w.status}</div>
 
-{w.status==="PENDING" && (
+</div>
 
-<div className="flex gap-2 pt-2">
+{w.status==="PENDING" &&(
+
+<div className="flex gap-2 mt-2">
 
 <button
-onClick={(e)=>{e.stopPropagation();approveWithdrawal(w.id)}}
+type="button"
+onClick={()=>approveWithdrawal(w.id)}
 className="bg-green-600 text-white px-3 py-1 rounded"
 >
 
@@ -378,7 +284,8 @@ Approve
 </button>
 
 <button
-onClick={(e)=>{e.stopPropagation();rejectWithdrawal(w.id)}}
+type="button"
+onClick={()=>rejectWithdrawal(w.id)}
 className="bg-red-500 text-white px-3 py-1 rounded"
 >
 
@@ -402,71 +309,32 @@ Reject
 
 {/* USERS */}
 
-{tab==="users" && (
+{tab==="users" &&(
 
 <div className="space-y-3">
 
-<input
-placeholder="Search name/email"
-value={search}
-onChange={e=>setSearch(e.target.value)}
-className="border p-2 rounded w-full"
-/>
-
-<select
-value={coinFilter}
-onChange={e=>setCoinFilter(e.target.value)}
-className="border p-2 rounded w-full"
->
-
-<option value="ALL">Coins</option>
-<option value="LOW">0-500</option>
-<option value="MEDIUM">500-2000</option>
-<option value="HIGH">2000+</option>
-
-</select>
-
-<select
-value={rankFilter}
-onChange={e=>setRankFilter(e.target.value)}
-className="border p-2 rounded w-full"
->
-
-<option value="ALL">Rank</option>
-<option value="gold">Gold</option>
-<option value="diamond">Diamond</option>
-
-</select>
-
-<input
-placeholder="Place"
-value={placeFilter}
-onChange={e=>setPlaceFilter(e.target.value)}
-className="border p-2 rounded w-full"
-/>
-
-{filteredUsers.map(u=>(
+{users.map(u=>(
 
 <div
 key={u.uid}
-onClick={()=>setSelectedUser(u)}
-className="bg-white border rounded-xl p-3 flex justify-between"
+className="border p-3 rounded-lg bg-white flex justify-between"
 >
 
-<div>
+<div onClick={()=>setSelectedUser(u)} className="cursor-pointer">
 
 <b>{u.name}</b>
 
 <div className="text-xs">{u.email}</div>
 
-<div className="text-xs">Coins: {u.balance}</div>
+<div className="text-xs">Coins {u.balance}</div>
 
 </div>
 
 <div className="flex gap-2">
 
 <button
-onClick={(e)=>{e.stopPropagation();addCoins(u.uid)}}
+type="button"
+onClick={()=>addCoins(u.uid)}
 className="bg-yellow-500 text-white px-3 py-1 rounded"
 >
 
@@ -475,7 +343,8 @@ Add
 </button>
 
 <button
-onClick={(e)=>{e.stopPropagation();banUser(u)}}
+type="button"
+onClick={()=>banUser(u)}
 className="bg-red-500 text-white px-3 py-1 rounded"
 >
 
@@ -495,11 +364,12 @@ className="bg-red-500 text-white px-3 py-1 rounded"
 
 {/* TASKS */}
 
-{tab==="tasks" && (
+{tab==="tasks" &&(
 
 <div className="space-y-3">
 
 <button
+type="button"
 onClick={openCreateTask}
 className="bg-blue-600 text-white px-4 py-2 rounded"
 >
@@ -510,7 +380,7 @@ Create Task
 
 {tasks.map(t=>(
 
-<div key={t.id} className="bg-white border p-3 rounded-xl flex justify-between">
+<div key={t.id} className="border p-3 rounded-lg bg-white flex justify-between">
 
 <div>
 
@@ -523,6 +393,7 @@ Create Task
 <div className="flex gap-2">
 
 <button
+type="button"
 onClick={()=>openEditTask(t)}
 className="bg-yellow-400 px-3 py-1 rounded"
 >
@@ -532,6 +403,7 @@ Edit
 </button>
 
 <button
+type="button"
 onClick={()=>deleteTask(t.id)}
 className="bg-red-500 text-white px-3 py-1 rounded"
 >
@@ -552,7 +424,7 @@ Delete
 
 {/* SETTINGS */}
 
-{tab==="settings" && settings && (
+{tab==="settings" && settings &&(
 
 <div className="space-y-3">
 
@@ -584,6 +456,7 @@ className="border p-2 rounded w-full"
 />
 
 <button
+type="button"
 onClick={saveSettings}
 className="bg-black text-white px-4 py-2 rounded"
 >
@@ -598,11 +471,12 @@ Save Settings
 
 {/* JACKPOT */}
 
-{tab==="jackpot" && (
+{tab==="jackpot" &&(
 
-<div className="space-y-4">
+<div>
 
 <button
+type="button"
 onClick={selectJackpotWinner}
 className="bg-purple-600 text-white px-6 py-3 rounded"
 >
@@ -610,28 +484,6 @@ className="bg-purple-600 text-white px-6 py-3 rounded"
 Select Monthly Winner
 
 </button>
-
-<div className="space-y-2">
-
-{jackpotHistory.map((j,i)=>{
-
-const user = users.find(u=>u.uid===j.uid)
-
-return(
-
-<div key={i} className="bg-white border p-3 rounded">
-
-<b>{user?.name}</b>
-
-<div className="text-xs">Month: {j.month}</div>
-
-</div>
-
-)
-
-})}
-
-</div>
 
 </div>
 
@@ -643,9 +495,9 @@ return(
 
 {selectedUser &&(
 
-<div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+<div className="fixed inset-0 bg-black/50 flex items-center justify-center">
 
-<div className="bg-white p-6 rounded-xl w-[90%]">
+<div className="bg-white p-6 rounded-lg w-[90%] max-w-md">
 
 <button onClick={()=>setSelectedUser(null)}>
 
@@ -653,17 +505,11 @@ return(
 
 </button>
 
-<div className="space-y-1">
+<div className="space-y-2">
 
-<b>{selectedUser.name}</b>
-
-<div>{selectedUser.email}</div>
-
+<div>Name: {selectedUser.name}</div>
+<div>Email: {selectedUser.email}</div>
 <div>Coins: {selectedUser.balance}</div>
-
-<div>Place: {selectedUser.place}</div>
-
-<div>Rank: {selectedUser.rank}</div>
 
 </div>
 
@@ -673,13 +519,13 @@ return(
 
 )}
 
-{/* WITHDRAW MODAL */}
+{/* WITHDRAWAL MODAL */}
 
 {selectedWithdrawal &&(
 
-<div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+<div className="fixed inset-0 bg-black/50 flex items-center justify-center">
 
-<div className="bg-white p-6 rounded-xl w-[90%]">
+<div className="bg-white p-6 rounded-lg w-[90%] max-w-md">
 
 <button onClick={()=>setSelectedWithdrawal(null)}>
 
@@ -687,29 +533,9 @@ return(
 
 </button>
 
-<div>
-
-Amount: ₹{selectedWithdrawal.amount}
-
-</div>
-
-<div>
-
-Type: {selectedWithdrawal.type}
-
-</div>
-
-<div>
-
-Details: {selectedWithdrawal.details}
-
-</div>
-
-<div>
-
-Status: {selectedWithdrawal.status}
-
-</div>
+<div>Amount: ₹{selectedWithdrawal.amount}</div>
+<div>Type: {selectedWithdrawal.type}</div>
+<div>Status: {selectedWithdrawal.status}</div>
 
 </div>
 
