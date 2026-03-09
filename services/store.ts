@@ -366,6 +366,70 @@ batch.set(ref,entry)
 await batch.commit()
 
 },
+//////////////////////////// DAILY CLAIM ////////////////////////////
+
+checkDailyClaimStatus: async (uid: string): Promise<boolean> => {
+
+  const today = new Date().toISOString().slice(0,10);
+
+  const q = query(
+    collection(db,"daily_claims"),
+    where("uid","==",uid),
+    where("date","==",today)
+  );
+
+  const snap = await getDocs(q);
+
+  return !snap.empty;
+
+},
+
+claimDaily: async (uid:string)=>{
+
+  const today = new Date().toISOString().slice(0,10);
+
+  const q = query(
+    collection(db,"daily_claims"),
+    where("uid","==",uid),
+    where("date","==",today)
+  );
+
+  const snap = await getDocs(q);
+
+  if(!snap.empty){
+
+    return {
+      success:false,
+      message:"Already claimed today"
+    }
+
+  }
+
+  const userRef = doc(db,"users",uid)
+
+  const batch = writeBatch(db)
+
+  batch.update(userRef,{
+    balance:increment(10)
+  })
+
+  const ref = doc(collection(db,"daily_claims"))
+
+  batch.set(ref,{
+    uid,
+    date:today,
+    reward:10,
+    timestamp:new Date().toISOString()
+  })
+
+  await batch.commit()
+
+  return {
+    success:true,
+    message:"Daily bonus claimed! +10 coins"
+  }
+
+},
 
 //////////////////////////// INIT ////////////////////////////
 
