@@ -95,8 +95,7 @@ const matchSearch =
 const matchStatus =
 filter==="ALL" || w.status===filter as WithdrawalStatus
 const matchType =
-withdrawType==="ALL" || w.type===withdrawType
-
+withdrawType==="ALL" || (w as any).type===withdrawType
 return matchSearch && matchStatus && matchType
 
 })
