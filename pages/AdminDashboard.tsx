@@ -166,7 +166,7 @@ loadAll()
 //////////////// TASK //////////////////////////////
 ////////////////////////////////////////////////////
 
-const openCreateTask=()=>{
+const openCreateTask = () => {
 
 setEditingTask(null)
 
@@ -175,16 +175,19 @@ id:"",
 title:"",
 reward:0,
 isSpecial:false,
+link:"",
 expectedZipName:"",
 password:"",
-expectedInnerFileName:""
+expectedInnerFileName:"",
+expectedapkName:"",
+Package:""
 })
 
 setTaskModal(true)
 
 }
 
-const openEditTask=(task:Task)=>{
+const openEditTask = (task:Task)=>{
 
 setEditingTask(task)
 
@@ -193,14 +196,22 @@ id:task.id,
 title:task.title,
 reward:task.reward,
 isSpecial:task.isSpecial || false,
+link:task.link || "",
+
 expectedZipName:task.expectedZipName || "",
 password:task.password || "",
-expectedInnerFileName:task.expectedInnerFileName || ""
+expectedInnerFileName:task.expectedInnerFileName || "",
+
+expectedapkName:(task as any).expectedapkName || "",
+Package:(task as any).Package || ""
+
 })
 
 setTaskModal(true)
 
 }
+
+////////////////////////////////////////////////////
 
 const saveTask = async(e:React.FormEvent)=>{
 
@@ -213,10 +224,31 @@ return
 
 try{
 
-if(editingTask){
-await Store.updateTask(editingTask.id,taskForm)
+let payload:any = {
+id:taskForm.id,
+title:taskForm.title,
+reward:taskForm.reward,
+isSpecial:taskForm.isSpecial,
+link:taskForm.link
+}
+
+if(taskForm.isSpecial){
+
+payload.expectedapkName = taskForm.expectedapkName
+payload.Package = taskForm.Package
+
 }else{
-await Store.createTask(taskForm)
+
+payload.expectedZipName = taskForm.expectedZipName
+payload.password = taskForm.password
+payload.expectedInnerFileName = taskForm.expectedInnerFileName
+
+}
+
+if(editingTask){
+await Store.updateTask(editingTask.id,payload)
+}else{
+await Store.createTask(payload)
 }
 
 setTaskModal(false)
@@ -229,12 +261,17 @@ alert("Failed to save task")
 
 }
 
-const deleteTask=async(id:string)=>{
-if(!window.confirm("Delete task?")) return
-await Store.deleteTask(id)
-loadAll()
-}
+////////////////////////////////////////////////////
 
+const deleteTask = async(id:string)=>{
+
+if(!window.confirm("Delete task?")) return
+
+await Store.deleteTask(id)
+
+loadAll()
+
+  }
 ////////////////////////////////////////////////////
 //////////////// SETTINGS //////////////////////////
 ////////////////////////////////////////////////////
@@ -318,6 +355,10 @@ tab===t ? "bg-black text-white":"bg-gray-200"
 
 <div className="space-y-3">
 
+<div className="flex justify-between">
+
+<h2 className="font-bold text-lg">Tasks</h2>
+
 <button
 onClick={openCreateTask}
 className="bg-blue-600 text-white px-4 py-2 rounded"
@@ -325,19 +366,25 @@ className="bg-blue-600 text-white px-4 py-2 rounded"
 Create Task
 </button>
 
+</div>
+
 {tasks.map(t=>(
 
 <div
 key={t.id}
-className="border bg-white p-3 rounded flex justify-between"
+className="border bg-white p-3 rounded flex justify-between items-center"
 >
 
-<div>
+<div className="space-y-1">
 
 <b>{t.title}</b>
 
+<div className="text-xs text-gray-500">
+Reward: {t.reward}
+</div>
+
 <div className="text-xs">
-Reward {t.reward}
+Type: {t.isSpecial ? "Special APK Task" : "Normal ZIP Task"}
 </div>
 
 </div>
@@ -367,9 +414,7 @@ Delete
 </div>
 
 )}
-
-</div>
-
+  
 {/* TASK MODAL */}
 
 {taskModal &&(
@@ -378,8 +423,14 @@ Delete
 
 <form
 onSubmit={saveTask}
-className="bg-white p-5 rounded w-[90%] space-y-2"
+className="bg-white p-5 rounded w-[95%] max-w-md space-y-3"
 >
+
+<div className="flex justify-between">
+
+<h3 className="font-bold">
+{editingTask ? "Edit Task" : "Create Task"}
+</h3>
 
 <button
 type="button"
@@ -387,6 +438,8 @@ onClick={()=>setTaskModal(false)}
 >
 <X/>
 </button>
+
+</div>
 
 <input
 placeholder="Task ID"
@@ -410,6 +463,94 @@ onChange={e=>setTaskForm({...taskForm,reward:Number(e.target.value)})}
 className="border p-2 rounded w-full"
 />
 
+<input
+placeholder="Download Link"
+value={taskForm.link}
+onChange={e=>setTaskForm({...taskForm,link:e.target.value})}
+className="border p-2 rounded w-full"
+/>
+
+{/* Task Type Toggle */}
+
+<div className="flex gap-2">
+
+<button
+type="button"
+onClick={()=>setTaskForm({...taskForm,isSpecial:false})}
+className={`px-3 py-1 rounded ${
+!taskForm.isSpecial ? "bg-blue-600 text-white":"bg-gray-200"
+}`}
+>
+Normal
+</button>
+
+<button
+type="button"
+onClick={()=>setTaskForm({...taskForm,isSpecial:true})}
+className={`px-3 py-1 rounded ${
+taskForm.isSpecial ? "bg-blue-600 text-white":"bg-gray-200"
+}`}
+>
+Special
+</button>
+
+</div>
+
+{/* Normal Task Fields */}
+
+{!taskForm.isSpecial &&(
+
+<>
+
+<input
+placeholder="Expected ZIP Name"
+value={taskForm.expectedZipName}
+onChange={e=>setTaskForm({...taskForm,expectedZipName:e.target.value})}
+className="border p-2 rounded w-full"
+/>
+
+<input
+placeholder="ZIP Password"
+value={taskForm.password}
+onChange={e=>setTaskForm({...taskForm,password:e.target.value})}
+className="border p-2 rounded w-full"
+/>
+
+<input
+placeholder="Inner File Name"
+value={taskForm.expectedInnerFileName}
+onChange={e=>setTaskForm({...taskForm,expectedInnerFileName:e.target.value})}
+className="border p-2 rounded w-full"
+/>
+
+</>
+
+)}
+
+{/* Special Task Fields */}
+
+{taskForm.isSpecial &&(
+
+<>
+
+<input
+placeholder="Expected APK Name"
+value={taskForm.expectedapkName}
+onChange={e=>setTaskForm({...taskForm,expectedapkName:e.target.value})}
+className="border p-2 rounded w-full"
+/>
+
+<input
+placeholder="Package Name"
+value={taskForm.Package}
+onChange={e=>setTaskForm({...taskForm,Package:e.target.value})}
+className="border p-2 rounded w-full"
+/>
+
+</>
+
+)}
+
 <button
 type="submit"
 className="bg-blue-600 text-white px-4 py-2 rounded w-full"
@@ -422,7 +563,6 @@ Save Task
 </div>
 
 )}
-
 </Layout>
 
 )
