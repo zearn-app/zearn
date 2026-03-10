@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Layout } from "../components/Layout";
 import { Store } from "../services/store";
 import {
-  User,
-  Task,
-  WithdrawalRequest,
-  WithdrawalStatus,
-  AdminSettings
+User,
+Task,
+WithdrawalRequest,
+WithdrawalStatus,
+AdminSettings
 } from "../types";
 
 import { X } from "lucide-react";
@@ -30,11 +30,8 @@ const [coinFilter,setCoinFilter] = useState("ALL")
 const [rankFilter,setRankFilter] = useState("ALL")
 const [placeFilter,setPlaceFilter] = useState("")
 
-const [selectedUser,setSelectedUser] = useState<User|null>(null)
-const [selectedWithdrawal,setSelectedWithdrawal] = useState<WithdrawalRequest|null>(null)
-
 const [taskModal,setTaskModal] = useState(false)
-const [editingTask,setEditingTask] = useState<Task|null>(null)
+const [editingTask,setEditingTask] = useState<Task | null>(null)
 
 const [taskForm,setTaskForm] = useState({
 id:"",
@@ -48,14 +45,11 @@ expectedInnerFileName:"",
 expectedapkName:"",
 Package:""
 })
-  ////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////
 useEffect(()=>{
 loadAll()
 },[])
-
-////////////////////////////////////////////////////
-//////////////// LOAD DATA /////////////////////////
 ////////////////////////////////////////////////////
 
 const loadAll = async()=>{
@@ -95,8 +89,8 @@ const filteredWithdrawals = withdrawals.filter(w=>{
 const user = users.find(u=>u.uid===w.uid)
 
 const matchSearch =
-user?.name?.toLowerCase().includes(search.toLowerCase()) ||
-user?.email?.toLowerCase().includes(search.toLowerCase())
+(user?.name || "").toLowerCase().includes(search.toLowerCase()) ||
+(user?.email || "").toLowerCase().includes(search.toLowerCase())
 
 const matchStatus =
 filter==="ALL" || w.status===filter
@@ -115,8 +109,8 @@ return matchSearch && matchStatus && matchType
 const filteredUsers = users.filter(u=>{
 
 const matchSearch =
-u.name.toLowerCase().includes(search.toLowerCase()) ||
-u.email.toLowerCase().includes(search.toLowerCase())
+(u.name || "").toLowerCase().includes(search.toLowerCase()) ||
+(u.email || "").toLowerCase().includes(search.toLowerCase())
 
 const matchCoins =
 coinFilter==="ALL" ||
@@ -128,7 +122,8 @@ const matchRank =
 rankFilter==="ALL" || u.rank===rankFilter
 
 const matchPlace =
-placeFilter==="" || u.place?.toLowerCase().includes(placeFilter.toLowerCase())
+placeFilter==="" ||
+(u.place || "").toLowerCase().includes(placeFilter.toLowerCase())
 
 return matchSearch && matchCoins && matchRank && matchPlace
 
@@ -140,12 +135,12 @@ return matchSearch && matchCoins && matchRank && matchPlace
 
 const approveWithdrawal = async(id:string)=>{
 await Store.adminUpdateWithdrawal(id,WithdrawalStatus.COMPLETED)
-loadAll()
+await loadAll()
 }
 
 const rejectWithdrawal = async(id:string)=>{
 await Store.adminUpdateWithdrawal(id,WithdrawalStatus.REJECTED)
-loadAll()
+await loadAll()
 }
 
 ////////////////////////////////////////////////////
@@ -154,21 +149,26 @@ loadAll()
 
 const banUser = async(user:User)=>{
 await Store.toggleUserBan(user.uid,user.isBanned)
-loadAll()
+await loadAll()
 }
 
 const addCoins = async(uid:string)=>{
+
 const amount = prompt("Enter coins")
+
 if(!amount) return
+
 await (Store as any).adminAddCoins(uid,Number(amount))
-loadAll()
+
+await loadAll()
+
 }
 
 ////////////////////////////////////////////////////
 //////////////// TASK //////////////////////////////
 ////////////////////////////////////////////////////
 
-const openCreateTask = () => {
+const openCreateTask = ()=>{
 
 setEditingTask(null)
 
@@ -188,6 +188,7 @@ Package:""
 setTaskModal(true)
 
 }
+
 const openEditTask = (task:Task)=>{
 
 setEditingTask(task)
@@ -268,6 +269,7 @@ alert("Failed to save task")
 }
 
 }
+
 ////////////////////////////////////////////////////
 
 const deleteTask = async(id:string)=>{
@@ -276,9 +278,10 @@ if(!window.confirm("Delete task?")) return
 
 await Store.deleteTask(id)
 
-loadAll()
+await loadAll()
 
-  }
+}
+
 ////////////////////////////////////////////////////
 //////////////// SETTINGS //////////////////////////
 ////////////////////////////////////////////////////
@@ -298,7 +301,7 @@ alert("Settings Updated")
 //////////////// JACKPOT ///////////////////////////
 ////////////////////////////////////////////////////
 
-const selectJackpotWinner=async()=>{
+const selectJackpotWinner = async()=>{
 
 const monthKey = new Date().getMonth()
 
@@ -322,7 +325,7 @@ await (Store as any).saveJackpotWinner(monthKey,winner.uid)
 
 alert("Winner: "+winner.name)
 
-loadAll()
+await loadAll()
 
 }
 
@@ -382,7 +385,7 @@ key={t.id}
 className="border bg-white p-3 rounded flex justify-between items-center"
 >
 
-<div className="space-y-1">
+<div>
 
 <b>{t.title}</b>
 
@@ -421,7 +424,9 @@ Delete
 </div>
 
 )}
-  
+
+</div>
+
 {/* TASK MODAL */}
 
 {taskModal &&(
@@ -477,8 +482,6 @@ onChange={e=>setTaskForm({...taskForm,link:e.target.value})}
 className="border p-2 rounded w-full"
 />
 
-{/* Task Type Toggle */}
-
 <div className="flex gap-2">
 
 <button
@@ -502,8 +505,6 @@ Special
 </button>
 
 </div>
-
-{/* Normal Task Fields */}
 
 {!taskForm.isSpecial &&(
 
@@ -533,8 +534,6 @@ className="border p-2 rounded w-full"
 </>
 
 )}
-
-{/* Special Task Fields */}
 
 {taskForm.isSpecial &&(
 
@@ -570,6 +569,7 @@ Save Task
 </div>
 
 )}
+
 </Layout>
 
 )
