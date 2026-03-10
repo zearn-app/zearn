@@ -252,6 +252,61 @@ id:d.id,
 })) as UserTask[]
 
 },
+  getTasks: async (isSpecial: boolean): Promise<Task[]> => {
+
+  const q = query(
+    collection(db, "tasks"),
+    where("isSpecial", "==", isSpecial)
+  );
+
+  const snap = await getDocs(q);
+
+  return snap.docs.map(d => ({
+    id: d.id,
+    ...d.data()
+  })) as Task[];
+
+},
+
+  startTask: async (uid: string, taskId: string): Promise<string | null> => {
+
+  const taskRef = doc(db, "tasks", taskId);
+  const taskSnap = await getDoc(taskRef);
+
+  if (!taskSnap.exists()) return null;
+
+  const task = taskSnap.data() as Task;
+
+  const q = query(
+    collection(db, "user_tasks"),
+    where("uid", "==", uid),
+    where("taskId", "==", taskId)
+  );
+
+  const existing = await getDocs(q);
+
+  // If already exists return link
+  if (!existing.empty) {
+    return task.link || null;
+  }
+
+  const ref = doc(collection(db, "user_tasks"));
+
+  const userTask: UserTask = {
+    id: ref.id,
+    uid,
+    taskId,
+    status: TaskStatus.IN_PROCESS,
+    startedAt: new Date().toISOString()
+  };
+
+  await setDoc(ref, userTask);
+
+  return task.link || null;
+
+},
+
+  
 
 //////////////////////////// WITHDRAW ////////////////////////////
 
