@@ -41,12 +41,14 @@ id:"",
 title:"",
 reward:0,
 isSpecial:false,
+link:"",
 expectedZipName:"",
 password:"",
-expectedInnerFileName:""
+expectedInnerFileName:"",
+expectedapkName:"",
+Package:""
 })
-
-////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
 
 useEffect(()=>{
 loadAll()
@@ -186,25 +188,23 @@ Package:""
 setTaskModal(true)
 
 }
-
 const openEditTask = (task:Task)=>{
 
 setEditingTask(task)
 
 setTaskForm({
-id:task.id,
-title:task.title,
-reward:task.reward,
+id:task.id || "",
+title:task.title || "",
+reward:task.reward || 0,
 isSpecial:task.isSpecial || false,
-link:task.link || "",
+link:(task as any).link || "",
 
-expectedZipName:task.expectedZipName || "",
-password:task.password || "",
-expectedInnerFileName:task.expectedInnerFileName || "",
+expectedZipName:(task as any).expectedZipName || "",
+password:(task as any).password || "",
+expectedInnerFileName:(task as any).expectedInnerFileName || "",
 
 expectedapkName:(task as any).expectedapkName || "",
 Package:(task as any).Package || ""
-
 })
 
 setTaskModal(true)
@@ -246,21 +246,28 @@ payload.expectedInnerFileName = taskForm.expectedInnerFileName
 }
 
 if(editingTask){
+
 await Store.updateTask(editingTask.id,payload)
+
 }else{
+
 await Store.createTask(payload)
+
 }
 
 setTaskModal(false)
-loadAll()
+
+await loadAll()
 
 }catch(err){
+
 console.error(err)
+
 alert("Failed to save task")
-}
 
 }
 
+}
 ////////////////////////////////////////////////////
 
 const deleteTask = async(id:string)=>{
