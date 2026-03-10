@@ -93,8 +93,7 @@ const matchSearch =
 (user?.email || "").toLowerCase().includes(search.toLowerCase())
 
 const matchStatus =
-filter==="ALL" || w.status===filter
-
+filter==="ALL" || w.status===filter as WithdrawalStatus
 const matchType =
 withdrawType==="ALL" || w.type===withdrawType
 
