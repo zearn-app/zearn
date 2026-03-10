@@ -294,17 +294,11 @@ alert("Settings Updated")
 ////////////////////////////////////////////////////
 //////////////// JACKPOT ///////////////////////////
 ////////////////////////////////////////////////////
-
 const selectJackpotWinner = async()=>{
 
-const monthKey = new Date().getMonth()
+if(!settings) return
 
-const lastWinner = await (Store as any).getJackpotWinner(monthKey)
-
-if(lastWinner){
-alert("Winner already selected")
-return
-}
+const fee = settings.randomWinnerEntryFee
 
 const eligible = users.filter(u=>!u.isBanned)
 
@@ -315,13 +309,23 @@ return
 
 const winner = eligible[Math.floor(Math.random()*eligible.length)]
 
-await (Store as any).saveJackpotWinner(monthKey,winner.uid)
+try{
 
-alert("Winner: "+winner.name)
+await Store.enterRandomWinner(winner.uid,fee)
+
+alert("Winner entry created for "+winner.name)
+
+}catch(err:any){
+
+alert(err.message)
+
+}
 
 await loadAll()
 
 }
+
+
 ////////////////////////////////////////////////////
 //////////////// UI ////////////////////////////////
 ////////////////////////////////////////////////////
