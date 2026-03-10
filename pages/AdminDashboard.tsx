@@ -123,8 +123,7 @@ rankFilter==="ALL" || u.rank===rankFilter
 
 const matchPlace =
 placeFilter==="" ||
-(u.place || "").toLowerCase().includes(placeFilter.toLowerCase())
-
+(u.district || "").toLowerCase().includes(placeFilter.toLowerCase())
 return matchSearch && matchCoins && matchRank && matchPlace
 
 })
