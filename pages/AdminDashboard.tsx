@@ -60,10 +60,7 @@ const t = await Store.getAllTasks()
 const s = await Store.getSettings()
 
 let j:any[] = []
-
-if((Store as any).getAllJackpotWinners){
-j = await (Store as any).getAllJackpotWinners()
-}
+j = await Store.getWinnerEntries()
 
 setWithdrawals(w)
 setUsers(u)
