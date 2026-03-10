@@ -193,39 +193,34 @@ id:d.id,
 
 createTask: async (input: Partial<Task>): Promise<Task> => {
 
-  if (!input.title) throw new Error("Title required")
+  if (!input.title) throw new Error("Title required");
 
-  const id = input.id || "task_" + Date.now()
+  const id = input.id || "task_" + Date.now();
 
-  const isSpecial = !!input.isSpecial
-
-  const newTask: Task = {
+  const newTask: any = {
     id,
-
     title: input.title,
     description: input.description || "",
-
     reward: Number(input.reward) || 0,
-
-    isSpecial,
-
+    isSpecial: !!input.isSpecial,
     link: input.link || "",
+    status: "active"
+  };
 
-    status: "active",
-
-    // Normal task fields
-    password: !isSpecial ? input.password || "" : "",
-    expectedZipName: !isSpecial ? input.expectedZipName || "" : "",
-    expectedInnerFileName: !isSpecial ? input.expectedInnerFileName || "" : "",
-
-    // Special task fields
-    expectedapkName: isSpecial ? input.expectedapkName || "" : "",
-    Package: isSpecial ? input.Package || "" : ""
+  if (input.isSpecial) {
+    // Special task (APK type)
+    newTask.expectedapkName = input.expectedapkName || "";
+    newTask.Package = input.Package || "";
+  } else {
+    // Normal task (ZIP type)
+    newTask.password = input.password || "";
+    newTask.expectedZipName = input.expectedZipName || "";
+    newTask.expectedInnerFileName = input.expectedInnerFileName || "";
   }
 
-  await setDoc(doc(db, "tasks", id), newTask)
+  await setDoc(doc(db, "tasks", id), newTask);
 
-  return newTask
+  return newTask;
 },
 
 updateTask: async(taskId:string,input:Partial<Task>)=>{
