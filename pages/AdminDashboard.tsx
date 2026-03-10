@@ -563,6 +563,171 @@ Save Task
 
 </form>
 
+{tab==="withdrawals" &&(
+
+<div className="space-y-3">
+
+<h2 className="font-bold text-lg">Withdrawals</h2>
+
+<div className="bg-yellow-100 p-3 rounded">
+Pending Requests: {pendingWithdrawals.length} | Amount: ₹{pendingAmount}
+</div>
+
+{filteredWithdrawals.map(w=>{
+
+const user = users.find(u=>u.uid===w.uid)
+
+return(
+
+<div key={w.id} className="border p-3 rounded bg-white flex justify-between">
+
+<div>
+<b>{user?.name}</b>
+<div className="text-xs">{user?.email}</div>
+<div className="text-sm">₹{w.amount}</div>
+<div className="text-xs">Status: {w.status}</div>
+</div>
+
+<div className="flex gap-2">
+
+{w.status==="PENDING" &&(
+<>
+<button
+onClick={()=>approveWithdrawal(w.id)}
+className="bg-green-500 text-white px-3 py-1 rounded"
+>
+Approve
+</button>
+
+<button
+onClick={()=>rejectWithdrawal(w.id)}
+className="bg-red-500 text-white px-3 py-1 rounded"
+>
+Reject
+</button>
+</>
+)}
+
+</div>
+
+</div>
+
+)
+
+})}
+
+</div>
+
+)}
+
+{tab==="users" &&(
+
+<div className="space-y-3">
+
+<h2 className="font-bold text-lg">Users</h2>
+
+{filteredUsers.map(u=>(
+
+<div key={u.uid} className="border bg-white p-3 rounded flex justify-between">
+
+<div>
+<b>{u.name}</b>
+<div className="text-xs">{u.email}</div>
+<div className="text-xs">Coins: {u.balance}</div>
+</div>
+
+<div className="flex gap-2">
+
+<button
+onClick={()=>addCoins(u.uid)}
+className="bg-blue-500 text-white px-3 py-1 rounded"
+>
+Add Coins
+</button>
+
+<button
+onClick={()=>banUser(u)}
+className={`px-3 py-1 rounded ${
+u.isBanned ? "bg-green-500 text-white":"bg-red-500 text-white"
+}`}
+>
+{u.isBanned ? "Unban":"Ban"}
+</button>
+
+</div>
+
+</div>
+
+))}
+
+</div>
+
+)}
+
+
+{tab==="settings" && settings &&(
+
+<div className="space-y-3">
+
+<h2 className="font-bold text-lg">Settings</h2>
+
+<input
+value={settings.randomWinnerEntryFee}
+onChange={e=>updateSetting("randomWinnerEntryFee",Number(e.target.value))}
+className="border p-2 rounded w-full"
+placeholder="Random Winner Entry Fee"
+/>
+
+<input
+value={settings.withdrawMin}
+onChange={e=>updateSetting("withdrawMin",Number(e.target.value))}
+className="border p-2 rounded w-full"
+placeholder="Min Withdraw"
+/>
+
+<button
+onClick={saveSettings}
+className="bg-blue-600 text-white px-4 py-2 rounded"
+>
+Save Settings
+</button>
+
+</div>
+
+)}
+
+{tab==="jackpot" &&(
+
+<div className="space-y-3">
+
+<h2 className="font-bold text-lg">Jackpot</h2>
+
+<button
+onClick={selectJackpotWinner}
+className="bg-purple-600 text-white px-4 py-2 rounded"
+>
+Select Monthly Winner
+</button>
+
+<div className="space-y-2">
+
+{jackpotHistory.map((j,i)=>(
+
+<div key={i} className="border p-3 rounded bg-white">
+
+Winner UID: {j.uid}
+
+</div>
+
+))}
+
+</div>
+
+</div>
+
+)}
+
+
 </div>
 
 )}
