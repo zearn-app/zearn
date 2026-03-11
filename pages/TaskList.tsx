@@ -19,20 +19,32 @@ const TaskList: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       if (user) {
-        setTasks(await Store.getTasks(isSpecial));
-        setUserTasks(await Store.getUserTasks(user.uid));
+        const taskData = await Store.getTasks(isSpecial);
+        const userTaskData = await Store.getUserTasks(user.uid);
+
+        setTasks(taskData);
+        setUserTasks(userTaskData);
       }
     };
+
     fetchData();
   }, [user, isSpecial, activeTab]);
 
   const handleStartTask = async (task: Task) => {
     if (!user) return;
-    const link = await Store.startTask(user.uid, task.id);
-    refreshUser();
-    if (link) {
-      window.open(link, '_blank');
+
+    try {
+      const link = await Store.startTask(user.uid, task.id);
+
+      refreshUser();
+
+      if (link && link !== "") {
+        window.open(link, "_blank");
+      }
+    } catch (error) {
+      console.error("Task start failed:", error);
     }
+
     setActiveTab('process');
   };
 
@@ -52,9 +64,9 @@ const TaskList: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-blue-500"> {/* Medium Blue Background */}
+    <div className="min-h-screen bg-blue-500">
 
-      {/* Top Header with Back Button */}
+      {/* Header */}
       <div className="flex items-center px-4 py-4 text-white">
         <button
           onClick={() => navigate(-1)}
@@ -62,12 +74,13 @@ const TaskList: React.FC = () => {
         >
           <ArrowLeft size={20} />
         </button>
+
         <h1 className="text-lg font-bold">
           {isSpecial ? "Special Tasks" : "Standard Tasks"}
         </h1>
       </div>
 
-      {/* Content Container */}
+      {/* Content */}
       <div className="bg-white rounded-t-3xl p-4 min-h-[85vh]">
 
         {/* Tabs */}
@@ -108,6 +121,7 @@ const TaskList: React.FC = () => {
 
         {/* Task List */}
         <div className="space-y-4">
+
           {filteredTasks.length === 0 && (
             <div className="text-center text-gray-400 py-10">
               No tasks here.
@@ -117,20 +131,28 @@ const TaskList: React.FC = () => {
           {filteredTasks.map(task => {
             const entry = getUserTaskEntry(task.id);
 
+            const handleClick = () => {
+              if (activeTab === 'all') {
+                handleStartTask(task);
+              }
+              else if (activeTab === 'process') {
+                navigate(`/task-check/${task.id}`);
+              }
+            };
+
             return (
               <div
                 key={task.id}
-                onClick={() => {
-                  if (activeTab === 'all') handleStartTask(task);
-                  else if (activeTab === 'process') navigate(`/task-check/${task.id}`);
-                }}
+                onClick={handleClick}
                 className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between cursor-pointer active:scale-[0.99] transition"
               >
                 <div className="flex-1">
+
                   <div className="flex items-center space-x-2 mb-1">
                     <h3 className="font-bold text-gray-800 line-clamp-1">
                       {task.title}
                     </h3>
+
                     {entry?.status === TaskStatus.FAILED && (
                       <span className="text-[10px] bg-red-100 text-red-600 font-bold px-1.5 rounded">
                         Failed
@@ -139,6 +161,7 @@ const TaskList: React.FC = () => {
                   </div>
 
                   <div className="flex items-center space-x-3 mt-1">
+
                     <span className="text-xs font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded">
                       ₹{task.reward}
                     </span>
@@ -149,25 +172,30 @@ const TaskList: React.FC = () => {
                         {task.diamondReward}
                       </span>
                     )}
+
                   </div>
                 </div>
 
                 <div className="pl-4">
+
                   {activeTab === 'all' && (
                     <div className="bg-gray-900 text-white p-2 rounded-full">
                       <Download size={16} />
                     </div>
                   )}
+
                   {activeTab === 'process' && (
                     <div className="bg-blue-100 text-blue-600 p-2 rounded-full">
                       <ChevronRight size={16} />
                     </div>
                   )}
+
                   {activeTab === 'completed' && (
                     <div className="bg-green-100 text-green-600 p-2 rounded-full">
                       <CheckCircle size={16} />
                     </div>
                   )}
+
                 </div>
               </div>
             );
