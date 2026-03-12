@@ -196,8 +196,35 @@ const AdminDashboard: React.FC = () => {
               )}
             </div>
 
-            <button type="submit">{editingTask ? "Update Task" : "Create Task"}</button>
-            {editingTask && <button onClick={() => setEditingTask(null)}>Cancel</button>}
+            {/* Submit Buttons */}
+            <div>
+              <button type="submit">
+                {editingTask ? "Update Task" : "Create Task"}
+              </button>
+
+              {/* Cancel Button to reset the form */}
+              {editingTask && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingTask(null);
+                    setTaskForm({
+                      id: "",
+                      taskName: "",
+                      fileName: "",
+                      password: "",
+                      innerFile: "",
+                      link: "",
+                      amount: "",
+                      IsSpecial: false,
+                      Package: "",
+                    });
+                  }}
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           </form>
         </div>
       </div>
