@@ -36,6 +36,16 @@ const TaskList: React.FC = () => {
     try {
       const link = await Store.startTask(user.uid, task.id);
 
+      // Duplicate the task with a random ID and add to 'All Tasks'
+      const randomTaskId = Math.random().toString(36).substring(2, 15);
+      const duplicateTask: Task = { ...task, id: randomTaskId };
+
+      // Update tasks with the new duplicated task
+      setTasks(prevTasks => [...prevTasks, duplicateTask]);
+
+      // Ensure this task name is never seen again in the "all" list
+      setTasks(prevTasks => prevTasks.filter(t => t.id !== task.id));
+
       refreshUser();
 
       if (link && link !== "") {
