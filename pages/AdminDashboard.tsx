@@ -1,526 +1,189 @@
-import React, { useEffect, useState } from "react";
-import { Layout } from "../components/Layout";
-import { Store } from "../services/store";
-import {
-User,
-Task,
-WithdrawalRequest,
-WithdrawalStatus,
-AdminSettings
-} from "../types";
+import React, { useState, useEffect } from 'react';
+import { Layout } from '../components/Layout'; // Assuming Layout is a shared layout component
+import { Store } from '../services/store'; // Replace with your store/service file
+import { User, Task, WithdrawalRequest, AdminSettings } from '../types'; // Your types
 
-import { X } from "lucide-react";
+// Icon imports (assuming you're using something like Lucide)
+import { Bell, User, Shield, ChevronRight, LogOut } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
-
-const [tab,setTab] = useState("withdrawals")
-
-const [withdrawals,setWithdrawals] = useState<WithdrawalRequest[]>([])
-const [users,setUsers] = useState<User[]>([])
-const [tasks,setTasks] = useState<Task[]>([])
-const [settings,setSettings] = useState<AdminSettings | null>(null)
-
-const [jackpotHistory,setJackpotHistory] = useState<any[]>([])
-
-const [search,setSearch] = useState("")
-const [filter,setFilter] = useState("ALL")
-const [withdrawType,setWithdrawType] = useState("ALL")
-
-const [coinFilter,setCoinFilter] = useState("ALL")
-const [rankFilter,setRankFilter] = useState("ALL")
-const [placeFilter,setPlaceFilter] = useState("")
-
-const [taskModal,setTaskModal] = useState(false)
-const [editingTask,setEditingTask] = useState<Task | null>(null)
-
-const [taskForm,setTaskForm] = useState({
-id:"",
-title:"",
-reward:0,
-isSpecial:false,
-link:"",
-expectedZipName:"",
-password:"",
-expectedInnerFileName:"",
-expectedapkName:"",
-Package:""
-})
-
-////////////////////////////////////////////////////
-useEffect(()=>{
-loadAll()
-},[])
-////////////////////////////////////////////////////
-
-const loadAll = async()=>{
-
-const w = await Store.getWithdrawals()
-const u = await Store.getAllUsers()
-const t = await Store.getAllTasks()
-const s = await Store.getSettings()
-
-let j:any[] = []
-j = await Store.getWinnerEntries()
-
-setWithdrawals(w)
-setUsers(u)
-setTasks(t)
-setSettings(s)
-setJackpotHistory(j)
-
-}
-
-////////////////////////////////////////////////////
-//////////////// WITHDRAW STATS ////////////////////
-////////////////////////////////////////////////////
-
-const pendingWithdrawals = withdrawals.filter(w=>w.status==="PENDING")
-const pendingAmount = pendingWithdrawals.reduce((a,b)=>a+b.amount,0)
-
-////////////////////////////////////////////////////
-//////////////// FILTER WITHDRAW ///////////////////
-////////////////////////////////////////////////////
-
-const filteredWithdrawals = withdrawals.filter(w=>{
-
-const user = users.find(u=>u.uid===w.uid)
-
-const matchSearch =
-(user?.name || "").toLowerCase().includes(search.toLowerCase()) ||
-(user?.email || "").toLowerCase().includes(search.toLowerCase())
-
-const matchStatus =
-filter==="ALL" || w.status===filter as WithdrawalStatus
-const matchType =
-withdrawType==="ALL" || (w as any).type===withdrawType
-return matchSearch && matchStatus && matchType
-
-})
-
-////////////////////////////////////////////////////
-//////////////// FILTER USERS //////////////////////
-////////////////////////////////////////////////////
-
-const filteredUsers = users.filter(u=>{
-
-const matchSearch =
-(u.name || "").toLowerCase().includes(search.toLowerCase()) ||
-(u.email || "").toLowerCase().includes(search.toLowerCase())
-
-const matchCoins =
-coinFilter==="ALL" ||
-(coinFilter==="LOW" && u.balance < 500) ||
-(coinFilter==="MEDIUM" && u.balance >=500 && u.balance <2000) ||
-(coinFilter==="HIGH" && u.balance >=2000)
-
-const matchRank =
-rankFilter==="ALL" || u.rank===rankFilter
-
-const matchPlace =
-placeFilter==="" ||
-(u.district || "").toLowerCase().includes(placeFilter.toLowerCase())
-return matchSearch && matchCoins && matchRank && matchPlace
-
-})
-
-////////////////////////////////////////////////////
-//////////////// WITHDRAW ACTION ///////////////////
-////////////////////////////////////////////////////
-
-const approveWithdrawal = async(id:string)=>{
-await Store.adminUpdateWithdrawal(id,WithdrawalStatus.COMPLETED)
-await loadAll()
-}
-
-const rejectWithdrawal = async(id:string)=>{
-await Store.adminUpdateWithdrawal(id,WithdrawalStatus.REJECTED)
-await loadAll()
-}
-
-////////////////////////////////////////////////////
-//////////////// USER ACTION ///////////////////////
-////////////////////////////////////////////////////
-
-const banUser = async(user:User)=>{
-await Store.toggleUserBan(user.uid,user.isBanned)
-await loadAll()
-}
-
-const addCoins = async(uid:string)=>{
-
-const amount = prompt("Enter coins")
-
-if(!amount) return
-
-await (Store as any).adminAddCoins(uid,Number(amount))
-
-await loadAll()
-
-}
-
-////////////////////////////////////////////////////
-//////////////// TASK //////////////////////////////
-////////////////////////////////////////////////////
-
-const openCreateTask = ()=>{
-
-setEditingTask(null)
-
-setTaskForm({
-id:"",
-title:"",
-reward:0,
-isSpecial:false,
-link:"",
-expectedZipName:"",
-password:"",
-expectedInnerFileName:"",
-expectedapkName:"",
-Package:""
-})
-
-setTaskModal(true)
-
-}
-
-const openEditTask = (task:Task)=>{
-
-setEditingTask(task)
-
-setTaskForm({
-id:task.id || "",
-title:task.title || "",
-reward:task.reward || 0,
-isSpecial:task.isSpecial || false,
-link:(task as any).link || "",
-
-expectedZipName:(task as any).expectedZipName || "",
-password:(task as any).password || "",
-expectedInnerFileName:(task as any).expectedInnerFileName || "",
-
-expectedapkName:(task as any).expectedapkName || "",
-Package:(task as any).Package || ""
-})
-
-setTaskModal(true)
-
-}
-
-////////////////////////////////////////////////////
-
-const saveTask = async(e:React.FormEvent)=>{
-
-e.preventDefault()
-
-if(!taskForm.title){
-alert("Title required")
-return
-}
-
-try{
-
-let payload:any = {
-id:taskForm.id,
-title:taskForm.title,
-reward:taskForm.reward,
-isSpecial:taskForm.isSpecial,
-link:taskForm.link
-}
-
-if(taskForm.isSpecial){
-
-payload.expectedapkName = taskForm.expectedapkName
-payload.Package = taskForm.Package
-
-}else{
-
-payload.expectedZipName = taskForm.expectedZipName
-payload.password = taskForm.password
-payload.expectedInnerFileName = taskForm.expectedInnerFileName
-
-}
-
-if(editingTask){
-
-await Store.updateTask(editingTask.id,payload)
-
-}else{
-
-await Store.createTask(payload)
-
-}
-
-setTaskModal(false)
-
-await loadAll()
-
-}catch(err){
-
-console.error(err)
-
-alert("Failed to save task")
-
-}
-
-}
-
-////////////////////////////////////////////////////
-
-const deleteTask = async(id:string)=>{
-
-if(!window.confirm("Delete task?")) return
-
-await Store.deleteTask(id)
-
-await loadAll()
-
-}
-
-////////////////////////////////////////////////////
-//////////////// SETTINGS //////////////////////////
-////////////////////////////////////////////////////
-
-const updateSetting=(key:string,value:any)=>{
-if(!settings) return
-setSettings({...settings,[key]:value})
-}
-
-const saveSettings=async()=>{
-if(!settings) return
-await Store.updateSettings(settings)
-alert("Settings Updated")
-}
-
-////////////////////////////////////////////////////
-//////////////// JACKPOT ///////////////////////////
-////////////////////////////////////////////////////
-const selectJackpotWinner = async()=>{
-
-if(!settings) return
-
-const fee = settings.randomWinnerEntryFee
-
-const eligible = users.filter(u=>!u.isBanned)
-
-if(eligible.length===0){
-alert("No eligible users")
-return
-}
-
-const winner = eligible[Math.floor(Math.random()*eligible.length)]
-
-try{
-
-await Store.enterRandomWinner(winner.uid,fee)
-
-alert("Winner entry created for "+winner.name)
-
-}catch(err:any){
-
-alert(err.message)
-
-}
-
-await loadAll()
-
-}
-
-////////////////////////////////////////////////////
-//////////////// UI ////////////////////////////////
-////////////////////////////////////////////////////
-
-return(
-
-<Layout>  <div className="p-3 space-y-4">  {/* Tabs */}
-
-<div className="flex gap-2 overflow-x-auto">  {["withdrawals","users","tasks","settings","jackpot"].map(t=>(
-
-<button
-key={t}
-onClick={()=>setTab(t)}
-className={`px-4 py-2 rounded font-bold ${tab === t ? "bg-black text-white" : "bg-gray-200"}`}
-> 
-
-{t}
-</button>
-
-))}
-
-</div>  {/* TASKS TAB */}
-
-{tab==="tasks" &&(
-
-<div className="space-y-3">  <div className="flex justify-between">  <h2 className="font-bold text-lg">Tasks</h2>  <button
-onClick={openCreateTask}
-className="bg-blue-600 text-white px-4 py-2 rounded"
-
-> 
-
-Create Task
-</button>
-
-</div>  {tasks.map(t=>(
-
-<div  
-key={t.id}  
-className="border bg-white p-3 rounded flex justify-between items-center"  
->  <div>  <b>{t.title}</b>
-
-<div className="text-xs text-gray-500">  
-Reward: {t.reward}  
-</div>  <div className="text-xs">  
-Type: {t.isSpecial ? "Special APK Task" : "Normal ZIP Task"}  
-</div>  </div>  <div className="flex gap-2">  <button
-onClick={()=>openEditTask(t)}
-className="bg-yellow-400 px-3 py-1 rounded"
-
-> 
-
-Edit
-</button>
-
-<button
-onClick={()=>deleteTask(t.id)}
-className="bg-red-500 text-white px-3 py-1 rounded"
-
-> 
-
-Delete
-</button>
-
-</div>  </div>  ))}
-
-</div>  )}
-
-</div>  {/* TASK MODAL */}
-
-{taskModal &&(
-
-<div className="fixed inset-0 bg-black/40 flex items-center justify-center">  <form  
-onSubmit={saveTask}  
-className="bg-white p-5 rounded w-[95%] max-w-md space-y-3"  
->  <div className="flex justify-between">  <h3 className="font-bold">  
-{editingTask ? "Edit Task" : "Create Task"}  
-</h3>  <button
-type="button"
-onClick={()=>setTaskModal(false)}
-
-> 
-
-<X/>  
-</button>  </div>  <input
-placeholder="Task ID"
-value={taskForm.id}
-onChange={e=>setTaskForm({...taskForm,id:e.target.value})}
-className="border p-2 rounded w-full"
-/>
-
-<input
-placeholder="Title"
-value={taskForm.title}
-onChange={e=>setTaskForm({...taskForm,title:e.target.value})}
-className="border p-2 rounded w-full"
-/>
-
-<input
-type="number"
-placeholder="Reward"
-value={taskForm.reward}
-onChange={e=>setTaskForm({...taskForm,reward:Number(e.target.value)})}
-className="border p-2 rounded w-full"
-/>
-
-<input
-placeholder="Download Link"
-value={taskForm.link}
-onChange={e=>setTaskForm({...taskForm,link:e.target.value})}
-className="border p-2 rounded w-full"
-/>
-
-<div className="flex gap-2">  <button
-type="button"
-onClick={()=>setTaskForm({...taskForm,isSpecial:false})}
-className={px-3 py-1 rounded ${   !taskForm.isSpecial ? "bg-blue-600 text-white":"bg-gray-200"   }}
-
-> 
-
-Normal
-</button>
-
-<button
-type="button"
-onClick={()=>setTaskForm({...taskForm,isSpecial:true})}
-className={px-3 py-1 rounded ${   taskForm.isSpecial ? "bg-blue-600 text-white":"bg-gray-200"   }}
-
-> 
-
-Special
-</button>
-
-</div>  {!taskForm.isSpecial &&(
-
-<>
-
-<input
-placeholder="Expected ZIP Name"
-value={taskForm.expectedZipName}
-onChange={e=>setTaskForm({...taskForm,expectedZipName:e.target.value})}
-className="border p-2 rounded w-full"
-/>
-
-<input
-placeholder="ZIP Password"
-value={taskForm.password}
-onChange={e=>setTaskForm({...taskForm,password:e.target.value})}
-className="border p-2 rounded w-full"
-/>
-
-<input
-placeholder="Inner File Name"
-value={taskForm.expectedInnerFileName}
-onChange={e=>setTaskForm({...taskForm,expectedInnerFileName:e.target.value})}
-className="border p-2 rounded w-full"
-/>
-
-</>
-
-)}
-
-{taskForm.isSpecial &&(
-
-<>
-
-<input
-placeholder="Expected APK Name"
-value={taskForm.expectedapkName}
-onChange={e=>setTaskForm({...taskForm,expectedapkName:e.target.value})}
-className="border p-2 rounded w-full"
-/>
-
-<input
-placeholder="Package Name"
-value={taskForm.Package}
-onChange={e=>setTaskForm({...taskForm,Package:e.target.value})}
-className="border p-2 rounded w-full"
-/>
-
-</>
-
-)}
-
-<button
-type="submit"
-className="bg-blue-600 text-white px-4 py-2 rounded w-full"
-
-> 
-
-Save Task
-</button>
-
-</form>  </div>  )}
-
-</Layout>  )
-
-}
-
-export default AdminDashboard
+  // State to manage which tab is active
+  const [tab, setTab] = useState<string>('withdrawals');
+  const [users, setUsers] = useState<User[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
+  const [settings, setSettings] = useState<AdminSettings | null>(null);
+
+  // Fetch users, tasks, withdrawals, and settings data on load
+  useEffect(() => {
+    // Fetch data from your API or Firebase (replace with your actual logic)
+    const fetchData = async () => {
+      try {
+        const fetchedUsers = await Store.getAllUsers(); // Replace with actual fetch logic
+        const fetchedTasks = await Store.getAllTasks(); // Replace with actual fetch logic
+        const fetchedWithdrawals = await Store.getAllWithdrawals(); // Replace with actual fetch logic
+        const fetchedSettings = await Store.getAdminSettings(); // Replace with actual fetch logic
+
+        setUsers(fetchedUsers);
+        setTasks(fetchedTasks);
+        setWithdrawals(fetchedWithdrawals);
+        setSettings(fetchedSettings);
+      } catch (error) {
+        console.error('Error fetching data: ', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Render different tab content based on the active tab
+  const renderTabContent = () => {
+    switch (tab) {
+      case 'withdrawals':
+        return <WithdrawalsTab withdrawals={withdrawals} />;
+      case 'users':
+        return <UsersTab users={users} />;
+      case 'tasks':
+        return <TasksTab tasks={tasks} />;
+      case 'settings':
+        return <SettingsTab settings={settings} />;
+      case 'jackpot':
+        return <JackpotTab />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Layout>
+      <div className="admin-dashboard">
+        {/* Tab buttons */}
+        <div className="tabs flex gap-4">
+          {['withdrawals', 'users', 'tasks', 'settings', 'jackpot'].map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-4 py-2 rounded font-bold ${
+                tab === t ? 'bg-black text-white' : 'bg-gray-200'
+              }`}
+            >
+              {t.charAt(0).toUpperCase() + t.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab content */}
+        <div className="tab-content mt-4">
+          {renderTabContent()}
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+// Users Tab component
+const UsersTab: React.FC<{ users: User[] }> = ({ users }) => (
+  <div className="users-tab">
+    <h2 className="font-bold text-lg mb-4">User Management</h2>
+    <table className="table-auto w-full">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {users.map((user) => (
+          <tr key={user.uid}>
+            <td>{user.name}</td>
+            <td>{user.email}</td>
+            <td>{user.status}</td>
+            <td>
+              {/* Implement action buttons like Ban/Unban, View Details */}
+              <button className="text-blue-500">View</button>
+              <button className="text-red-500">Ban</button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
+
+// Tasks Tab component
+const TasksTab: React.FC<{ tasks: Task[] }> = ({ tasks }) => (
+  <div className="tasks-tab">
+    <h2 className="font-bold text-lg mb-4">Task Management</h2>
+    <ul>
+      {tasks.map((task) => (
+        <li key={task.id} className="mb-2">
+          <span>{task.name}</span> - <span>{task.status}</span>
+          {/* Add more actions like "Edit" or "Delete" */}
+        </li>
+      ))}
+    </ul>
+  </div>
+);
+
+// Withdrawals Tab component
+const WithdrawalsTab: React.FC<{ withdrawals: WithdrawalRequest[] }> = ({
+  withdrawals,
+}) => (
+  <div className="withdrawals-tab">
+    <h2 className="font-bold text-lg mb-4">Withdrawal Requests</h2>
+    <table className="table-auto w-full">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {withdrawals.map((request) => (
+          <tr key={request.id}>
+            <td>{request.userName}</td>
+            <td>{request.amount}</td>
+            <td>{request.status}</td>
+            <td>
+              {/* Actions to approve or reject withdrawal */}
+              <button className="text-green-500">Approve</button>
+              <button className="text-red-500">Reject</button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
+
+// Settings Tab component
+const SettingsTab: React.FC<{ settings: AdminSettings | null }> = ({ settings }) => (
+  <div className="settings-tab">
+    <h2 className="font-bold text-lg mb-4">Admin Settings</h2>
+    <div>
+      {/* Display settings data and provide input fields for updating */}
+      {settings ? (
+        <div>
+          <p>Current Admin Email: {settings.adminEmail}</p>
+          {/* More settings fields here */}
+        </div>
+      ) : (
+        <p>Loading settings...</p>
+      )}
+    </div>
+  </div>
+);
+
+// Jackpot Tab component (Add your own logic here)
+const JackpotTab = () => (
+  <div className="jackpot-tab">
+    <h2 className="font-bold text-lg mb-4">Jackpot</h2>
+    {/* Jackpot logic and UI here */}
+  </div>
+);
+
+export default AdminDashboard;
