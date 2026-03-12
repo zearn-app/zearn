@@ -1,189 +1,194 @@
 import React, { useState, useEffect } from 'react';
-import { Layout } from '../components/Layout'; // Assuming Layout is a shared layout component
-import { Store } from '../services/store'; // Replace with your store/service file
-import { User, Task, WithdrawalRequest, AdminSettings } from '../types'; // Your types
+import { Layout } from '../components/Layout'; // Assuming this is your layout component
+import { useNavigate } from 'react-router-dom';
+import { Store } from '../services/store'; // Assuming this is your store service for Firebase
+import { Bell, User, Shield, ChevronRight, LogOut } from 'lucide-react'; // Assuming these are your icons
 
-// Icon imports (assuming you're using something like Lucide)
-import { Bell, User, Shield, ChevronRight, LogOut } from 'lucide-react';
+// Define your task type
+interface Task {
+  id: string;
+  taskName: string;
+  fileName: string;
+  password: string;
+  innerFile: string;
+  link: string;
+  amount: string;
+  type: string; // Task type (e.g., 'game', 'survey', etc.)
+}
 
 const AdminDashboard: React.FC = () => {
-  // State to manage which tab is active
-  const [tab, setTab] = useState<string>('withdrawals');
-  const [users, setUsers] = useState<User[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
-  const [settings, setSettings] = useState<AdminSettings | null>(null);
+  const [tab, setTab] = useState("tasks"); // Default tab is tasks
+  const [tasks, setTasks] = useState<Task[]>([]); // Store tasks from Firestore
+  const [newTask, setNewTask] = useState({
+    taskName: '',
+    fileName: '',
+    password: '',
+    innerFile: '',
+    link: '',
+    amount: '',
+    type: '',
+  }); // New task input fields
 
-  // Fetch users, tasks, withdrawals, and settings data on load
+  const navigate = useNavigate();
+
+  // Fetch tasks from Firestore on component mount
   useEffect(() => {
-    // Fetch data from your API or Firebase (replace with your actual logic)
-    const fetchData = async () => {
-      try {
-        const fetchedUsers = await Store.getAllUsers(); // Replace with actual fetch logic
-        const fetchedTasks = await Store.getAllTasks(); // Replace with actual fetch logic
-        const fetchedWithdrawals = await Store.getAllWithdrawals(); // Replace with actual fetch logic
-        const fetchedSettings = await Store.getAdminSettings(); // Replace with actual fetch logic
-
-        setUsers(fetchedUsers);
-        setTasks(fetchedTasks);
-        setWithdrawals(fetchedWithdrawals);
-        setSettings(fetchedSettings);
-      } catch (error) {
-        console.error('Error fetching data: ', error);
-      }
+    const fetchTasks = async () => {
+      // Fetch tasks from Firestore (assuming Firestore is set up with a collection named 'tasks')
+      const fetchedTasks = await Store.getAllTasks();
+      setTasks(fetchedTasks);
     };
 
-    fetchData();
+    fetchTasks();
   }, []);
 
-  // Render different tab content based on the active tab
-  const renderTabContent = () => {
-    switch (tab) {
-      case 'withdrawals':
-        return <WithdrawalsTab withdrawals={withdrawals} />;
-      case 'users':
-        return <UsersTab users={users} />;
-      case 'tasks':
-        return <TasksTab tasks={tasks} />;
-      case 'settings':
-        return <SettingsTab settings={settings} />;
-      case 'jackpot':
-        return <JackpotTab />;
-      default:
-        return null;
-    }
+  // Handle creating a new task
+  const createTask = async () => {
+    // Save new task to Firestore
+    await Store.createTask(newTask);
+    // Fetch updated task list after creating a new task
+    const updatedTasks = await Store.getAllTasks();
+    setTasks(updatedTasks);
+    // Clear the new task form
+    setNewTask({
+      taskName: '',
+      fileName: '',
+      password: '',
+      innerFile: '',
+      link: '',
+      amount: '',
+      type: '',
+    });
+  };
+
+  // Handle input changes for creating a new task
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewTask((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   return (
     <Layout>
-      <div className="admin-dashboard">
-        {/* Tab buttons */}
-        <div className="tabs flex gap-4">
-          {['withdrawals', 'users', 'tasks', 'settings', 'jackpot'].map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-4 py-2 rounded font-bold ${
-                tab === t ? 'bg-black text-white' : 'bg-gray-200'
-              }`}
-            >
-              {t.charAt(0).toUpperCase() + t.slice(1)}
-            </button>
-          ))}
+      <div className="p-4 space-y-4">
+        {/* Tabs */}
+        <div className="flex gap-4">
+          <button onClick={() => setTab('tasks')} className={`px-4 py-2 ${tab === 'tasks' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}>
+            Tasks
+          </button>
+          <button onClick={() => setTab('create')} className={`px-4 py-2 ${tab === 'create' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}>
+            Create Task
+          </button>
         </div>
 
-        {/* Tab content */}
-        <div className="tab-content mt-4">
-          {renderTabContent()}
-        </div>
+        {/* Task List Tab */}
+        {tab === 'tasks' && (
+          <div>
+            <h2 className="text-xl font-bold">Task List</h2>
+            <table className="min-w-full border-collapse mt-4">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 border">Task Name</th>
+                  <th className="px-4 py-2 border">File Name</th>
+                  <th className="px-4 py-2 border">Password</th>
+                  <th className="px-4 py-2 border">Inner File</th>
+                  <th className="px-4 py-2 border">Link</th>
+                  <th className="px-4 py-2 border">Amount</th>
+                  <th className="px-4 py-2 border">Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tasks.map((task) => (
+                  <tr key={task.id}>
+                    <td className="px-4 py-2 border">{task.taskName}</td>
+                    <td className="px-4 py-2 border">{task.fileName}</td>
+                    <td className="px-4 py-2 border">{task.password}</td>
+                    <td className="px-4 py-2 border">{task.innerFile}</td>
+                    <td className="px-4 py-2 border">{task.link}</td>
+                    <td className="px-4 py-2 border">{task.amount}</td>
+                    <td className="px-4 py-2 border">{task.type}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Create Task Tab */}
+        {tab === 'create' && (
+          <div>
+            <h2 className="text-xl font-bold">Create Task</h2>
+            <div className="mt-4 space-y-2">
+              <input
+                type="text"
+                name="taskName"
+                value={newTask.taskName}
+                onChange={handleInputChange}
+                placeholder="Task Name"
+                className="px-4 py-2 border w-full"
+              />
+              <input
+                type="text"
+                name="fileName"
+                value={newTask.fileName}
+                onChange={handleInputChange}
+                placeholder="File Name"
+                className="px-4 py-2 border w-full"
+              />
+              <input
+                type="password"
+                name="password"
+                value={newTask.password}
+                onChange={handleInputChange}
+                placeholder="Password"
+                className="px-4 py-2 border w-full"
+              />
+              <input
+                type="text"
+                name="innerFile"
+                value={newTask.innerFile}
+                onChange={handleInputChange}
+                placeholder="Inner File"
+                className="px-4 py-2 border w-full"
+              />
+              <input
+                type="url"
+                name="link"
+                value={newTask.link}
+                onChange={handleInputChange}
+                placeholder="Link"
+                className="px-4 py-2 border w-full"
+              />
+              <input
+                type="text"
+                name="amount"
+                value={newTask.amount}
+                onChange={handleInputChange}
+                placeholder="Amount"
+                className="px-4 py-2 border w-full"
+              />
+              <input
+                type="text"
+                name="type"
+                value={newTask.type}
+                onChange={handleInputChange}
+                placeholder="Type (e.g., game, survey)"
+                className="px-4 py-2 border w-full"
+              />
+              <button
+                onClick={createTask}
+                className="px-4 py-2 bg-blue-500 text-white rounded mt-4"
+              >
+                Create Task
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
 };
-
-// Users Tab component
-const UsersTab: React.FC<{ users: User[] }> = ({ users }) => (
-  <div className="users-tab">
-    <h2 className="font-bold text-lg mb-4">User Management</h2>
-    <table className="table-auto w-full">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {users.map((user) => (
-          <tr key={user.uid}>
-            <td>{user.name}</td>
-            <td>{user.email}</td>
-            <td>{user.status}</td>
-            <td>
-              {/* Implement action buttons like Ban/Unban, View Details */}
-              <button className="text-blue-500">View</button>
-              <button className="text-red-500">Ban</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
-
-// Tasks Tab component
-const TasksTab: React.FC<{ tasks: Task[] }> = ({ tasks }) => (
-  <div className="tasks-tab">
-    <h2 className="font-bold text-lg mb-4">Task Management</h2>
-    <ul>
-      {tasks.map((task) => (
-        <li key={task.id} className="mb-2">
-          <span>{task.name}</span> - <span>{task.status}</span>
-          {/* Add more actions like "Edit" or "Delete" */}
-        </li>
-      ))}
-    </ul>
-  </div>
-);
-
-// Withdrawals Tab component
-const WithdrawalsTab: React.FC<{ withdrawals: WithdrawalRequest[] }> = ({
-  withdrawals,
-}) => (
-  <div className="withdrawals-tab">
-    <h2 className="font-bold text-lg mb-4">Withdrawal Requests</h2>
-    <table className="table-auto w-full">
-      <thead>
-        <tr>
-          <th>User</th>
-          <th>Amount</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {withdrawals.map((request) => (
-          <tr key={request.id}>
-            <td>{request.userName}</td>
-            <td>{request.amount}</td>
-            <td>{request.status}</td>
-            <td>
-              {/* Actions to approve or reject withdrawal */}
-              <button className="text-green-500">Approve</button>
-              <button className="text-red-500">Reject</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
-
-// Settings Tab component
-const SettingsTab: React.FC<{ settings: AdminSettings | null }> = ({ settings }) => (
-  <div className="settings-tab">
-    <h2 className="font-bold text-lg mb-4">Admin Settings</h2>
-    <div>
-      {/* Display settings data and provide input fields for updating */}
-      {settings ? (
-        <div>
-          <p>Current Admin Email: {settings.adminEmail}</p>
-          {/* More settings fields here */}
-        </div>
-      ) : (
-        <p>Loading settings...</p>
-      )}
-    </div>
-  </div>
-);
-
-// Jackpot Tab component (Add your own logic here)
-const JackpotTab = () => (
-  <div className="jackpot-tab">
-    <h2 className="font-bold text-lg mb-4">Jackpot</h2>
-    {/* Jackpot logic and UI here */}
-  </div>
-);
 
 export default AdminDashboard;
