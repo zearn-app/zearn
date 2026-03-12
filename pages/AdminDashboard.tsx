@@ -1,235 +1,531 @@
-import React, { useState, useEffect } from "react";
-import { Layout } from "../components/Layout"; // assuming Layout is a wrapper for your dashboard
-import { useNavigate } from "react-router-dom"; // navigation to route
-import { Store } from "../services/store"; // assuming you have a store service
-import { Task } from "../types"; // Task type
-import { X } from "lucide-react"; // Assuming this is used for close icon
+import React, { useEffect, useState } from "react";
+import { Layout } from "../components/Layout";
+import { Store } from "../services/store";
+import {
+User,
+Task,
+WithdrawalRequest,
+WithdrawalStatus,
+AdminSettings
+} from "../types";
 
-// Task interface based on your model
-interface Task {
-  id: string;
-  taskName: string;
-  fileName: string;
-  password: string;
-  innerFile: string;
-  link: string;
-  amount: string;
-  IsSpecial: boolean;
-  Package?: string; // Optional field if IsSpecial is true
-}
+import { X } from "lucide-react";
 
 const AdminDashboard: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [editingTask, setEditingTask] = useState<Task | null>(null); // Task for editing
-  const [taskForm, setTaskForm] = useState<Task>({
-    id: "",
-    taskName: "",
-    fileName: "",
-    password: "",
-    innerFile: "",
-    link: "",
-    amount: "",
-    IsSpecial: false,
-    Package: "",
-  });
-  const navigate = useNavigate();
 
-  // Fetch tasks from store or API
-  useEffect(() => {
-    const fetchTasks = async () => {
-      // Simulate fetching tasks from Firestore or backend service
-      const fetchedTasks: Task[] = await Store.getAllTasks(); // replace with your actual data fetching logic
-      setTasks(fetchedTasks);
-    };
-    fetchTasks();
-  }, []);
+const [tab,setTab] = useState("withdrawals")
 
-  // Handle form input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setTaskForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+const [withdrawals,setWithdrawals] = useState<WithdrawalRequest[]>([])
+const [users,setUsers] = useState<User[]>([])
+const [tasks,setTasks] = useState<Task[]>([])
+const [settings,setSettings] = useState<AdminSettings | null>(null)
 
-  // Handle checkbox change for IsSpecial
-  const handleIsSpecialChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { checked } = e.target;
-    setTaskForm((prev) => ({
-      ...prev,
-      IsSpecial: checked,
-      Package: checked ? prev.Package : "", // Reset Package if IsSpecial is false
-    }));
-  };
+const [jackpotHistory,setJackpotHistory] = useState<any[]>([])
 
-  // Handle form submission for creating or editing a task
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const [search,setSearch] = useState("")
+const [filter,setFilter] = useState("ALL")
+const [withdrawType,setWithdrawType] = useState("ALL")
 
-    if (editingTask) {
-      // Update task if editing
-      await Store.updateTask(taskForm); // Replace with your actual update function
-    } else {
-      // Create new task
-      await Store.createTask(taskForm); // Replace with your actual create function
-    }
+const [coinFilter,setCoinFilter] = useState("ALL")
+const [rankFilter,setRankFilter] = useState("ALL")
+const [placeFilter,setPlaceFilter] = useState("")
 
-    setTaskForm({
-      id: "",
-      taskName: "",
-      fileName: "",
-      password: "",
-      innerFile: "",
-      link: "",
-      amount: "",
-      IsSpecial: false,
-      Package: "",
-    });
-    setEditingTask(null);
-    // Optionally navigate or update UI after submission
-    navigate("/admin/dashboard"); // Navigate to dashboard or another page
-  };
+const [taskModal,setTaskModal] = useState(false)
+const [editingTask,setEditingTask] = useState<Task | null>(null)
 
-  // Handle task edit
-  const handleEditTask = (task: Task) => {
-    setEditingTask(task);
-    setTaskForm(task);
-  };
+const [taskForm,setTaskForm] = useState({
+id:"",
+title:"",
+reward:0,
+isSpecial:false,
+link:"",
+expectedZipName:"",
+password:"",
+expectedInnerFileName:"",
+expectedapkName:"",
+Package:""
+})
 
-  // Handle task delete (if applicable)
-  const handleDeleteTask = async (id: string) => {
-    await Store.deleteTask(id); // Replace with your actual delete function
-    setTasks(tasks.filter((task) => task.id !== id));
-  };
+////////////////////////////////////////////////////
+useEffect(()=>{
+loadAll()
+},[])
+////////////////////////////////////////////////////
 
-  return (
-    <Layout>
-      <div className="admin-dashboard">
-        <h1>Admin Dashboard</h1>
-        <button onClick={() => setEditingTask(null)}>Create New Task</button>
+const loadAll = async()=>{
 
-        {/* Task List */}
-        <div className="task-list">
-          <h2>Tasks</h2>
-          <ul>
-            {tasks.map((task) => (
-              <li key={task.id}>
-                <span>{task.taskName}</span>
-                <button onClick={() => handleEditTask(task)}>Edit</button>
-                <button onClick={() => handleDeleteTask(task.id)}>Delete</button>
-              </li>
-            ))}
-          </ul>
-        </div>
+const w = await Store.getWithdrawals()
+const u = await Store.getAllUsers()
+const t = await Store.getAllTasks()
+const s = await Store.getSettings()
 
-        {/* Task Form for creating or editing */}
-        <div className="task-form">
-          <h2>{editingTask ? "Edit Task" : "Create Task"}</h2>
-          <form onSubmit={handleSubmit}>
-            <input
-              type="text"
-              name="taskName"
-              value={taskForm.taskName}
-              onChange={handleInputChange}
-              placeholder="Task Name"
-              required
-            />
-            <input
-              type="text"
-              name="fileName"
-              value={taskForm.fileName}
-              onChange={handleInputChange}
-              placeholder="File Name"
-              required
-            />
-            <input
-              type="password"
-              name="password"
-              value={taskForm.password}
-              onChange={handleInputChange}
-              placeholder="Password"
-              required
-            />
-            <input
-              type="text"
-              name="innerFile"
-              value={taskForm.innerFile}
-              onChange={handleInputChange}
-              placeholder="Inner File"
-              required
-            />
-            <input
-              type="url"
-              name="link"
-              value={taskForm.link}
-              onChange={handleInputChange}
-              placeholder="Link"
-              required
-            />
-            <input
-              type="number"
-              name="amount"
-              value={taskForm.amount}
-              onChange={handleInputChange}
-              placeholder="Amount"
-              required
-            />
-            <div>
-              <label>
-                Is Special?
-                <input
-                  type="checkbox"
-                  checked={taskForm.IsSpecial}
-                  onChange={handleIsSpecialChange}
-                />
-              </label>
-              {taskForm.IsSpecial && (
-                <input
-                  type="text"
-                  name="Package"
-                  value={taskForm.Package}
-                  onChange={handleInputChange}
-                  placeholder="Package"
-                  required
-                />
-              )}
-            </div>
+let j:any[] = []
 
-            {/* Submit Buttons */}
-            <div>
-              <button type="submit">
-                {editingTask ? "Update Task" : "Create Task"}
-              </button>
+if((Store as any).getAllJackpotWinners){
+j = await (Store as any).getAllJackpotWinners()
+}
 
-              {/* Cancel Button to reset the form */}
-              {editingTask && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingTask(null);
-                    setTaskForm({
-                      id: "",
-                      taskName: "",
-                      fileName: "",
-                      password: "",
-                      innerFile: "",
-                      link: "",
-                      amount: "",
-                      IsSpecial: false,
-                      Package: "",
-                    });
-                  }}
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          </form>
-        </div>
-      </div>
-    </Layout>
-  );
-};
+setWithdrawals(w)
+setUsers(u)
+setTasks(t)
+setSettings(s)
+setJackpotHistory(j)
 
-export default AdminDashboard;
+}
+
+////////////////////////////////////////////////////
+//////////////// WITHDRAW STATS ////////////////////
+////////////////////////////////////////////////////
+
+const pendingWithdrawals = withdrawals.filter(w=>w.status==="PENDING")
+const pendingAmount = pendingWithdrawals.reduce((a,b)=>a+b.amount,0)
+
+////////////////////////////////////////////////////
+//////////////// FILTER WITHDRAW ///////////////////
+////////////////////////////////////////////////////
+
+const filteredWithdrawals = withdrawals.filter(w=>{
+
+const user = users.find(u=>u.uid===w.uid)
+
+const matchSearch =
+(user?.name || "").toLowerCase().includes(search.toLowerCase()) ||
+(user?.email || "").toLowerCase().includes(search.toLowerCase())
+
+const matchStatus =
+filter==="ALL" || w.status===filter
+
+const matchType =
+withdrawType==="ALL" || w.type===withdrawType
+
+return matchSearch && matchStatus && matchType
+
+})
+
+////////////////////////////////////////////////////
+//////////////// FILTER USERS //////////////////////
+////////////////////////////////////////////////////
+
+const filteredUsers = users.filter(u=>{
+
+const matchSearch =
+(u.name || "").toLowerCase().includes(search.toLowerCase()) ||
+(u.email || "").toLowerCase().includes(search.toLowerCase())
+
+const matchCoins =
+coinFilter==="ALL" ||
+(coinFilter==="LOW" && u.balance < 500) ||
+(coinFilter==="MEDIUM" && u.balance >=500 && u.balance <2000) ||
+(coinFilter==="HIGH" && u.balance >=2000)
+
+const matchRank =
+rankFilter==="ALL" || u.rank===rankFilter
+
+const matchPlace =
+placeFilter==="" ||
+(u.place || "").toLowerCase().includes(placeFilter.toLowerCase())
+
+return matchSearch && matchCoins && matchRank && matchPlace
+
+})
+
+////////////////////////////////////////////////////
+//////////////// WITHDRAW ACTION ///////////////////
+////////////////////////////////////////////////////
+
+const approveWithdrawal = async(id:string)=>{
+await Store.adminUpdateWithdrawal(id,WithdrawalStatus.COMPLETED)
+await loadAll()
+}
+
+const rejectWithdrawal = async(id:string)=>{
+await Store.adminUpdateWithdrawal(id,WithdrawalStatus.REJECTED)
+await loadAll()
+}
+
+////////////////////////////////////////////////////
+//////////////// USER ACTION ///////////////////////
+////////////////////////////////////////////////////
+
+const banUser = async(user:User)=>{
+await Store.toggleUserBan(user.uid,user.isBanned)
+await loadAll()
+}
+
+const addCoins = async(uid:string)=>{
+
+const amount = prompt("Enter coins")
+
+if(!amount) return
+
+await (Store as any).adminAddCoins(uid,Number(amount))
+
+await loadAll()
+
+}
+
+////////////////////////////////////////////////////
+//////////////// TASK //////////////////////////////
+////////////////////////////////////////////////////
+
+const openCreateTask = ()=>{
+
+setEditingTask(null)
+
+setTaskForm({
+id:"",
+title:"",
+reward:0,
+isSpecial:false,
+link:"",
+expectedZipName:"",
+password:"",
+expectedInnerFileName:"",
+expectedapkName:"",
+Package:""
+})
+
+setTaskModal(true)
+
+}
+
+const openEditTask = (task:Task)=>{
+
+setEditingTask(task)
+
+setTaskForm({
+id:task.id || "",
+title:task.title || "",
+reward:task.reward || 0,
+isSpecial:task.isSpecial || false,
+link:(task as any).link || "",
+
+expectedZipName:(task as any).expectedZipName || "",
+password:(task as any).password || "",
+expectedInnerFileName:(task as any).expectedInnerFileName || "",
+
+expectedapkName:(task as any).expectedapkName || "",
+Package:(task as any).Package || ""
+})
+
+setTaskModal(true)
+
+}
+
+////////////////////////////////////////////////////
+
+const saveTask = async(e:React.FormEvent)=>{
+
+e.preventDefault()
+
+if(!taskForm.title){
+alert("Title required")
+return
+}
+
+try{
+
+let payload:any = {
+id:taskForm.id,
+title:taskForm.title,
+reward:taskForm.reward,
+isSpecial:taskForm.isSpecial,
+link:taskForm.link
+}
+
+if(taskForm.isSpecial){
+
+payload.expectedapkName = taskForm.expectedapkName
+payload.Package = taskForm.Package
+
+}else{
+
+payload.expectedZipName = taskForm.expectedZipName
+payload.password = taskForm.password
+payload.expectedInnerFileName = taskForm.expectedInnerFileName
+
+}
+
+if(editingTask){
+
+await Store.updateTask(editingTask.id,payload)
+
+}else{
+
+await Store.createTask(payload)
+
+}
+
+setTaskModal(false)
+
+await loadAll()
+
+}catch(err){
+
+console.error(err)
+
+alert("Failed to save task")
+
+}
+
+}
+
+////////////////////////////////////////////////////
+
+const deleteTask = async(id:string)=>{
+
+if(!window.confirm("Delete task?")) return
+
+await Store.deleteTask(id)
+
+await loadAll()
+
+}
+
+////////////////////////////////////////////////////
+//////////////// SETTINGS //////////////////////////
+////////////////////////////////////////////////////
+
+const updateSetting=(key:string,value:any)=>{
+if(!settings) return
+setSettings({...settings,[key]:value})
+}
+
+const saveSettings=async()=>{
+if(!settings) return
+await Store.updateSettings(settings)
+alert("Settings Updated")
+}
+
+////////////////////////////////////////////////////
+//////////////// JACKPOT ///////////////////////////
+////////////////////////////////////////////////////
+
+const selectJackpotWinner = async()=>{
+
+const monthKey = new Date().getMonth()
+
+const lastWinner = await (Store as any).getJackpotWinner(monthKey)
+
+if(lastWinner){
+alert("Winner already selected")
+return
+}
+
+const eligible = users.filter(u=>!u.isBanned)
+
+if(eligible.length===0){
+alert("No eligible users")
+return
+}
+
+const winner = eligible[Math.floor(Math.random()*eligible.length)]
+
+await (Store as any).saveJackpotWinner(monthKey,winner.uid)
+
+alert("Winner: "+winner.name)
+
+await loadAll()
+
+}
+
+////////////////////////////////////////////////////
+//////////////// UI ////////////////////////////////
+////////////////////////////////////////////////////
+
+return(
+
+<Layout>          <div className="p-3 space-y-4">          {/* Tabs */}
+
+<div className="flex gap-2 overflow-x-auto">          {["withdrawals","users","tasks","settings","jackpot"].map(t=>(
+
+<button
+key={t}
+onClick={()=>setTab(t)}
+className={px-4 py-2 rounded font-bold ${           tab===t ? "bg-black text-white":"bg-gray-200"           }}
+
+> 
+
+{t}
+</button>
+
+))}
+
+</div>          {/* TASKS TAB */}
+
+{tab==="tasks" &&(
+
+<div className="space-y-3">          <div className="flex justify-between">          <h2 className="font-bold text-lg">Tasks</h2>          <button
+onClick={openCreateTask}
+className="bg-blue-600 text-white px-4 py-2 rounded"
+
+> 
+
+Create Task
+</button>
+
+</div>          {tasks.map(t=>(
+
+<div          
+key={t.id}          
+className="border bg-white p-3 rounded flex justify-between items-center"          
+>          <div>          <b>{t.title}</b>
+
+<div className="text-xs text-gray-500">          
+Reward: {t.reward}          
+</div>          <div className="text-xs">          
+Type: {t.isSpecial ? "Special APK Task" : "Normal ZIP Task"}          
+</div>          </div>          <div className="flex gap-2">          <button
+onClick={()=>openEditTask(t)}
+className="bg-yellow-400 px-3 py-1 rounded"
+
+> 
+
+Edit
+</button>
+
+<button
+onClick={()=>deleteTask(t.id)}
+className="bg-red-500 text-white px-3 py-1 rounded"
+
+> 
+
+Delete
+</button>
+
+</div>          </div>          ))}
+
+</div>          )}
+
+</div>          {/* TASK MODAL */}
+
+{taskModal &&(
+
+<div className="fixed inset-0 bg-black/40 flex items-center justify-center">          <form          
+onSubmit={saveTask}          
+className="bg-white p-5 rounded w-[95%] max-w-md space-y-3"          
+>          <div className="flex justify-between">          <h3 className="font-bold">          
+{editingTask ? "Edit Task" : "Create Task"}          
+</h3>          <button
+type="button"
+onClick={()=>setTaskModal(false)}
+
+> 
+
+<X/>          
+</button>          </div>          <input
+placeholder="Task ID"
+value={taskForm.id}
+onChange={e=>setTaskForm({...taskForm,id:e.target.value})}
+className="border p-2 rounded w-full"
+/>
+
+<input
+placeholder="Title"
+value={taskForm.title}
+onChange={e=>setTaskForm({...taskForm,title:e.target.value})}
+className="border p-2 rounded w-full"
+/>
+
+<input
+type="number"
+placeholder="Reward"
+value={taskForm.reward}
+onChange={e=>setTaskForm({...taskForm,reward:Number(e.target.value)})}
+className="border p-2 rounded w-full"
+/>
+
+<input
+placeholder="Download Link"
+value={taskForm.link}
+onChange={e=>setTaskForm({...taskForm,link:e.target.value})}
+className="border p-2 rounded w-full"
+/>
+
+<div className="flex gap-2">          <button
+type="button"
+onClick={()=>setTaskForm({...taskForm,isSpecial:false})}
+className={px-3 py-1 rounded ${           !taskForm.isSpecial ? "bg-blue-600 text-white":"bg-gray-200"           }}
+
+> 
+
+Normal
+</button>
+
+<button
+type="button"
+onClick={()=>setTaskForm({...taskForm,isSpecial:true})}
+className={px-3 py-1 rounded ${           taskForm.isSpecial ? "bg-blue-600 text-white":"bg-gray-200"           }}
+
+> 
+
+Special
+</button>
+
+</div>          {!taskForm.isSpecial &&(
+
+<>
+
+<input
+placeholder="Expected ZIP Name"
+value={taskForm.expectedZipName}
+onChange={e=>setTaskForm({...taskForm,expectedZipName:e.target.value})}
+className="border p-2 rounded w-full"
+/>
+
+<input
+placeholder="ZIP Password"
+value={taskForm.password}
+onChange={e=>setTaskForm({...taskForm,password:e.target.value})}
+className="border p-2 rounded w-full"
+/>
+
+<input
+placeholder="Inner File Name"
+value={taskForm.expectedInnerFileName}
+onChange={e=>setTaskForm({...taskForm,expectedInnerFileName:e.target.value})}
+className="border p-2 rounded w-full"
+/>
+
+</>
+
+)}
+
+{taskForm.isSpecial &&(
+
+<>
+
+<input
+placeholder="Expected APK Name"
+value={taskForm.expectedapkName}
+onChange={e=>setTaskForm({...taskForm,expectedapkName:e.target.value})}
+className="border p-2 rounded w-full"
+/>
+
+<input
+placeholder="Package Name"
+value={taskForm.Package}
+onChange={e=>setTaskForm({...taskForm,Package:e.target.value})}
+className="border p-2 rounded w-full"
+/>
+
+</>
+
+)}
+
+<button
+type="submit"
+className="bg-blue-600 text-white px-4 py-2 rounded w-full"
+
+> 
+
+Save Task
+</button>
+
+</form>          </div>          )}
+
+</Layout>          )
+
+}
+
+export default AdminDashboard
