@@ -335,85 +335,125 @@ await loadAll()
 
 return(
 
-<Layout>          <div className="p-3 space-y-4">          {/* Tabs */}
+<Layout>
 
-<div className="flex gap-2 overflow-x-auto">          {["withdrawals","users","tasks","settings","jackpot"].map(t=>(
+<div className="p-3 space-y-4">
+
+{/* Tabs */}
+
+<div className="flex gap-2 overflow-x-auto">
+
+{["withdrawals","users","tasks","settings","jackpot"].map(t=>(
 
 <button
 key={t}
 onClick={()=>setTab(t)}
-className={px-4 py-2 rounded font-bold ${           tab===t ? "bg-black text-white":"bg-gray-200"           }}
-
-> 
-
+className={`px-4 py-2 rounded font-bold ${
+tab===t ? "bg-black text-white":"bg-gray-200"
+}`}
+>
 {t}
 </button>
 
 ))}
 
-</div>          {/* TASKS TAB */}
+</div>
+
+{/* TASKS TAB */}
 
 {tab==="tasks" &&(
 
-<div className="space-y-3">          <div className="flex justify-between">          <h2 className="font-bold text-lg">Tasks</h2>          <button
+<div className="space-y-3">
+
+<div className="flex justify-between">
+
+<h2 className="font-bold text-lg">Tasks</h2>
+
+<button
 onClick={openCreateTask}
 className="bg-blue-600 text-white px-4 py-2 rounded"
-
-> 
-
+>
 Create Task
 </button>
 
-</div>          {tasks.map(t=>(
+</div>
 
-<div          
-key={t.id}          
-className="border bg-white p-3 rounded flex justify-between items-center"          
->          <div>          <b>{t.title}</b>
+{tasks.map(t=>(
 
-<div className="text-xs text-gray-500">          
-Reward: {t.reward}          
-</div>          <div className="text-xs">          
-Type: {t.isSpecial ? "Special APK Task" : "Normal ZIP Task"}          
-</div>          </div>          <div className="flex gap-2">          <button
+<div
+key={t.id}
+className="border bg-white p-3 rounded flex justify-between items-center"
+>
+
+<div>
+
+<b>{t.title}</b>
+
+<div className="text-xs text-gray-500">
+Reward: {t.reward}
+</div>
+
+<div className="text-xs">
+Type: {t.isSpecial ? "Special APK Task" : "Normal ZIP Task"}
+</div>
+
+</div>
+
+<div className="flex gap-2">
+
+<button
 onClick={()=>openEditTask(t)}
 className="bg-yellow-400 px-3 py-1 rounded"
-
-> 
-
+>
 Edit
 </button>
 
 <button
 onClick={()=>deleteTask(t.id)}
 className="bg-red-500 text-white px-3 py-1 rounded"
-
-> 
-
+>
 Delete
 </button>
 
-</div>          </div>          ))}
+</div>
 
-</div>          )}
+</div>
 
-</div>          {/* TASK MODAL */}
+))}
+
+</div>
+
+)}
+
+</div>
+
+{/* TASK MODAL */}
 
 {taskModal &&(
 
-<div className="fixed inset-0 bg-black/40 flex items-center justify-center">          <form          
-onSubmit={saveTask}          
-className="bg-white p-5 rounded w-[95%] max-w-md space-y-3"          
->          <div className="flex justify-between">          <h3 className="font-bold">          
-{editingTask ? "Edit Task" : "Create Task"}          
-</h3>          <button
+<div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+
+<form
+onSubmit={saveTask}
+className="bg-white p-5 rounded w-[95%] max-w-md space-y-3"
+>
+
+<div className="flex justify-between">
+
+<h3 className="font-bold">
+{editingTask ? "Edit Task" : "Create Task"}
+</h3>
+
+<button
 type="button"
 onClick={()=>setTaskModal(false)}
+>
+<X/>
+</button>
 
-> 
+</div>
 
-<X/>          
-</button>          </div>          <input
+<input
 placeholder="Task ID"
 value={taskForm.id}
 onChange={e=>setTaskForm({...taskForm,id:e.target.value})}
@@ -442,27 +482,31 @@ onChange={e=>setTaskForm({...taskForm,link:e.target.value})}
 className="border p-2 rounded w-full"
 />
 
-<div className="flex gap-2">          <button
+<div className="flex gap-2">
+
+<button
 type="button"
 onClick={()=>setTaskForm({...taskForm,isSpecial:false})}
-className={px-3 py-1 rounded ${           !taskForm.isSpecial ? "bg-blue-600 text-white":"bg-gray-200"           }}
-
-> 
-
+className={`px-3 py-1 rounded ${
+!taskForm.isSpecial ? "bg-blue-600 text-white":"bg-gray-200"
+}`}
+>
 Normal
 </button>
 
 <button
 type="button"
 onClick={()=>setTaskForm({...taskForm,isSpecial:true})}
-className={px-3 py-1 rounded ${           taskForm.isSpecial ? "bg-blue-600 text-white":"bg-gray-200"           }}
-
-> 
-
+className={`px-3 py-1 rounded ${
+taskForm.isSpecial ? "bg-blue-600 text-white":"bg-gray-200"
+}`}
+>
 Special
 </button>
 
-</div>          {!taskForm.isSpecial &&(
+</div>
+
+{!taskForm.isSpecial &&(
 
 <>
 
@@ -516,15 +560,19 @@ className="border p-2 rounded w-full"
 <button
 type="submit"
 className="bg-blue-600 text-white px-4 py-2 rounded w-full"
-
-> 
-
+>
 Save Task
 </button>
 
-</form>          </div>          )}
+</form>
 
-</Layout>          )
+</div>
+
+)}
+
+</Layout>
+
+)
 
 }
 
