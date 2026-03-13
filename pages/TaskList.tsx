@@ -68,12 +68,14 @@ try{
 
 const link = await Store.startTask(user.uid,task.id)
 
+console.log("Task link:",link)
+
 await fetchData()
 
 if(link){
-window.open(link,"_blank")
+  window.open(link,"_blank")
 }
-
+  
 setActiveTab("process")
 
 }catch(e){
