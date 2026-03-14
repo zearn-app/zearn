@@ -22,103 +22,99 @@ const [userTasks,setUserTasks] = useState<UserTask[]>([]);
 const [loading,setLoading] = useState(true);
 const [startingTaskId,setStartingTaskId] = useState<string | null>(null);
 
-
 useEffect(()=>{
-fetchData()
+ fetchData()
 },[user,isSpecial])
-
 
 const fetchData = async()=>{
 
-if(!user) return
+ if(!user) return
 
-setLoading(true)
+ setLoading(true)
 
-const [taskList,userTaskList] = await Promise.all([
-Store.getTasks(isSpecial),
-Store.getUserTasks(user.uid)
-])
+ const [taskList,userTaskList] = await Promise.all([
+   Store.getTasks(isSpecial),
+   Store.getUserTasks(user.uid)
+ ])
 
-setTasks(taskList)
-setUserTasks(userTaskList)
+ setTasks(taskList)
+ setUserTasks(userTaskList)
 
-setLoading(false)
+ setLoading(false)
 
 }
-
 
 /* ---------- FAST LOOKUP ---------- */
 
 const userTaskMap = useMemo(()=>{
-const map = new Map<string,UserTask>()
-userTasks.forEach(t=>map.set(t.taskId,t))
-return map
+ const map = new Map<string,UserTask>()
+ userTasks.forEach(t=>map.set(t.taskId,t))
+ return map
 },[userTasks])
-
 
 /* ---------- START TASK ---------- */
 
 const handleStartTask = async(task:Task)=>{
 
-console.log("User:",user)
-console.log("startingTaskId:",startingTaskId)
+ if(!user) return
+ if(startingTaskId) return
 
-if(!user || startingTaskId) return
-  
-try{
+ try{
 
-const link = await Store.startTask(user.uid,task.id)
+   setStartingTaskId(task.id)
 
-console.log("Task link:",link)
+   const link = await Store.startTask(user.uid,task.id)
 
-await fetchData()
-alert("Task link: " + (link ? link : "EMPTY"))
-alert(link ? `Opening link:\n${link}` : "Task link is EMPTY")
-if(link){
+   await fetchData()
 
-  if(!link.startsWith("http")){
-    window.location.href ="https://" + link
-  }else{
-    window.location.href = link
-  }
+   if(link){
 
-}  
-setActiveTab("process")
+     let url = link
 
-}catch(e){
-console.error(e)
+     if(!link.startsWith("http")){
+       url = "https://" + link
+     }
+
+     window.open(url,"_blank")
+
+   }else{
+     alert("Task link not available")
+   }
+
+   setActiveTab("process")
+
+ }catch(e){
+   console.error(e)
+   alert("Error starting task")
+ }
+
+ setStartingTaskId(null)
+
 }
-
-setStartingTaskId(null)
-
-}
-
 
 /* ---------- FILTER TASKS ---------- */
 
 const filteredTasks = tasks.filter(task=>{
 
-const entry = userTaskMap.get(task.id)
+ const entry = userTaskMap.get(task.id)
 
-if(activeTab==="all") return !entry
+ if(activeTab==="all") return !entry
 
-if(activeTab==="process")
-return entry && entry.status===TaskStatus.IN_PROCESS
+ if(activeTab==="process")
+   return entry && entry.status===TaskStatus.IN_PROCESS
 
-if(activeTab==="completed")
-return entry && entry.status===TaskStatus.COMPLETED
+ if(activeTab==="completed")
+   return entry && entry.status===TaskStatus.COMPLETED
 
-return false
+ return false
 
 })
-
 
 /* ---------- FIND USERTASK ---------- */
 
 const getUserTask = (taskId:string)=>{
-return userTasks.find(t=>t.taskId===taskId)
+ return userTasks.find(t=>t.taskId===taskId)
 }
-
 
 /* ---------- UI ---------- */
 
@@ -165,7 +161,6 @@ Completed
 
 </div>
 
-
 {/* Loading */}
 
 {loading && (
@@ -173,7 +168,6 @@ Completed
 Loading tasks...
 </div>
 )}
-
 
 {/* Task List */}
 
@@ -189,7 +183,6 @@ No tasks here
 
 )}
 
-
 {filteredTasks.map(task=>{
 
 const entry = userTaskMap.get(task.id)
@@ -199,15 +192,15 @@ return (
 <div
 key={task.id}
 onClick={()=>{
-alert("Task clicked")
-if(activeTab==="all"){
-handleStartTask(task)
-}
 
-else if(activeTab==="process"){
-const ut = getUserTask(task.id)
-if(ut) navigate(`/taskcheck/${ut.id}`)
-}
+ if(activeTab==="all"){
+   handleStartTask(task)
+ }
+
+ else if(activeTab==="process"){
+   const ut = getUserTask(task.id)
+   if(ut) navigate(`/taskcheck/${ut.id}`)
+ }
 
 }}
 className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between cursor-pointer active:scale-[0.98] transition"
@@ -235,7 +228,6 @@ className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify
 </div>
 
 </div>
-
 
 <div className="pl-4">
 
