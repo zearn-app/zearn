@@ -75,7 +75,7 @@ await fetchData()
 if(link){
 
   if(!link.startsWith("http")){
-    window.open("https://" + link,"_blank")
+    window.location.href ="https://" + link
   }else{
     window.location.href = link
   }
