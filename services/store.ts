@@ -290,22 +290,16 @@ id:d.id,
     return task.link || null;
   }
 
-  const ref = doc(collection(db, "user_tasks"));
-
-  const userTask: UserTask = {
-    id: ref.id,
-    uid,
-    taskId,
+  // CREATE USER TASK
+  const newTask = await addDoc(collection(db, "user_tasks"), {
+    uid: uid,
+    taskId: taskId,
     status: TaskStatus.IN_PROCESS,
-    startedAt: new Date().toISOString()
-  };
-
-  await setDoc(ref, userTask);
+    createdAt: Date.now()
+  });
 
   return task.link || null;
-
-},
-
+  },
   
 
 //////////////////////////// WITHDRAW ////////////////////////////
