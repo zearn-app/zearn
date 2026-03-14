@@ -269,39 +269,61 @@ id:d.id,
 
 },
 
-  startTask: async (uid: string, taskId: string): Promise<string | null> => {
+startTask: async (uid: string, taskId: string): Promise<string | null> => {
 
-  const taskRef = doc(db, "tasks", taskId);
-  const taskSnap = await getDoc(taskRef);
+const taskRef = doc(db, "tasks", taskId);
+const taskSnap = await getDoc(taskRef);
 
-  if (!taskSnap.exists()) return null;
+if (!taskSnap.exists()) return null;
 
-  const task = taskSnap.data() as Task;
+const task = taskSnap.data() as Task;
 
-  const q = query(
-    collection(db, "user_tasks"),
-    where("uid", "==", uid),
-    where("taskId", "==", taskId)
-  );
+// Prevent duplicate start
+const q = query(
+  collection(db, "user_tasks"),
+  where("uid", "==", uid),
+  where("taskId", "==", taskId)
+);
 
-  const existing = await getDocs(q);
+const existing = await getDocs(q);
 
-  // If already exists return link
-  if (!existing.empty) {
-    return task.link || null;
-  }
-
-  // CREATE USER TASK
-  const newTask = await addDoc(collection(db, "user_tasks"), {
-    uid: uid,
-    taskId: taskId,
-    status: "IN_PROCESS",
-    createdAt: Date.now()
-  });
-
+if (!existing.empty) {
   return task.link || null;
-  },
-  
+}
+
+// 1️⃣ Save task for the user
+await addDoc(collection(db, "user_tasks"), {
+  uid: uid,
+  taskId: taskId,
+  status: "IN_PROCESS",
+  createdAt: Date.now()
+});
+
+// 2️⃣ Move original task to hidden_tasks
+await setDoc(doc(db, "hidden_tasks", taskId), {
+  ...task,
+  hiddenAt: Date.now(),
+  hiddenBy: uid
+});
+
+// 3️⃣ Delete task from tasks collection
+await deleteDoc(doc(db, "tasks", taskId));
+
+// 4️⃣ Create duplicate task with random id
+const newTaskId =
+  "task_" +
+  Math.random().toString(36).substring(2, 8) +
+  Date.now().toString(36);
+
+await setDoc(doc(db, "tasks", newTaskId), {
+  ...task,
+  createdAt: Date.now()
+});
+
+return task.link || null;
+
+}
+    
 
 //////////////////////////// WITHDRAW ////////////////////////////
 
