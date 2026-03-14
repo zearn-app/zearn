@@ -199,6 +199,7 @@ return (
 key={task.id}
 onClick={()=>{
 alert("Task clicked")
+  alert("Task link: " + (link ? link : "EMPTY"))
 
 if(activeTab==="all"){
 handleStartTask(task)
