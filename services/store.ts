@@ -12,7 +12,7 @@ where,
 orderBy,
 limit,
 increment,
-writeBatch
+writeBatch,
 addDoc
 } from "firebase/firestore";
 
