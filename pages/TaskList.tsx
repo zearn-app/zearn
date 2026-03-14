@@ -198,6 +198,7 @@ return (
 <div
 key={task.id}
 onClick={()=>{
+alert("Task clicked")
 
 if(activeTab==="all"){
 handleStartTask(task)
