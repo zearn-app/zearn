@@ -13,6 +13,7 @@ orderBy,
 limit,
 increment,
 writeBatch
+addDoc
 } from "firebase/firestore";
 
 import {
