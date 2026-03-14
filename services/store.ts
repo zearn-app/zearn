@@ -295,7 +295,7 @@ id:d.id,
   const newTask = await addDoc(collection(db, "user_tasks"), {
     uid: uid,
     taskId: taskId,
-    status: TaskStatus.IN_PROCESS,
+    status: "IN_PROCESS",
     createdAt: Date.now()
   });
 
