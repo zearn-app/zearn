@@ -77,7 +77,7 @@ if(link){
   if(!link.startsWith("http")){
     window.open("https://" + link,"_blank")
   }else{
-    window.open(link,"_blank")
+    window.location.href = link
   }
 
 }  
