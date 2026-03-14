@@ -322,8 +322,7 @@ await setDoc(doc(db, "tasks", newTaskId), {
 
 return task.link || null;
 
-}
-    
+},
 
 //////////////////////////// WITHDRAW ////////////////////////////
 
