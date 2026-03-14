@@ -71,7 +71,7 @@ const link = await Store.startTask(user.uid,task.id)
 console.log("Task link:",link)
 
 await fetchData()
-
+alert("Task link: " + (link ? link : "EMPTY"))
 if(link){
 
   if(!link.startsWith("http")){
