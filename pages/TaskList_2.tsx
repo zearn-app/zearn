@@ -52,6 +52,8 @@ if(!user) return
 const link = await Store.startTask(user.uid,task.id)
 
 await load()
+  alert("Task link: " + (link ? link : "EMPTY"))
+    alert(link ? `Opening link:\n${link}` : "Task link is EMPTY")
 
 if(link){
 
