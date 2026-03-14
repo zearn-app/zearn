@@ -60,10 +60,11 @@ return map
 
 const handleStartTask = async(task:Task)=>{
 
+console.log("User:",user)
+console.log("startingTaskId:",startingTaskId)
+
 if(!user || startingTaskId) return
-
-setStartingTaskId(task.id)
-
+  
 try{
 
 const link = await Store.startTask(user.uid,task.id)
