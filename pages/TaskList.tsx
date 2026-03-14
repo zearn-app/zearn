@@ -72,6 +72,7 @@ console.log("Task link:",link)
 
 await fetchData()
 alert("Task link: " + (link ? link : "EMPTY"))
+alert(link ? `Opening link:\n${link}` : "Task link is EMPTY")
 if(link){
 
   if(!link.startsWith("http")){
