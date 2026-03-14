@@ -73,9 +73,14 @@ console.log("Task link:",link)
 await fetchData()
 
 if(link){
-  window.open(link,"_blank")
-}
-  
+
+  if(!link.startsWith("http")){
+    window.open("https://" + link,"_blank")
+  }else{
+    window.open(link,"_blank")
+  }
+
+}  
 setActiveTab("process")
 
 }catch(e){
