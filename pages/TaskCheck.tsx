@@ -1,87 +1,138 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Layout } from '../components/Layout';
-import { Store } from '../services/store';
-import { UserContext } from '../App';
-import { Task, TaskStatus } from '../types';
-import { Upload, Check, AlertCircle, FileArchive, Smartphone, Info, Clock } from 'lucide-react';
-import { useNotification } from '../components/NotificationSystem';
+import React, { useState, useContext, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Layout } from "../components/Layout";
+import { Store } from "../services/store";
+import { UserContext } from "../App";
+import { Task, TaskStatus } from "../types";
+import { Check, AlertCircle, FileArchive, Smartphone, Info, Clock } from "lucide-react";
+import { useNotification } from "../components/NotificationSystem";
 
 import { ZipReader, BlobReader, TextWriter } from "@zip.js/zip.js";
 
 const TaskCheck: React.FC = () => {
+
 const { taskId } = useParams<{ taskId: string }>();
 const { user, refreshUser } = useContext(UserContext);
 const navigate = useNavigate();
 const { notify } = useNotification();
 
 const [task, setTask] = useState<Task | null>(null);
-const [fileSelected, setFileSelected] = useState<File | null>(null);
 const [status, setStatus] = useState<TaskStatus>(TaskStatus.IN_PROCESS);
+const [fileSelected, setFileSelected] = useState<File | null>(null);
 const [isVerifying, setIsVerifying] = useState(false);
 const [timeLeft, setTimeLeft] = useState(0);
+const [loading, setLoading] = useState(true);
+
+/* ---------------- LOAD TASK ---------------- */
 
 useEffect(() => {
-const fetchTaskInfo = async () => {
-if (user && taskId) {
-// Try normal tasks first
+
+const loadTask = async () => {
+
+if (!user || !taskId) return;
+
+setLoading(true);
+
+try {
+
+const userTasks = await Store.getUserTasks(user.uid);
+const ut = userTasks.find(t => t.taskId === taskId);
+
+if (!ut) {
+notify("Task not found", "error");
+navigate("/tasks/standard");
+return;
+}
+
+setStatus(ut.status);
+
+/* 1️⃣ Try hidden_tasks first */
+
+let taskData = await Store.getHiddenTask(taskId);
+
+/* 2️⃣ If not there try tasks */
+
+if (!taskData) {
+
 const std = await Store.getTasks(false);
 const spc = await Store.getTasks(true);
-let allTasks = [...std, ...spc];
 
-let t = allTasks.find(t => t.id === taskId);
+const all = [...std, ...spc];
+taskData = all.find(t => t.id === taskId) || null;
 
-// If not found check hidden_tasks
-if (!t && taskId) {
-  const hidden = await Store.getHiddenTask(taskId);
-  if (hidden) t = hidden;
 }
 
-setTask(t || null);
-const userTasks = await Store.getUserTasks(user.uid);
-const ut = userTasks.find(ut => ut.taskId === taskId);
-if(ut) setStatus(ut.status);
+if (!taskData) {
+notify("Task data missing", "error");
+navigate("/tasks/standard");
+return;
 }
+
+setTask(taskData);
+
+} catch (err) {
+
+console.error(err);
+notify("Failed to load task", "error");
+
+}
+
+setLoading(false);
+
 };
-fetchTaskInfo();
+
+loadTask();
+
 }, [user, taskId]);
 
+/* ---------------- TIMER ---------------- */
+
 useEffect(() => {
+
 if (timeLeft > 0) {
+
 const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
 return () => clearTimeout(timer);
+
 }
+
 }, [timeLeft]);
 
+/* ---------------- FILE SELECT ---------------- */
+
 const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-if (e.target.files && e.target.files[0]) {
+
+if (!e.target.files) return;
+
 const file = e.target.files[0];
 
 if (task?.isSpecial) {
-if (!file.name.endsWith('.apk')) {
-notify("Only .apk files allowed", 'error');
+
+if (!file.name.endsWith(".apk")) {
+notify("Only .apk allowed", "error");
 return;
 }
+
 } else {
-if (!file.name.endsWith('.zip')) {
-notify("Only .zip files allowed", 'error');
+
+if (!file.name.endsWith(".zip")) {
+notify("Only .zip allowed", "error");
 return;
 }
+
 }
 
 setFileSelected(file);
 setTimeLeft(10);
-}
+
 };
 
-const handleCheck = async () => {
-if (!user || !task || !fileSelected) {
-notify("Please upload the required file", "error");
-return;
-}
+/* ---------------- VERIFY ---------------- */
 
-if (status === TaskStatus.FAILED) {
-notify("This task is already failed and cannot be retried.", "error");
+const handleCheck = async () => {
+
+if (!user || !task || !fileSelected) {
+notify("Upload required file", "error");
 return;
 }
 
@@ -89,20 +140,15 @@ setIsVerifying(true);
 
 try {
 
+/* small fake delay */
 await new Promise(r => setTimeout(r, 2000));
+
+/* ZIP validation */
 
 if (!task.isSpecial) {
 
-if (!task.password) {
-throw new Error("Task password not configured");
-}
-
-if (!task.expectedZipName) {
-throw new Error("Expected ZIP name not configured");
-}
-
 if (fileSelected.name !== task.expectedZipName) {
-throw new Error("Wrong ZIP filename");
+throw new Error("Wrong filename");
 }
 
 const reader = new ZipReader(
@@ -112,27 +158,16 @@ new BlobReader(fileSelected),
 
 const entries = await reader.getEntries();
 
-if (entries.length === 0) {
-throw new Error("Zip extraction failed");
-}
+const inner = entries.find(e => e.filename === task.expectedInnerFileName);
 
-if (!task.expectedInnerFileName) {
-throw new Error("Expected inner filename not configured");
-}
+if (!inner) throw new Error("Invalid file");
 
-const innerFile = entries.find(e => e.filename === task.expectedInnerFileName);
-
-if (!innerFile) {
-throw new Error("Wrong internal file");
-}
-
-await innerFile.getData(new TextWriter());
+await inner.getData(new TextWriter());
 await reader.close();
+
 }
 
-/* ============================= */
-/* ORIGINAL STORE VERIFY */
-/* ============================= */
+/* VERIFY TASK */
 
 const result = await Store.verifyTask(
 user.uid,
@@ -141,39 +176,39 @@ task.id,
 task.isSpecial
 );
 
-if (result.success) {
+if (!result.success) throw new Error(result.message);
 
-/* ===================================================== */
-/* ✅ NEW REWARD UPDATE INSERTED (NO LOGIC CHANGED) */
-/* ===================================================== */
+/* REWARD USER */
 
-const rewardAmount = task.reward || 0;
+const reward = task.reward || 0;
 
-const updatedData: any = {
-balance: (user.balance || 0) + rewardAmount,
-lifetimeEarnings: (user.lifetimeEarnings || 0) + rewardAmount,
+const updated: any = {
+
+balance: (user.balance || 0) + reward,
+lifetimeEarnings: (user.lifetimeEarnings || 0) + reward,
 noOfTodayTask: (user.noOfTodayTask || 0) + 1
+
 };
 
 if (task.isSpecial) {
-updatedData.diamond = (user.diamond || 0) + 1;
-updatedData.lifetimeDiamond = (user.lifetimeDiamond || 0) + 1;
+
+updated.diamond = (user.diamond || 0) + 1;
+updated.lifetimeDiamond = (user.lifetimeDiamond || 0) + 1;
+
 } else {
-updatedData.gold = (user.gold || 0) + 1;
-updatedData.lifetimeGold = (user.lifetimeGold || 0) + 1;
+
+updated.gold = (user.gold || 0) + 1;
+updated.lifetimeGold = (user.lifetimeGold || 0) + 1;
+
 }
 
-await Store.updateUser(user.uid, updatedData);
+await Store.updateUser(user.uid, updated);
 
-/* ===================================================== */
+notify("Verification successful!", "success");
 
-notify(result.message || "Verification successful! Reward added.", "success");
 refreshUser();
-navigate('/tasks/' + (task.isSpecial ? 'special' : 'standard'));
 
-} else {
-throw new Error(result.message);
-}
+navigate("/tasks/" + (task.isSpecial ? "special" : "standard"));
 
 } catch (err) {
 
@@ -186,110 +221,162 @@ task.id,
 task.isSpecial
 );
 
-notify("Verification failed. Wrong file or password.", "error");
-refreshUser();
+notify("Verification failed", "error");
+
 }
 
 setIsVerifying(false);
+
 };
 
-if (!task) return <Layout>Loading...</Layout>;
+/* ---------------- UI ---------------- */
+
+if (loading) {
 
 return (
 <Layout>
-
-<div className="bg-gray-900 rounded-2xl p-6 text-white text-center mb-6 shadow-md">
-<h2 className="text-xl font-bold mb-2">
-{task.isSpecial ? "Upload .APK File" : "Upload .ZIP File"}
-</h2>
-<p className="opacity-80 text-sm">
-{task.isSpecial ? "Upload the app you downloaded from the link." : "Upload the file you downloaded."}
-</p>
-</div>
-
-<div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start space-x-3 mb-6">
-<Info className="text-blue-500 shrink-0" size={20} />
-<p className="text-xs text-blue-800 leading-relaxed">
-<span className="font-bold">Instructions:</span> Upload the file. The system will verify the signature.
-<br/>For testing: Use any {task.isSpecial ? '.apk' : '.zip'} file.
-</p>
-</div>
-
-<div className="space-y-6">
-
-{status === TaskStatus.FAILED && (
-<div className="bg-red-50 p-4 rounded-xl border border-red-200 text-center animate-in fade-in slide-in-from-top-4">
-<AlertCircle className="mx-auto text-red-500 mb-2" />
-<h3 className="text-red-800 font-bold">Verification Failed</h3>
-<p className="text-xs text-red-600">The file did not match our records. Task marked as failed.</p>
-</div>
-)}
-
-{status === TaskStatus.COMPLETED ? (
-
-<div className="text-center p-10 bg-green-50 rounded-2xl border border-green-200">
-<Check className="mx-auto text-green-600 w-16 h-16 mb-4" />
-<h3 className="text-green-800 font-bold text-xl">Completed</h3>
-<p className="text-green-600 text-sm mt-2">Rewards added to wallet.</p>
-</div>
-
-) : (
-
-status !== TaskStatus.FAILED && (
-<>
-<div className={`border-2 border-dashed rounded-2xl p-10 text-center transition-all relative overflow-hidden ${fileSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'}`}>
-<input
-type="file"
-accept={task.isSpecial ? ".apk" : ".zip"}
-className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-onChange={handleFileChange}
-/>
-<div className="flex flex-col items-center">
-<div className={`p-4 rounded-full mb-3 ${fileSelected ? 'bg-blue-100 text-blue-600' : 'bg-gray-200 text-gray-400'}`}>
-{task.isSpecial ? <Smartphone size={32} /> : <FileArchive size={32} />}
-</div>
-<p className={`font-bold ${fileSelected ? 'text-blue-700' : 'text-gray-600'}`}>
-{fileSelected ? fileSelected.name : (task.isSpecial ? "Tap to upload APK" : "Tap to upload ZIP")}
-</p>
-<p className="text-xs text-gray-400 mt-1">Max size 50MB</p>
-</div>
-</div>
-
-{fileSelected && (
-<div className="bg-white border border-gray-200 p-4 rounded-xl flex items-center justify-between">
-<div className="flex items-center space-x-2">
-<Check size={16} className="text-green-500"/>
-<span className="text-sm font-bold text-gray-700">File Ready</span>
-</div>
-{timeLeft > 0 ? (
-<div className="flex items-center space-x-1 text-orange-500 font-bold text-sm bg-orange-50 px-2 py-1 rounded">
-<Clock size={14} />
-<span>Analyzing... {timeLeft}s</span>
-</div>
-) : (
-<span className="text-green-600 text-xs font-bold bg-green-50 px-2 py-1 rounded">Ready to Verify</span>
-)}
-</div>
-)}
-
-<button
-onClick={handleCheck}
-disabled={isVerifying || !fileSelected || timeLeft > 0}
-className={`w-full font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 ${
-isVerifying || !fileSelected || timeLeft > 0
-? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-: 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'
-}`}
->
-{isVerifying ? <span>Verifying...</span> : <span>Check & Verify</span>}
-</button>
-</>
-)
-)}
-
+<div className="text-center py-20 text-gray-400">
+Loading task...
 </div>
 </Layout>
 );
+
+}
+
+if (!task) {
+
+return (
+<Layout>
+<div className="text-center py-20 text-red-500">
+Task not found
+</div>
+</Layout>
+);
+
+}
+
+/* ---------------- PAGE ---------------- */
+
+return (
+
+<Layout>
+
+<div className="bg-gray-900 text-white p-6 rounded-2xl text-center mb-6">
+
+<h2 className="text-xl font-bold">
+
+{task.isSpecial ? "Upload APK File" : "Upload ZIP File"}
+
+</h2>
+
+</div>
+
+<div className="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-6 flex">
+
+<Info size={20} className="text-blue-500 mr-2"/>
+
+<p className="text-xs text-blue-800">
+
+Upload file downloaded from task link.
+
+</p>
+
+</div>
+
+{status === TaskStatus.COMPLETED && (
+
+<div className="text-center bg-green-50 border border-green-200 p-10 rounded-xl">
+
+<Check size={60} className="mx-auto text-green-600 mb-3"/>
+
+<h3 className="font-bold text-green-700">Task Completed</h3>
+
+</div>
+
+)}
+
+{status !== TaskStatus.COMPLETED && status !== TaskStatus.FAILED && (
+
+<>
+
+<div className="border-2 border-dashed p-10 rounded-xl text-center relative">
+
+<input
+type="file"
+accept={task.isSpecial ? ".apk" : ".zip"}
+className="absolute inset-0 opacity-0 cursor-pointer"
+onChange={handleFileChange}
+/>
+
+<div className="flex flex-col items-center">
+
+{task.isSpecial
+? <Smartphone size={32}/>
+: <FileArchive size={32}/>
+}
+
+<p className="mt-3 text-sm font-bold">
+
+{fileSelected ? fileSelected.name : "Tap to upload file"}
+
+</p>
+
+</div>
+
+</div>
+
+{fileSelected && (
+
+<div className="flex justify-between mt-4 bg-white border p-3 rounded-lg">
+
+<span className="text-sm font-bold">File Ready</span>
+
+{timeLeft > 0
+? <span className="text-orange-500">Analyzing {timeLeft}s</span>
+: <span className="text-green-600">Ready</span>
+}
+
+</div>
+
+)}
+
+<button
+
+onClick={handleCheck}
+disabled={isVerifying || !fileSelected || timeLeft > 0}
+
+className="w-full mt-6 bg-blue-600 text-white font-bold py-4 rounded-xl"
+
+>
+
+{isVerifying ? "Verifying..." : "Check & Verify"}
+
+</button>
+
+</>
+
+)}
+
+{status === TaskStatus.FAILED && (
+
+<div className="text-center bg-red-50 border border-red-200 p-6 rounded-xl">
+
+<AlertCircle className="mx-auto text-red-500 mb-2"/>
+
+<p className="text-red-600 text-sm">
+
+Verification failed.
+
+</p>
+
+</div>
+
+)}
+
+</Layout>
+
+);
+
 };
 
 export default TaskCheck;
