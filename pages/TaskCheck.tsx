@@ -24,12 +24,20 @@ const [timeLeft, setTimeLeft] = useState(0);
 useEffect(() => {
 const fetchTaskInfo = async () => {
 if (user && taskId) {
+// Try normal tasks first
 const std = await Store.getTasks(false);
 const spc = await Store.getTasks(true);
-const allTasks = [...std, ...spc];
-const t = allTasks.find(t => t.id === taskId);
-setTask(t || null);
+let allTasks = [...std, ...spc];
 
+let t = allTasks.find(t => t.id === taskId);
+
+// If not found check hidden_tasks
+if (!t && taskId) {
+  const hidden = await Store.getHiddenTask(taskId);
+  if (hidden) t = hidden;
+}
+
+setTask(t || null);
 const userTasks = await Store.getUserTasks(user.uid);
 const ut = userTasks.find(ut => ut.taskId === taskId);
 if(ut) setStatus(ut.status);
