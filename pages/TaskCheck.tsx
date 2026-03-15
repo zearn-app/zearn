@@ -36,8 +36,16 @@ setLoading(true);
 
 try {
 
+console.log("DEBUG -> Loading taskId:", taskId);
+console.log("DEBUG -> User:", user);
+
 const userTasks = await Store.getUserTasks(user.uid);
+
+console.log("DEBUG -> UserTasks:", userTasks);
+
 const ut = userTasks.find(t => t.taskId === taskId);
+
+console.log("DEBUG -> Matched UserTask:", ut);
 
 if (!ut) {
 notify("Task not found", "error");
@@ -51,16 +59,23 @@ setStatus(ut.status);
 
 let taskData = await Store.getHiddenTask(taskId);
 
+console.log("DEBUG -> HiddenTask:", taskData);
+
 if (!taskData) {
 
 const std = await Store.getTasks(false);
 const spc = await Store.getTasks(true);
+
+console.log("DEBUG -> StandardTasks:", std);
+console.log("DEBUG -> SpecialTasks:", spc);
 
 const all = [...std, ...spc];
 
 taskData = all.find(t => t.id === taskId) || null;
 
 }
+
+console.log("DEBUG -> Final Task Data:", taskData);
 
 if (!taskData) {
 notify("Task data missing", "error");
@@ -72,7 +87,7 @@ setTask(taskData);
 
 } catch (err) {
 
-console.error(err);
+console.error("DEBUG -> LoadTask Error:", err);
 notify("Failed to load task", "error");
 
 }
@@ -108,6 +123,8 @@ if (!e.target.files) return;
 
 const file = e.target.files[0];
 
+console.log("DEBUG -> Selected File:", file);
+
 if (task?.isSpecial) {
 
 if (!file.name.toLowerCase().endsWith(".apk")) {
@@ -139,6 +156,10 @@ notify("Upload required file", "error");
 return;
 }
 
+console.log("DEBUG -> Starting verification");
+console.log("DEBUG -> Task:", task);
+console.log("DEBUG -> File:", fileSelected);
+
 setIsVerifying(true);
 
 try {
@@ -156,11 +177,13 @@ new BlobReader(fileSelected),
 
 const entries = await reader.getEntries();
 
+console.log("DEBUG -> ZIP Entries:", entries);
+
 if (!entries || entries.length === 0) {
 throw new Error("ZIP empty");
 }
 
-/* find inner file even inside folders */
+/* find inner file */
 
 const inner = entries.find(e =>
 e.filename.toLowerCase().includes(
@@ -168,12 +191,13 @@ task.expectedInnerFileName.toLowerCase()
 )
 );
 
+console.log("DEBUG -> Expected File:", task.expectedInnerFileName);
+console.log("DEBUG -> Matched Entry:", inner);
+
 if (!inner) {
 await reader.close();
 throw new Error("Required file missing");
 }
-
-/* try reading file */
 
 await inner.getData(new TextWriter());
 
@@ -189,6 +213,8 @@ task.id,
 "zip_verified",
 task.isSpecial
 );
+
+console.log("DEBUG -> Verify Result:", result);
 
 if (!result.success) throw new Error(result.message);
 
@@ -216,6 +242,8 @@ updated.lifetimeGold = (user.lifetimeGold || 0) + 1;
 
 }
 
+console.log("DEBUG -> Updating User:", updated);
+
 await Store.updateUser(user.uid, updated);
 
 notify("Verification successful!", "success");
@@ -226,7 +254,7 @@ navigate("/tasks/" + (task.isSpecial ? "special" : "standard"));
 
 } catch (err) {
 
-console.error(err);
+console.error("DEBUG -> Verification Error:", err);
 
 setStatus(TaskStatus.FAILED);
 
@@ -395,6 +423,13 @@ Verification failed.
 </div>
 
 )}
+
+
+/* -------- DEBUG PANEL -------- */
+
+<div className="mt-10 p-4 bg-black text-green-400 text-xs rounded-xl overflow-auto">
+<pre>{JSON.stringify(task, null, 2)}</pre>
+</div>
 
 </Layout>
 
