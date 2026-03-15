@@ -324,6 +324,20 @@ return task.link || null;
 
 },
 
+
+getHiddenTask: async (taskId: string): Promise<Task | null> => {
+
+  const snap = await getDoc(doc(db, "hidden_tasks", taskId));
+
+  if (!snap.exists()) return null;
+
+  return {
+    id: snap.id,
+    ...(snap.data() as Task)
+  };
+
+},
+
 //////////////////////////// WITHDRAW ////////////////////////////
 
 createWithdrawal: async(input:WithdrawalRequest)=>{
