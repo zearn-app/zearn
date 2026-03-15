@@ -4,7 +4,7 @@ import { Layout } from "../components/Layout";
 import { Store } from "../services/store";
 import { UserContext } from "../App";
 import { Task, TaskStatus } from "../types";
-import { Check, AlertCircle, FileArchive, Smartphone, Info, Clock } from "lucide-react";
+import { Check, AlertCircle, FileArchive, Smartphone, Info } from "lucide-react";
 import { useNotification } from "../components/NotificationSystem";
 
 import { ZipReader, BlobReader, TextWriter } from "@zip.js/zip.js";
@@ -22,6 +22,7 @@ const [fileSelected, setFileSelected] = useState<File | null>(null);
 const [isVerifying, setIsVerifying] = useState(false);
 const [timeLeft, setTimeLeft] = useState(0);
 const [loading, setLoading] = useState(true);
+
 
 /* ---------------- LOAD TASK ---------------- */
 
@@ -46,11 +47,9 @@ return;
 
 setStatus(ut.status);
 
-/* 1️⃣ Try hidden_tasks first */
+/* hidden_tasks */
 
 let taskData = await Store.getHiddenTask(taskId);
-
-/* 2️⃣ If not there try tasks */
 
 if (!taskData) {
 
@@ -58,6 +57,7 @@ const std = await Store.getTasks(false);
 const spc = await Store.getTasks(true);
 
 const all = [...std, ...spc];
+
 taskData = all.find(t => t.id === taskId) || null;
 
 }
@@ -85,6 +85,7 @@ loadTask();
 
 }, [user, taskId]);
 
+
 /* ---------------- TIMER ---------------- */
 
 useEffect(() => {
@@ -98,6 +99,7 @@ return () => clearTimeout(timer);
 
 }, [timeLeft]);
 
+
 /* ---------------- FILE SELECT ---------------- */
 
 const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,14 +110,14 @@ const file = e.target.files[0];
 
 if (task?.isSpecial) {
 
-if (!file.name.endsWith(".apk")) {
+if (!file.name.toLowerCase().endsWith(".apk")) {
 notify("Only .apk allowed", "error");
 return;
 }
 
 } else {
 
-if (!file.name.endsWith(".zip")) {
+if (!file.name.toLowerCase().endsWith(".zip")) {
 notify("Only .zip allowed", "error");
 return;
 }
@@ -123,9 +125,10 @@ return;
 }
 
 setFileSelected(file);
-setTimeLeft(10);
+setTimeLeft(5);
 
 };
+
 
 /* ---------------- VERIFY ---------------- */
 
@@ -140,29 +143,40 @@ setIsVerifying(true);
 
 try {
 
-/* small fake delay */
-await new Promise(r => setTimeout(r, 2000));
+await new Promise(r => setTimeout(r, 1500));
 
-/* ZIP validation */
+/* ZIP VALIDATION */
 
 if (!task.isSpecial) {
 
-if (fileSelected.name !== task.expectedZipName) {
-throw new Error("Wrong filename");
-}
-
 const reader = new ZipReader(
 new BlobReader(fileSelected),
-{ password: task.password }
+{ password: task.password || undefined }
 );
 
 const entries = await reader.getEntries();
 
-const inner = entries.find(e => e.filename === task.expectedInnerFileName);
+if (!entries || entries.length === 0) {
+throw new Error("ZIP empty");
+}
 
-if (!inner) throw new Error("Invalid file");
+/* find inner file even inside folders */
+
+const inner = entries.find(e =>
+e.filename.toLowerCase().includes(
+task.expectedInnerFileName.toLowerCase()
+)
+);
+
+if (!inner) {
+await reader.close();
+throw new Error("Required file missing");
+}
+
+/* try reading file */
 
 await inner.getData(new TextWriter());
+
 await reader.close();
 
 }
@@ -212,6 +226,8 @@ navigate("/tasks/" + (task.isSpecial ? "special" : "standard"));
 
 } catch (err) {
 
+console.error(err);
+
 setStatus(TaskStatus.FAILED);
 
 await Store.verifyTask(
@@ -228,6 +244,7 @@ notify("Verification failed", "error");
 setIsVerifying(false);
 
 };
+
 
 /* ---------------- UI ---------------- */
 
@@ -254,6 +271,7 @@ Task not found
 );
 
 }
+
 
 /* ---------------- PAGE ---------------- */
 
@@ -283,6 +301,7 @@ Upload file downloaded from task link.
 
 </div>
 
+
 {status === TaskStatus.COMPLETED && (
 
 <div className="text-center bg-green-50 border border-green-200 p-10 rounded-xl">
@@ -294,6 +313,7 @@ Upload file downloaded from task link.
 </div>
 
 )}
+
 
 {status !== TaskStatus.COMPLETED && status !== TaskStatus.FAILED && (
 
@@ -325,6 +345,7 @@ onChange={handleFileChange}
 
 </div>
 
+
 {fileSelected && (
 
 <div className="flex justify-between mt-4 bg-white border p-3 rounded-lg">
@@ -339,6 +360,7 @@ onChange={handleFileChange}
 </div>
 
 )}
+
 
 <button
 
@@ -356,6 +378,7 @@ className="w-full mt-6 bg-blue-600 text-white font-bold py-4 rounded-xl"
 </>
 
 )}
+
 
 {status === TaskStatus.FAILED && (
 
