@@ -196,11 +196,9 @@ onClick={()=>{
  if(activeTab==="all"){
    handleStartTask(task)
  }
-
- else if(activeTab==="process"){
-   const ut = getUserTask(task.id)
-   if(ut) navigate(`/taskcheck/${ut.id}`)
- }
+else if(activeTab==="process"){
+  navigate(`/taskcheck/${task.id}`)
+}
 
 }}
 className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between cursor-pointer active:scale-[0.98] transition"
