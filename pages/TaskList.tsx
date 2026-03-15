@@ -197,7 +197,7 @@ onClick={()=>{
    handleStartTask(task)
  }
 else if(activeTab==="process"){
-  navigate(`/taskcheck/${task.id}`)
+  navigate(`/task-check/${task.id}`)
 }
 
 }}
