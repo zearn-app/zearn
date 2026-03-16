@@ -16,13 +16,10 @@ const [form,setForm] = useState({
 title:"",
 link:"",
 amount:0,
-
 isSpecial:false,
-
 zipName:"",
 zipPassword:"",
 innerFileName:"",
-
 packageName:""
 })
 
@@ -37,11 +34,11 @@ setLoading(true)
 try{
 
 const t = await Store.getAllTasks()
-setTasks(t)
+setTasks(t || [])
 
 }catch(e){
 
-console.error(e)
+console.error("Load tasks error:",e)
 
 }
 
@@ -114,22 +111,47 @@ e.preventDefault()
 
 try{
 
+if(!form.title.trim()){
+alert("Title required")
+return
+}
+
+if(!form.link.trim()){
+alert("Download link required")
+return
+}
+
+if(form.amount <= 0){
+alert("Amount must be greater than 0")
+return
+}
+
 const payload:any = {
-title:form.title,
-link:form.link,
-amount:form.amount,
+title:form.title.trim(),
+link:form.link.trim(),
+amount:Number(form.amount),
 isSpecial:form.isSpecial
 }
 
 if(form.isSpecial){
 
-payload.packageName = form.packageName
+if(!form.packageName.trim()){
+alert("Package name required")
+return
+}
+
+payload.packageName = form.packageName.trim()
 
 }else{
 
-payload.expectedZipName = form.zipName
-payload.password = form.zipPassword
-payload.expectedInnerFileName = form.innerFileName
+if(!form.zipName.trim() || !form.zipPassword.trim() || !form.innerFileName.trim()){
+alert("ZIP details required")
+return
+}
+
+payload.expectedZipName = form.zipName.trim()
+payload.password = form.zipPassword.trim()
+payload.expectedInnerFileName = form.innerFileName.trim()
 
 }
 
@@ -139,6 +161,7 @@ await Store.editTask(editingTask.id,payload)
 
 }else{
 
+await Store.createTask(payload)
 
 }
 
@@ -148,7 +171,7 @@ await loadTasks()
 
 }catch(err){
 
-console.error(err)
+console.error("Save task error:",err)
 alert("Task save failed")
 
 }
@@ -171,7 +194,7 @@ await loadTasks()
 
 }catch(e){
 
-console.error(e)
+console.error("Delete error:",e)
 
 }
 
@@ -279,16 +302,12 @@ onClick={()=>setModal(false)}
 
 </div>
 
-{/* TITLE */}
-
 <input
 placeholder="Title"
 value={form.title}
 onChange={e=>setForm({...form,title:e.target.value})}
 className="border p-2 rounded w-full"
 />
-
-{/* DOWNLOAD LINK */}
 
 <input
 placeholder="Download Link"
@@ -297,8 +316,6 @@ onChange={e=>setForm({...form,link:e.target.value})}
 className="border p-2 rounded w-full"
 />
 
-{/* AMOUNT */}
-
 <input
 type="number"
 placeholder="Amount"
@@ -306,8 +323,6 @@ value={form.amount}
 onChange={e=>setForm({...form,amount:Number(e.target.value)})}
 className="border p-2 rounded w-full"
 />
-
-{/* TASK TYPE */}
 
 <label className="flex gap-2 items-center">
 
@@ -320,8 +335,6 @@ onChange={e=>setForm({...form,isSpecial:e.target.checked})}
 Special Task
 
 </label>
-
-{/* STANDARD TASK */}
 
 {!form.isSpecial && (
 
@@ -351,8 +364,6 @@ className="border p-2 rounded w-full"
 </>
 
 )}
-
-{/* SPECIAL TASK */}
 
 {form.isSpecial && (
 
