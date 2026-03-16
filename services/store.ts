@@ -1,4 +1,6 @@
 import { db } from "./firebase";
+import { collection, doc, setDoc } from "firebase/firestore";
+import { db } from "./firebase";
 import {
 collection,
 doc,
