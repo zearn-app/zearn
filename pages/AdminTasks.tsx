@@ -139,7 +139,6 @@ await Store.editTask(editingTask.id,payload)
 
 }else{
 
-await Store.createTask(payload)
 
 }
 
