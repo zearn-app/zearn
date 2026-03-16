@@ -164,7 +164,7 @@ Loading tasks...
 
 {filteredTasks.length===0 && (
 <div className="text-center text-gray-400 py-10">
-No tasks here
+Empty, There is no task
 </div>
 )}
 
