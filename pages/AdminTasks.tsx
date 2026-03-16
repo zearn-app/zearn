@@ -82,7 +82,6 @@ const openEdit = (task:Task)=>{
 setEditingTask(task)
 
 setForm({
-
 title:(task as any).title || "",
 link:(task as any).link || "",
 amount:(task as any).amount || 0,
@@ -94,7 +93,6 @@ zipPassword:(task as any).password || "",
 innerFileName:(task as any).expectedInnerFileName || "",
 
 packageName:(task as any).packageName || ""
-
 })
 
 setModal(true)
@@ -126,7 +124,7 @@ alert("Amount must be greater than 0")
 return
 }
 
-const payload:any = {
+let payload:any = {
 title:form.title.trim(),
 link:form.link.trim(),
 amount:Number(form.amount),
@@ -166,6 +164,8 @@ await Store.createTask(payload)
 }
 
 setModal(false)
+
+setEditingTask(null)
 
 await loadTasks()
 
@@ -225,8 +225,6 @@ Create Task
 
 </div>
 
-{/* TASK LIST */}
-
 {loading && <div>Loading tasks...</div>}
 
 {!loading && tasks.map(t=>(
@@ -275,8 +273,6 @@ Delete
 ))}
 
 </div>
-
-{/* MODAL */}
 
 {modal &&(
 
