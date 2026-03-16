@@ -190,31 +190,28 @@ id:d.id,
 
 },
 
-async createTask(taskData: any) {
+
+
+
+
+
+
+async function createTask(taskData: any) {
 
 try {
 
-const taskId = "zts" + Math.random().toString(36).substring(2,10)
+const taskId =
+"zts" + Math.random().toString(36).substring(2,10)
 
-const task = {
+const task:any = {
 
 id: taskId,
 
 title: taskData.title || taskId,
 
-description: taskData.description || "",
-
 link: taskData.link || "",
 
-reward: Number(taskData.reward) || 0,
-
-diamondReward: Number(taskData.diamondReward) || 0,
-
-password: taskData.password || "",
-
-expectedZipName: taskData.expectedZipName || "",
-
-expectedInnerFileName: taskData.expectedInnerFileName || "",
+amount: Number(taskData.amount) || 0,
 
 isSpecial: taskData.isSpecial || false,
 
@@ -224,24 +221,53 @@ active: true
 
 }
 
-await db.collection("tasks").doc(taskId).set(task)
+// STANDARD TASK
+if(!taskData.isSpecial){
+
+task.expectedZipName =
+taskData.expectedZipName || ""
+
+task.password =
+taskData.password || ""
+
+task.expectedInnerFileName =
+taskData.expectedInnerFileName || ""
+
+}
+
+// SPECIAL TASK
+if(taskData.isSpecial){
+
+task.packageName =
+taskData.packageName || ""
+
+}
+
+await setDoc(doc(collection(db,"tasks"),taskId),task)
 
 return {
+
 success:true,
+
 taskId:taskId
+
 }
 
-} catch(err:any){
+}catch(err:any){
+
+console.error("CREATE TASK ERROR",err)
 
 return {
+
 success:false,
+
 message:err.message
-}
 
 }
 
-},
+}
 
+}
 
 
 async editTask(taskId:string, updates:any){
