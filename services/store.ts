@@ -871,12 +871,11 @@ const snap = await db
 .get()
 
 return snap.docs.map(d=>({
- id: d.id,
+ id:d.id,
  ...d.data()
 }))
 
 },
-
 
 async getTasks(isSpecial:boolean){
 
@@ -886,12 +885,11 @@ const snap = await db
 .get()
 
 return snap.docs.map(d=>({
- id: d.id,
+ id:d.id,
  ...d.data()
 }))
 
-},
-
+  }
 
 
 
