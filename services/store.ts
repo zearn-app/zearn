@@ -817,6 +817,8 @@ claimDaily: async (uid:string)=>{
 },
 
 //////////////////////////// manually ////////////////////////////
+
+
 async startTask(uid:string,task:Task){
 
 const startedAt = Date.now()
@@ -844,21 +846,13 @@ started_at:startedAt
 return task.link
 },
 
+
+
 async getUserTasks(uid:string){
 
 const snap = await db.collection("users")
 .doc(uid)
 .collection("user_tasks")
-.get()
-
-return snap.docs.map(d=>d.data())
-
-},
-async getTasks(isSpecial:boolean){
-
-const snap = await db
-.collection("tasks")
-.where("isSpecial","==",isSpecial)
 .get()
 
 return snap.docs.map(d=>d.data())
