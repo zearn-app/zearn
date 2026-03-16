@@ -44,7 +44,7 @@ const fetchData = async()=>{
 
 }
 
-/* ---------- FAST LOOKUP ---------- */
+/* FAST MAP */
 
 const userTaskMap = useMemo(()=>{
  const map = new Map<string,UserTask>()
@@ -52,19 +52,17 @@ const userTaskMap = useMemo(()=>{
  return map
 },[userTasks])
 
-/* ---------- START TASK ---------- */
+/* START TASK */
 
 const handleStartTask = async(task:Task)=>{
 
  if(!user) return
-
- /* LOCK: prevent multiple start clicks */
  if(startingTaskId) return
 
- /* CHECK: already started */
  const existing = userTaskMap.get(task.id)
+
  if(existing){
-   alert("Task already started")
+   setActiveTab("process")
    return
  }
 
@@ -72,42 +70,34 @@ const handleStartTask = async(task:Task)=>{
 
    setStartingTaskId(task.id)
 
-   const link = await Store.startTask(user.uid,task.id)
+   const link = await Store.startTask(user.uid,task)
 
    await fetchData()
 
    if(link){
-
      let url = link
-
-     if(!link.startsWith("http")){
-       url = "https://" + link
-     }
-
+     if(!url.startsWith("http")) url="https://"+url
      window.open(url,"_blank")
-
-   }else{
-     alert("Task link not available")
    }
 
    setActiveTab("process")
 
  }catch(e){
    console.error(e)
-   alert("Error starting task")
  }
 
  setStartingTaskId(null)
 
 }
 
-/* ---------- FILTER TASKS ---------- */
+/* FILTER */
 
 const filteredTasks = tasks.filter(task=>{
 
  const entry = userTaskMap.get(task.id)
 
- if(activeTab==="all") return !entry
+ if(activeTab==="all")
+   return !entry
 
  if(activeTab==="process")
    return entry && entry.status===TaskStatus.IN_PROCESS
@@ -119,19 +109,11 @@ const filteredTasks = tasks.filter(task=>{
 
 })
 
-/* ---------- FIND USERTASK ---------- */
-
-const getUserTask = (taskId:string)=>{
- return userTasks.find(t=>t.taskId===taskId)
-}
-
-/* ---------- UI ---------- */
+/* UI */
 
 return (
 
 <Layout title={isSpecial ? "Special Tasks" : "Standard Tasks"} showBack>
-
-{/* Tabs */}
 
 <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
 
@@ -170,26 +152,20 @@ Completed
 
 </div>
 
-{/* Loading */}
-
 {loading && (
 <div className="text-center py-10 text-gray-400">
 Loading tasks...
 </div>
 )}
 
-{/* Task List */}
-
 {!loading && (
 
 <div className="space-y-4">
 
 {filteredTasks.length===0 && (
-
 <div className="text-center text-gray-400 py-10">
 No tasks here
 </div>
-
 )}
 
 {filteredTasks.map(task=>{
