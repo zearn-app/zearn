@@ -16,11 +16,14 @@ const [form,setForm] = useState({
 title:"",
 link:"",
 amount:0,
+
+isSpecial:false,
+
 zipName:"",
 zipPassword:"",
 innerFileName:"",
-isSpecial:false,
-package:""
+
+packageName:""
 })
 
 ////////////////////////////////////////////////////
@@ -47,16 +50,14 @@ setLoading(false)
 }
 
 useEffect(()=>{
-
 loadTasks()
-
 },[])
 
 ////////////////////////////////////////////////////
-//////////////// CREATE TASK ///////////////////////
+//////////////// CREATE ////////////////////////////
 ////////////////////////////////////////////////////
 
-const openCreate = ()=>{
+const openCreate = () => {
 
 setEditingTask(null)
 
@@ -64,11 +65,11 @@ setForm({
 title:"",
 link:"",
 amount:0,
+isSpecial:false,
 zipName:"",
 zipPassword:"",
 innerFileName:"",
-isSpecial:false,
-package:""
+packageName:""
 })
 
 setModal(true)
@@ -76,7 +77,7 @@ setModal(true)
 }
 
 ////////////////////////////////////////////////////
-//////////////// EDIT TASK /////////////////////////
+//////////////// EDIT //////////////////////////////
 ////////////////////////////////////////////////////
 
 const openEdit = (task:Task)=>{
@@ -85,14 +86,17 @@ setEditingTask(task)
 
 setForm({
 
-title:task.title || "",
+title:(task as any).title || "",
 link:(task as any).link || "",
 amount:(task as any).amount || 0,
-zipName:(task as any).zipName || "",
-zipPassword:(task as any).zipPassword || "",
-innerFileName:(task as any).innerFileName || "",
+
 isSpecial:(task as any).isSpecial || false,
-package:(task as any).package || ""
+
+zipName:(task as any).expectedZipName || "",
+zipPassword:(task as any).password || "",
+innerFileName:(task as any).expectedInnerFileName || "",
+
+packageName:(task as any).packageName || ""
 
 })
 
@@ -101,7 +105,7 @@ setModal(true)
 }
 
 ////////////////////////////////////////////////////
-//////////////// SAVE TASK /////////////////////////
+//////////////// SAVE //////////////////////////////
 ////////////////////////////////////////////////////
 
 const saveTask = async (e:React.FormEvent)=>{
@@ -110,13 +114,32 @@ e.preventDefault()
 
 try{
 
-if(editingTask){
+const payload:any = {
+title:form.title,
+link:form.link,
+amount:form.amount,
+isSpecial:form.isSpecial
+}
 
-await Store.editTask(editingTask.id,form)
+if(form.isSpecial){
+
+payload.packageName = form.packageName
 
 }else{
 
-await Store.createTask(form)
+payload.expectedZipName = form.zipName
+payload.password = form.zipPassword
+payload.expectedInnerFileName = form.innerFileName
+
+}
+
+if(editingTask){
+
+await Store.editTask(editingTask.id,payload)
+
+}else{
+
+await Store.createTask(payload)
 
 }
 
@@ -127,7 +150,6 @@ await loadTasks()
 }catch(err){
 
 console.error(err)
-
 alert("Task save failed")
 
 }
@@ -135,7 +157,7 @@ alert("Task save failed")
 }
 
 ////////////////////////////////////////////////////
-//////////////// DELETE TASK ///////////////////////
+//////////////// DELETE ////////////////////////////
 ////////////////////////////////////////////////////
 
 const deleteTask = async(id:string)=>{
@@ -168,7 +190,9 @@ return(
 
 <div className="flex justify-between items-center">
 
-<h1 className="text-xl font-bold">Admin Tasks</h1>
+<h1 className="text-xl font-bold">
+Admin Tasks
+</h1>
 
 <button
 onClick={openCreate}
@@ -192,14 +216,16 @@ className="border bg-white p-3 rounded flex justify-between items-center"
 
 <div>
 
-<div className="font-bold">{t.title}</div>
+<div className="font-bold">
+{t.title}
+</div>
 
 <div className="text-xs text-gray-500">
-Reward: {(t as any).amount}
+Amount: {(t as any).amount}
 </div>
 
 <div className="text-xs">
-Type: {(t as any).isSpecial ? "Special Task":"Normal Task"}
+Type: {(t as any).isSpecial ? "Special Task":"Standard Task"}
 </div>
 
 </div>
@@ -254,12 +280,16 @@ onClick={()=>setModal(false)}
 
 </div>
 
+{/* TITLE */}
+
 <input
 placeholder="Title"
 value={form.title}
 onChange={e=>setForm({...form,title:e.target.value})}
 className="border p-2 rounded w-full"
 />
+
+{/* DOWNLOAD LINK */}
 
 <input
 placeholder="Download Link"
@@ -268,6 +298,8 @@ onChange={e=>setForm({...form,link:e.target.value})}
 className="border p-2 rounded w-full"
 />
 
+{/* AMOUNT */}
+
 <input
 type="number"
 placeholder="Amount"
@@ -275,6 +307,26 @@ value={form.amount}
 onChange={e=>setForm({...form,amount:Number(e.target.value)})}
 className="border p-2 rounded w-full"
 />
+
+{/* TASK TYPE */}
+
+<label className="flex gap-2 items-center">
+
+<input
+type="checkbox"
+checked={form.isSpecial}
+onChange={e=>setForm({...form,isSpecial:e.target.checked})}
+/>
+
+Special Task
+
+</label>
+
+{/* STANDARD TASK */}
+
+{!form.isSpecial && (
+
+<>
 
 <input
 placeholder="ZIP File Name"
@@ -297,24 +349,18 @@ onChange={e=>setForm({...form,innerFileName:e.target.value})}
 className="border p-2 rounded w-full"
 />
 
-<label className="flex gap-2 items-center">
+</>
 
-<input
-type="checkbox"
-checked={form.isSpecial}
-onChange={e=>setForm({...form,isSpecial:e.target.checked})}
-/>
+)}
 
-Special Task
-
-</label>
+{/* SPECIAL TASK */}
 
 {form.isSpecial && (
 
 <input
 placeholder="Package Name"
-value={form.package}
-onChange={e=>setForm({...form,package:e.target.value})}
+value={form.packageName}
+onChange={e=>setForm({...form,packageName:e.target.value})}
 className="border p-2 rounded w-full"
 />
 
