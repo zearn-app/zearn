@@ -798,17 +798,18 @@ if(!doc.exists) return null
 return doc.data()
 
 },
-export function generateRandomTaskName(): string {
 
-const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+generateRandomTaskName(): string {
 
-let id = "zts"
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
 
-for (let i = 0; i < 8; i++) {
- id += chars[Math.floor(Math.random() * chars.length)]
-}
+  let id = "zts"
 
-return id
+  for (let i = 0; i < 8; i++) {
+    id += chars[Math.floor(Math.random() * chars.length)]
+  }
+
+  return id
 },
 
 async verifyTaskComplete(uid: string, task: any) {
