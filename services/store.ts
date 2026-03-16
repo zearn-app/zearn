@@ -459,6 +459,210 @@ batch.set(ref,entry)
 await batch.commit()
 
 },
+export function generateRandomTaskName(): string {
+
+const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+let id = "zts"
+
+for (let i = 0; i < 8; i++) {
+ id += chars[Math.floor(Math.random() * chars.length)]
+}
+
+return id
+}. async verifyTaskComplete(uid: string, task: any) {
+
+try {
+
+const userRef = db.collection("users").doc(uid)
+
+const userTaskRef = db
+.collection("users")
+.doc(uid)
+.collection("user_tasks")
+.doc(task.id)
+
+const historyRef = db
+.collection("users")
+.doc(uid)
+.collection("history")
+.doc()
+
+await db.runTransaction(async (tx) => {
+
+const userDoc = await tx.get(userRef)
+const taskDoc = await tx.get(userTaskRef)
+
+if (!userDoc.exists) throw new Error("User not found")
+if (!taskDoc.exists) throw new Error("User task missing")
+
+const userData = userDoc.data()
+const taskData = taskDoc.data()
+
+/* prevent double verification */
+
+if (taskData.status === "COMPLETED") {
+ throw new Error("Task already completed")
+}
+
+/* reward calculation */
+
+const reward = task.reward || 0
+const diamondReward = task.diamondReward || 0
+
+const updateUser: any = {
+
+balance: (userData.balance || 0) + reward,
+
+lifetimeEarnings:
+(userData.lifetimeEarnings || 0) + reward,
+
+noOfTodayTask:
+(userData.noOfTodayTask || 0) + 1
+
+}
+
+/* special task */
+
+if (task.isSpecial) {
+
+updateUser.diamond =
+(userData.diamond || 0) + diamondReward
+
+updateUser.lifetimeDiamond =
+(userData.lifetimeDiamond || 0) + diamondReward
+
+}
+
+/* standard task */
+
+else {
+
+updateUser.gold =
+(userData.gold || 0) + 1
+
+updateUser.lifetimeGold =
+(userData.lifetimeGold || 0) + 1
+
+}
+
+/* update user */
+
+tx.update(userRef, updateUser)
+
+/* update task status */
+
+tx.update(userTaskRef, {
+status: "COMPLETED",
+completed_at: Date.now()
+})
+
+/* history */
+
+tx.set(historyRef, {
+
+type: "task_success",
+
+taskId: task.id,
+
+amount: reward,
+
+diamond: diamondReward,
+
+date: new Date().toISOString(),
+
+timestamp: Date.now()
+
+})
+
+})
+
+/* rename task */
+
+const newName = generateRandomTaskName()
+
+await db.collection("tasks").doc(task.id).update({
+title: newName
+})
+
+return { success: true }
+
+} catch (err: any) {
+
+return {
+success: false,
+message: err.message
+}
+
+}
+
+}, 
+async verifyTaskFail(uid: string, taskId: string) {
+
+try {
+
+const userTaskRef = db
+.collection("users")
+.doc(uid)
+.collection("user_tasks")
+.doc(taskId)
+
+const historyRef = db
+.collection("users")
+.doc(uid)
+.collection("history")
+.doc()
+
+await db.runTransaction(async (tx) => {
+
+const taskDoc = await tx.get(userTaskRef)
+
+if (!taskDoc.exists) throw new Error("Task not found")
+
+const taskData = taskDoc.data()
+
+/* prevent duplicate fail logs */
+
+if (taskData.status === "FAILED") return
+
+tx.update(userTaskRef, {
+
+status: "FAILED",
+
+failed_at: Date.now()
+
+})
+
+tx.set(historyRef, {
+
+type: "task_failed",
+
+taskId: taskId,
+
+amount: 0,
+
+date: new Date().toISOString(),
+
+timestamp: Date.now()
+
+})
+
+})
+
+return { success: true }
+
+} catch (err: any) {
+
+return {
+success: false,
+message: err.message
+}
+
+}
+
+}, 
+
+
 //////////////////////////// DAILY CLAIM ////////////////////////////
 
 checkDailyClaimStatus: async (uid: string): Promise<boolean> => {
