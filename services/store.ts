@@ -193,15 +193,11 @@ id:d.id,
 
 
 
-
-
-
-async function createTask(taskData: any) {
+createTask: async (taskData: any) => {
 
 try {
 
-const taskId =
-"zts" + Math.random().toString(36).substring(2,10)
+const taskId = "zts" + Math.random().toString(36).substring(2,10)
 
 const task:any = {
 
@@ -224,50 +220,40 @@ active: true
 // STANDARD TASK
 if(!taskData.isSpecial){
 
-task.expectedZipName =
-taskData.expectedZipName || ""
-
-task.password =
-taskData.password || ""
-
-task.expectedInnerFileName =
-taskData.expectedInnerFileName || ""
+task.expectedZipName = taskData.expectedZipName || ""
+task.password = taskData.password || ""
+task.expectedInnerFileName = taskData.expectedInnerFileName || ""
 
 }
 
 // SPECIAL TASK
 if(taskData.isSpecial){
 
-task.packageName =
-taskData.packageName || ""
+task.packageName = taskData.packageName || ""
 
 }
 
 await setDoc(doc(collection(db,"tasks"),taskId),task)
 
 return {
-
 success:true,
-
 taskId:taskId
-
 }
 
 }catch(err:any){
 
-console.error("CREATE TASK ERROR",err)
+console.error(err)
 
 return {
-
 success:false,
-
 message:err.message
-
 }
 
 }
 
-}
+},
+
+
 
 
 async editTask(taskId:string, updates:any){
