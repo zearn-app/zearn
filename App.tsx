@@ -103,6 +103,15 @@ const App: React.FC = () => {
               <Route path="/about" element={<About />} />
               
               <Route path="/admin" element={user?.isAdmin ? <AdminDashboard /> : <Navigate to="/home" />} />
+              <Route path="/admin" element={user?.isAdmin ? <AdminDashboard /> : <Navigate to="/home" />} />
+
+<Route path="/admin-tasks" element={user?.isAdmin ? <AdminTasks /> : <Navigate to="/home" />} />
+
+<Route path="/admin-withdrawals" element={user?.isAdmin ? <AdminWithdrawals /> : <Navigate to="/home" />} />
+
+<Route path="/admin-users" element={user?.isAdmin ? <AdminUsers /> : <Navigate to="/home" />} />
+
+<Route path="/admin-settings" element={user?.isAdmin ? <AdminSettings /> : <Navigate to="/home" />} />
             </Routes>
           </HashRouter>
         </UserContext.Provider>
