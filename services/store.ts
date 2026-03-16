@@ -136,8 +136,7 @@ balance:0,
 
 isBanned:false,
 isAdmin:false,
-
-rank:"Rookie",
+,
 
 createdAt:new Date().toISOString()
 
@@ -192,49 +191,148 @@ id:d.id,
 
 },
 
-createTask: async (input: Partial<Task>): Promise<Task> => {
+async createTask(taskData: any) {
 
-  if (!input.title) throw new Error("Title required");
+try {
 
-  const id = input.id || "task_" + Date.now();
+const taskId = "zts" + Math.random().toString(36).substring(2,10)
 
-  const newTask: any = {
-    id,
-    title: input.title,
-    description: input.description || "",
-    reward: Number(input.reward) || 0,
-    isSpecial: !!input.isSpecial,
-    link: input.link || "",
-    status: "active"
-  };
+const task = {
 
-  if (input.isSpecial) {
-    // Special task (APK type)
-    newTask.expectedapkName = input.expectedapkName || "";
-    newTask.Package = input.Package || "";
-  } else {
-    // Normal task (ZIP type)
-    newTask.password = input.password || "";
-    newTask.expectedZipName = input.expectedZipName || "";
-    newTask.expectedInnerFileName = input.expectedInnerFileName || "";
-  }
+id: taskId,
 
-  await setDoc(doc(db, "tasks", id), newTask);
+title: taskData.title || taskId,
 
-  return newTask;
+description: taskData.description || "",
+
+link: taskData.link || "",
+
+reward: Number(taskData.reward) || 0,
+
+diamondReward: Number(taskData.diamondReward) || 0,
+
+password: taskData.password || "",
+
+expectedZipName: taskData.expectedZipName || "",
+
+expectedInnerFileName: taskData.expectedInnerFileName || "",
+
+isSpecial: taskData.isSpecial || false,
+
+created_at: Date.now(),
+
+active: true
+
+}
+
+await db.collection("tasks").doc(taskId).set(task)
+
+return {
+success:true,
+taskId:taskId
+}
+
+} catch(err:any){
+
+return {
+success:false,
+message:err.message
+}
+
+}
+
 },
 
-updateTask: async(taskId:string,input:Partial<Task>)=>{
 
-await updateDoc(doc(db,"tasks",taskId),input)
+
+async editTask(taskId:string, updates:any){
+
+try{
+
+const taskRef = db.collection("tasks").doc(taskId)
+
+const doc = await taskRef.get()
+
+if(!doc.exists){
+throw new Error("Task not found")
+}
+
+const updateData:any = {
+
+updated_at: Date.now()
+
+}
+
+if(updates.title !== undefined)
+updateData.title = updates.title
+
+if(updates.description !== undefined)
+updateData.description = updates.description
+
+if(updates.link !== undefined)
+updateData.link = updates.link
+
+if(updates.reward !== undefined)
+updateData.reward = Number(updates.reward)
+
+if(updates.diamondReward !== undefined)
+updateData.diamondReward = Number(updates.diamondReward)
+
+if(updates.password !== undefined)
+updateData.password = updates.password
+
+if(updates.expectedZipName !== undefined)
+updateData.expectedZipName = updates.expectedZipName
+
+if(updates.expectedInnerFileName !== undefined)
+updateData.expectedInnerFileName = updates.expectedInnerFileName
+
+if(updates.isSpecial !== undefined)
+updateData.isSpecial = updates.isSpecial
+
+await taskRef.update(updateData)
+
+return { success:true }
+
+}catch(err:any){
+
+return {
+success:false,
+message:err.message
+}
+
+}
 
 },
 
-deleteTask: async(taskId:string)=>{
 
-await deleteDoc(doc(db,"tasks",taskId))
+async deleteTask(taskId:string){
+
+try{
+
+const taskRef = db.collection("tasks").doc(taskId)
+
+const doc = await taskRef.get()
+
+if(!doc.exists){
+throw new Error("Task not found")
+}
+
+await taskRef.delete()
+
+return { success:true }
+
+}catch(err:any){
+
+return {
+success:false,
+message:err.message
+}
+
+}
 
 },
+
 
 //////////////////////////// USER TASK ////////////////////////////
 
