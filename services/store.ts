@@ -524,6 +524,78 @@ claimDaily: async (uid:string)=>{
 
 },
 
+//////////////////////////// manually ////////////////////////////
+async startTask(uid:string,task:Task){
+
+const startedAt = Date.now()
+
+await db.collection("users")
+.doc(uid)
+.collection("user_tasks")
+.doc(task.id)
+.set({
+taskId:task.id,
+status:"IN_PROCESS",
+started:true,
+started_by:uid,
+started_at:startedAt
+})
+
+await db.collection("hidden_tasks")
+.doc(task.id)
+.set({
+...task,
+started_by:uid,
+started_at:startedAt
+})
+
+return task.link
+},
+
+async getUserTasks(uid:string){
+
+const snap = await db.collection("users")
+.doc(uid)
+.collection("user_tasks")
+.get()
+
+return snap.docs.map(d=>d.data())
+
+},
+async getTasks(isSpecial:boolean){
+
+const snap = await db
+.collection("tasks")
+.where("isSpecial","==",isSpecial)
+.get()
+
+return snap.docs.map(d=>d.data())
+
+},
+.async getTasks(isSpecial:boolean){
+
+const snap = await db
+.collection("tasks")
+.where("isSpecial","==",isSpecial)
+.get()
+
+return snap.docs.map(d=>d.data())
+
+},
+
+async getHiddenTask(taskId:string){
+
+const doc = await db.collection("hidden_tasks")
+.doc(taskId)
+.get()
+
+if(!doc.exists) return null
+
+return doc.data()
+
+},
+
+
 //////////////////////////// INIT ////////////////////////////
 
 initializeAdmin: async()=>{
