@@ -57,7 +57,16 @@ const userTaskMap = useMemo(()=>{
 const handleStartTask = async(task:Task)=>{
 
  if(!user) return
+
+ /* LOCK: prevent multiple start clicks */
  if(startingTaskId) return
+
+ /* CHECK: already started */
+ const existing = userTaskMap.get(task.id)
+ if(existing){
+   alert("Task already started")
+   return
+ }
 
  try{
 
@@ -196,7 +205,7 @@ onClick={()=>{
  if(activeTab==="all"){
    handleStartTask(task)
  }
-else if(activeTab==="process"){
+ else if(activeTab==="process"){
   navigate(`/task-check/${task.id}`)
 }
 
