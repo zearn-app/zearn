@@ -21,6 +21,10 @@ import Settings from './pages/Settings'; // New
 import EditProfile from './pages/EditProfile';
 import About from './pages/About';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminTasks from './pages/AdminTasks';
+import AdminWithdrawals from './pages/AdminWithdrawals';
+import AdminUsers from './pages/AdminUsers';
+import AdminSettings from './pages/AdminSettings';
 
 // Context
 export const UserContext = React.createContext<{
