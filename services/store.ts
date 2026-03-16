@@ -209,7 +209,7 @@ title: taskData.title || taskId,
 
 link: taskData.link || "",
 
-amount: Number(taskData.amount) || 0,
+reward: Number(taskData.amount) || 0,
 
 isSpecial: taskData.isSpecial || false,
 
@@ -348,37 +348,6 @@ message:err.message
 
 
 //////////////////////////// USER TASK ////////////////////////////
-
-getUserTasks: async(uid:string): Promise<UserTask[]>=>{
-
-const q = query(
-collection(db,"user_tasks"),
-where("uid","==",uid)
-)
-
-const snap = await getDocs(q)
-
-return snap.docs.map(d=>({
-id:d.id,
-...d.data()
-})) as UserTask[]
-
-},
-  getTasks: async (isSpecial: boolean): Promise<Task[]> => {
-
-  const q = query(
-    collection(db, "tasks"),
-    where("isSpecial", "==", isSpecial)
-  );
-
-  const snap = await getDocs(q);
-
-  return snap.docs.map(d => ({
-    id: d.id,
-    ...d.data()
-  })) as Task[];
-
-},
 
 startTask: async (uid: string, taskId: string): Promise<string | null> => {
 
