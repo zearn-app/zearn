@@ -459,18 +459,9 @@ batch.set(ref,entry)
 await batch.commit()
 
 },
-export function generateRandomTaskName(): string {
 
-const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
 
-let id = "zts"
-
-for (let i = 0; i < 8; i++) {
- id += chars[Math.floor(Math.random() * chars.length)]
-}
-
-return id
-}. async verifyTaskComplete(uid: string, task: any) {
+async verifyTaskComplete(uid: string, task: any) {
 
 try {
 
