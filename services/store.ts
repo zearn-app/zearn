@@ -767,7 +767,11 @@ const snap = await db
 return snap.docs.map(d=>d.data())
 
 },
-.async getTasks(isSpecial:boolean){
+
+
+
+
+async getTasks(isSpecial:boolean){
 
 const snap = await db
 .collection("tasks")
@@ -777,6 +781,9 @@ const snap = await db
 return snap.docs.map(d=>d.data())
 
 },
+
+
+
 
 async getHiddenTask(taskId:string){
 
@@ -789,6 +796,9 @@ if(!doc.exists) return null
 return doc.data()
 
 },
+
+
+
 
 async generateRandomTaskName(): string {
 
