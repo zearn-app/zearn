@@ -136,7 +136,6 @@ balance:0,
 
 isBanned:false,
 isAdmin:false,
-,
 
 createdAt:new Date().toISOString()
 
