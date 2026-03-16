@@ -28,9 +28,14 @@ useEffect(()=>{
 
 const fetchData = async()=>{
 
- if(!user) return
+ if(!user){
+   setLoading(false)
+   return
+ }
 
  setLoading(true)
+
+ try{
 
  const [taskList,userTaskList] = await Promise.all([
    Store.getTasks(isSpecial),
@@ -39,6 +44,10 @@ const fetchData = async()=>{
 
  setTasks(taskList)
  setUserTasks(userTaskList)
+
+ }catch(e){
+   console.error(e)
+ }
 
  setLoading(false)
 
