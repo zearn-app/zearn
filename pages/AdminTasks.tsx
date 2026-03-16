@@ -14,14 +14,13 @@ const [editingTask,setEditingTask] = useState<Task | null>(null)
 
 const [form,setForm] = useState({
 title:"",
-description:"",
 link:"",
-reward:0,
-diamondReward:0,
-password:"",
-expectedZipName:"",
-expectedInnerFileName:"",
-isSpecial:false
+amount:0,
+zipName:"",
+zipPassword:"",
+innerFileName:"",
+isSpecial:false,
+package:""
 })
 
 ////////////////////////////////////////////////////
@@ -35,7 +34,6 @@ setLoading(true)
 try{
 
 const t = await Store.getAllTasks()
-
 setTasks(t)
 
 }catch(e){
@@ -64,14 +62,13 @@ setEditingTask(null)
 
 setForm({
 title:"",
-description:"",
 link:"",
-reward:0,
-diamondReward:0,
-password:"",
-expectedZipName:"",
-expectedInnerFileName:"",
-isSpecial:false
+amount:0,
+zipName:"",
+zipPassword:"",
+innerFileName:"",
+isSpecial:false,
+package:""
 })
 
 setModal(true)
@@ -89,14 +86,13 @@ setEditingTask(task)
 setForm({
 
 title:task.title || "",
-description:(task as any).description || "",
-link:task.link || "",
-reward:task.reward || 0,
-diamondReward:(task as any).diamondReward || 0,
-password:(task as any).password || "",
-expectedZipName:(task as any).expectedZipName || "",
-expectedInnerFileName:(task as any).expectedInnerFileName || "",
-isSpecial:(task as any).isSpecial || false
+link:(task as any).link || "",
+amount:(task as any).amount || 0,
+zipName:(task as any).zipName || "",
+zipPassword:(task as any).zipPassword || "",
+innerFileName:(task as any).innerFileName || "",
+isSpecial:(task as any).isSpecial || false,
+package:(task as any).package || ""
 
 })
 
@@ -188,7 +184,7 @@ Create Task
 {loading && <div>Loading tasks...</div>}
 
 {!loading && tasks.map(t=>(
-  
+
 <div
 key={t.id}
 className="border bg-white p-3 rounded flex justify-between items-center"
@@ -199,11 +195,11 @@ className="border bg-white p-3 rounded flex justify-between items-center"
 <div className="font-bold">{t.title}</div>
 
 <div className="text-xs text-gray-500">
-Reward: {t.reward}
+Reward: {(t as any).amount}
 </div>
 
 <div className="text-xs">
-Type: {t.isSpecial ? "Special Task":"Normal Task"}
+Type: {(t as any).isSpecial ? "Special Task":"Normal Task"}
 </div>
 
 </div>
@@ -266,13 +262,6 @@ className="border p-2 rounded w-full"
 />
 
 <input
-placeholder="Description"
-value={form.description}
-onChange={e=>setForm({...form,description:e.target.value})}
-className="border p-2 rounded w-full"
-/>
-
-<input
 placeholder="Download Link"
 value={form.link}
 onChange={e=>setForm({...form,link:e.target.value})}
@@ -281,38 +270,30 @@ className="border p-2 rounded w-full"
 
 <input
 type="number"
-placeholder="Reward"
-value={form.reward}
-onChange={e=>setForm({...form,reward:Number(e.target.value)})}
+placeholder="Amount"
+value={form.amount}
+onChange={e=>setForm({...form,amount:Number(e.target.value)})}
 className="border p-2 rounded w-full"
 />
 
 <input
-type="number"
-placeholder="Diamond Reward"
-value={form.diamondReward}
-onChange={e=>setForm({...form,diamondReward:Number(e.target.value)})}
-className="border p-2 rounded w-full"
-/>
-
-<input
-placeholder="ZIP Name"
-value={form.expectedZipName}
-onChange={e=>setForm({...form,expectedZipName:e.target.value})}
+placeholder="ZIP File Name"
+value={form.zipName}
+onChange={e=>setForm({...form,zipName:e.target.value})}
 className="border p-2 rounded w-full"
 />
 
 <input
 placeholder="ZIP Password"
-value={form.password}
-onChange={e=>setForm({...form,password:e.target.value})}
+value={form.zipPassword}
+onChange={e=>setForm({...form,zipPassword:e.target.value})}
 className="border p-2 rounded w-full"
 />
 
 <input
 placeholder="Inner File Name"
-value={form.expectedInnerFileName}
-onChange={e=>setForm({...form,expectedInnerFileName:e.target.value})}
+value={form.innerFileName}
+onChange={e=>setForm({...form,innerFileName:e.target.value})}
 className="border p-2 rounded w-full"
 />
 
@@ -327,6 +308,17 @@ onChange={e=>setForm({...form,isSpecial:e.target.checked})}
 Special Task
 
 </label>
+
+{form.isSpecial && (
+
+<input
+placeholder="Package Name"
+value={form.package}
+onChange={e=>setForm({...form,package:e.target.value})}
+className="border p-2 rounded w-full"
+/>
+
+)}
 
 <button
 type="submit"
