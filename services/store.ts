@@ -889,7 +889,7 @@ return snap.docs.map(d=>({
  ...d.data()
 }))
 
-  }
+  },
 
 
 
