@@ -799,7 +799,7 @@ return doc.data()
 
 },
 
-generateRandomTaskName(): string {
+async generateRandomTaskName(): string {
 
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
 
