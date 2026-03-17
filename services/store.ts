@@ -232,7 +232,7 @@ task.expectedInnerFileName = taskData.expectedInnerFileName || ""
 if(taskData.isSpecial){
 
 task.packageName = taskData.packageName || ""
-
+diamondReward: Number(taskData.diamondReward) || 0
 }
 
 await setDoc(doc(collection(db,"tasks"),taskId),task)
@@ -348,20 +348,6 @@ message:err.message
 
 
 //////////////////////////// USER TASK ////////////////////////////
-
-
-getHiddenTask: async (taskId: string): Promise<Task | null> => {
-
-  const snap = await getDoc(doc(db, "hidden_tasks", taskId));
-
-  if (!snap.exists()) return null;
-
-  return {
-    id: snap.id,
-    ...(snap.data() as Task)
-  };
-
-},
 
 //////////////////////////// WITHDRAW ////////////////////////////
 
@@ -584,28 +570,29 @@ return task.link
 },
 
 
-
 async getUserTasks(uid:string){
 
-const snap = await db
-.collection("users")
-.doc(uid)
-.collection("user_tasks")
-.get()
+const snap = await getDocs(
+collection(db,"users",uid,"user_tasks")
+)
 
 return snap.docs.map(d=>({
  id:d.id,
  ...d.data()
 }))
+}
 
-},
+
+  
 
 async getTasks(isSpecial:boolean){
 
-const snap = await db
-.collection("tasks")
-.where("isSpecial","==",isSpecial)
-.get()
+const q = query(
+collection(db,"tasks"),
+where("isSpecial","==",isSpecial)
+)
+
+const snap = await getDocs(q)
 
 return snap.docs.map(d=>({
  id:d.id,
@@ -615,7 +602,7 @@ return snap.docs.map(d=>({
   },
 
 
-
+  
 async getHiddenTask(taskId:string){
 
 const doc = await db.collection("hidden_tasks")
