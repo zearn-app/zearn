@@ -580,7 +580,7 @@ return snap.docs.map(d=>({
  id:d.id,
  ...d.data()
 }))
-}
+},
 
 
   
