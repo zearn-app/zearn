@@ -63,41 +63,58 @@ const userTaskMap = useMemo(()=>{
 
 /* START TASK */
 
-const handleStartTask = async(task:Task)=>{
+const handleStartTask = async (task: Task) => {
+  if (!user) return;
+  if (startingTaskId) return;
 
- if(!user) return
- if(startingTaskId) return
+  const existing = userTaskMap.get(task.id);
+  if (existing) {
+    setActiveTab("process");
+    return;
+  }
 
- const existing = userTaskMap.get(task.id)
+  setStartingTaskId(task.id);
 
- if(existing){
-   setActiveTab("process")
-   return
- }
+  // OPEN A PLACEHOLDER WINDOW IMMEDIATELY (prevents popup blocker)
+  const newWin = window.open('', '_blank', 'noopener,noreferrer');
 
- try{
+  try {
+    if (newWin) {
+      // optional: show a small loading message
+      try { newWin.document.title = 'Opening task...'; } catch {}
+    }
 
-   setStartingTaskId(task.id)
+    // do the async work (server will return the link)
+    const link = await Store.startTask(user.uid, task);
 
-   const link = await Store.startTask(user.uid,task)
+    // refresh local data
+    await fetchData();
 
-   await fetchData()
+    if (link) {
+      let url = link;
+      if (!url.startsWith('http')) url = 'https://' + url;
+      if (newWin) {
+        // navigate the already-opened window (keeps browser happy)
+        newWin.location.href = url;
+      } else {
+        // fallback if placeholder window couldn't be opened
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+      setActiveTab('process');
+    } else {
+      // no link returned — close placeholder and inform user
+      if (newWin) newWin.close();
+      alert('Could not retrieve task link. Try again.');
+    }
+  } catch (e) {
+    console.error('startTask error', e);
+    if (newWin) newWin.close();
+    alert('Error opening task. See console for details.');
+  } finally {
+    setStartingTaskId(null);
+  }
+};
 
-   if(link){
-     let url = link
-     if(!url.startsWith("http")) url="https://"+url
-     window.open(url,"_blank")
-   }
-
-   setActiveTab("process")
-
- }catch(e){
-   console.error(e)
- }
-
- setStartingTaskId(null)
-
-}
 
 /* FILTER */
 
