@@ -122,6 +122,50 @@ return (
 
 <Layout title={isSpecial ? "Special Tasks" : "Standard Tasks"} showBack>
 
+{showModal && selectedTask && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+
+    <div className="bg-white p-6 rounded-2xl w-[90%] max-w-sm">
+
+      <h2 className="text-lg font-bold mb-4 text-center">
+        Task Details
+      </h2>
+
+      <div className="space-y-3 text-sm">
+
+        <div>
+          <span className="font-bold">Task ID:</span>
+          <p className="text-gray-600 break-all">{selectedTask.id}</p>
+        </div>
+
+        <div>
+          <span className="font-bold">Reward:</span>
+          <p className="text-green-600 font-bold">
+            ₹{selectedTask.reward}
+          </p>
+        </div>
+
+        <div>
+          <span className="font-bold">Link:</span>
+          <p className="text-blue-600 break-all">
+            {taskLink ? taskLink : "Link is empty"}
+          </p>
+        </div>
+
+      </div>
+
+      <button
+        onClick={() => setShowModal(false)}
+        className="w-full mt-5 bg-black text-white py-2 rounded-lg"
+      >
+        Close
+      </button>
+
+    </div>
+
+  </div>
+)}
+
 <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
 
 <button
