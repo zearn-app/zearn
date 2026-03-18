@@ -77,46 +77,25 @@ const handleStartTask = async (task: Task) => {
 
   setStartingTaskId(task.id);
 
-  // OPEN A PLACEHOLDER WINDOW IMMEDIATELY (prevents popup blocker)
-  const newWin = window.open('', '_blank', 'noopener,noreferrer');
-
   try {
-    if (newWin) {
-      // optional: show a small loading message
-      try { newWin.document.title = 'Opening task...'; } catch {}
-    }
-
-    // do the async work (server will return the link)
     const link = await Store.startTask(user.uid, task);
 
-    // refresh local data
     await fetchData();
 
-    if (link) {
-      let url = link;
-      if (!url.startsWith('http')) url = 'https://' + url;
-      if (newWin) {
-        // navigate the already-opened window (keeps browser happy)
-        newWin.location.href = url;
-      } else {
-        // fallback if placeholder window couldn't be opened
-        window.open(url, '_blank', 'noopener,noreferrer');
-      }
-      setActiveTab('process');
-    } else {
-      // no link returned — close placeholder and inform user
-      if (newWin) newWin.close();
-      alert('Could not retrieve task link. Try again.');
-    }
+    // ✅ store data for modal
+    setSelectedTask(task);
+    setTaskLink(link || null);
+    setShowModal(true);
+
+    setActiveTab("process");
+
   } catch (e) {
-    console.error('startTask error', e);
-    if (newWin) newWin.close();
-    alert('Error opening task. See console for details.');
+    console.error(e);
+    alert("Error starting task");
   } finally {
     setStartingTaskId(null);
   }
 };
-
 
 /* FILTER */
 
