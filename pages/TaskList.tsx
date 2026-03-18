@@ -21,7 +21,9 @@ const [userTasks,setUserTasks] = useState<UserTask[]>([]);
 
 const [loading,setLoading] = useState(true);
 const [startingTaskId,setStartingTaskId] = useState<string | null>(null);
-
+const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+const [taskLink, setTaskLink] = useState<string | null>(null)
+const [showModal, setShowModal] = useState(false)
 useEffect(()=>{
  fetchData()
 },[user,isSpecial])
