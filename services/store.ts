@@ -824,8 +824,112 @@ message: err.message
 
 },
 
+//////////////////////////// mannual 2 ////////////////////////////
+ export function generateRandomTaskName(): string {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let id = "ztask";
+  for (let i = 0; i < 8; i++) {
+    id += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return id;
+}
+
+export const Store = {
+
+  // ✅ Get All Tasks
+  async getAllTasks() {
+    const snap = await getDocs(collection(db, "tasks"));
+    return snap.docs.map(d => d.data());
+  },
+
+  // ✅ Start Task
+  async startTask(taskId: string, uid: string) {
+    const ref = doc(db, "tasks", taskId);
+
+    await updateDoc(ref, {
+      is_started: true,
+      started_by: uid,
+      started_at: new Date().toISOString()
+    });
+
+    const snap = await getDoc(ref);
+    return snap.data();
+  },
+
+  // ✅ Get User Tasks
+  async getUserTasks(uid: string) {
+    const q = query(
+      collection(db, "tasks"),
+      where("started_by", "==", uid)
+    );
+
+    const snap = await getDocs(q);
+    return snap.docs.map(d => d.data());
+  },
+
+  // ✅ Complete Task (Reward Logic)
+  async completeTask(uid: string, task: any, isSpecial: boolean) {
+    const userRef = doc(db, "users", uid);
+    const taskRef = doc(db, "tasks", task.task_id);
+
+    const userSnap = await getDoc(userRef);
+    const user = userSnap.data();
+
+    const settingsSnap = await getDoc(doc(db, "settings", "config"));
+    const settings = settingsSnap.data();
+
+    let updateData: any = {};
+    let amount = 0;
+
+    if (isSpecial) {
+      amount = settings.special_reward;
+
+      updateData = {
+        balance: (user.balance || 0) + amount,
+        lifetime_earnings: (user.lifetime_earnings || 0) + amount,
+        diamond: (user.diamond || 0) + 1,
+        lifetime_diamond: (user.lifetime_diamond || 0) + 1
+      };
+    } else {
+      amount = settings.standard_amount;
+
+      updateData = {
+        balance: (user.balance || 0) + amount,
+        lifetime_earnings: (user.lifetime_earnings || 0) + amount,
+        gold: (user.gold || 0) + 1,
+        lifetime_gold: (user.lifetime_gold || 0) + 1
+      };
+    }
+
+    // ✅ Update user
+    await updateDoc(userRef, {
+      ...updateData,
+      no_of_task_today: (user.no_of_task_today || 0) + 1
+    });
+
+    // ✅ Add History
+    const historyRef = doc(collection(db, "users", uid, "history"));
+    await setDoc(historyRef, {
+      task_id: task.task_id,
+      task_name: task.task_name,
+      amount,
+      profit: true,
+      type: "TASK",
+      date: new Date().toISOString()
+    });
+
+    // ✅ Reset Task
+    await updateDoc(taskRef, {
+      task_name: generateRandomTaskName(),
+      is_started: false,
+      started_by: "",
+      started_at: "",
+    });
+  }
+}; 
 
 
+  
 //////////////////////////// INIT ////////////////////////////
 
 initializeAdmin: async()=>{
