@@ -832,7 +832,7 @@ message: err.message
     id += chars[Math.floor(Math.random() * chars.length)];
   }
   return id;
-}
+},
 
 export const Store = {
 
