@@ -825,7 +825,17 @@ message: err.message
 },
 
 //////////////////////////// mannual 2 ////////////////////////////
- export function generateRandomTaskName(): string {
+ 
+export const Store = {
+
+  // ✅ Get All Tasks
+  async getAllTasks() {
+    const snap = await getDocs(collection(db, "tasks"));
+    return snap.docs.map(d => d.data());
+  },
+
+
+  export function generateRandomTaskName(): string {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
   let id = "ztask";
   for (let i = 0; i < 8; i++) {
@@ -834,13 +844,6 @@ message: err.message
   return id;
 },
 
-export const Store = {
-
-  // ✅ Get All Tasks
-  async getAllTasks() {
-    const snap = await getDocs(collection(db, "tasks"));
-    return snap.docs.map(d => d.data());
-  },
 
   // ✅ Start Task
   async startTask(taskId: string, uid: string) {
