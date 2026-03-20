@@ -13,6 +13,7 @@ type Task = {
   is_special: boolean
   expectedzipfilename: string
   expectedinnerfilename: string
+  amount?: number
   is_started: boolean
 }
 
@@ -30,7 +31,8 @@ const AdminTasks: React.FC = () => {
     link: "",
     is_special: false,
     expectedzipfilename: "",
-    expectedinnerfilename: ""
+    expectedinnerfilename: "",
+    amount: 0
   })
 
   /* ---------------- LOAD ---------------- */
@@ -59,7 +61,8 @@ const AdminTasks: React.FC = () => {
       link: "",
       is_special: false,
       expectedzipfilename: "",
-      expectedinnerfilename: ""
+      expectedinnerfilename: "",
+      amount: 0
     })
 
     setModal(true)
@@ -75,7 +78,8 @@ const AdminTasks: React.FC = () => {
       link: task.link || "",
       is_special: task.is_special || false,
       expectedzipfilename: task.expectedzipfilename || "",
-      expectedinnerfilename: task.expectedinnerfilename || ""
+      expectedinnerfilename: task.expectedinnerfilename || "",
+      amount: task.amount || 0
     })
 
     setModal(true)
@@ -93,22 +97,39 @@ const AdminTasks: React.FC = () => {
         return
       }
 
-      if (!form.is_special) {
-        if (!form.expectedzipfilename || !form.expectedinnerfilename) {
-          alert("ZIP details required")
-          return
-        }
+      if (!form.expectedzipfilename.trim()) {
+        alert("ZIP filename required")
+        return
       }
 
-      const payload = {
+      if (!form.expectedinnerfilename.trim()) {
+        alert("Inner filename required")
+        return
+      }
+
+      if (form.is_special && form.amount <= 0) {
+        alert("Amount required for special task")
+        return
+      }
+
+      const payload: any = {
         link: form.link.trim(),
         is_special: form.is_special,
-        expectedzipfilename: form.expectedzipfilename,
-        expectedinnerfilename: form.expectedinnerfilename,
-        task_name: Store.generateRandomTaskName(),
+        expectedzipfilename: form.expectedzipfilename.trim(),
+        expectedinnerfilename: form.expectedinnerfilename.trim(),
         is_started: false,
         started_by: "",
         started_at: null
+      }
+
+      /* Special extra field */
+      if (form.is_special) {
+        payload.amount = Number(form.amount)
+      }
+
+      /* Create → generate name */
+      if (!editingTask) {
+        payload.task_name = Store.generateRandomTaskName()
       }
 
       if (editingTask) {
@@ -179,6 +200,12 @@ const AdminTasks: React.FC = () => {
               <div className="text-xs text-blue-600 break-all">
                 {t.link}
               </div>
+
+              {t.is_special && (
+                <div className="text-xs text-green-600">
+                  Reward: ₹{t.amount}
+                </div>
+              )}
             </div>
 
             <div className="flex gap-2">
@@ -242,22 +269,28 @@ const AdminTasks: React.FC = () => {
               Special Task
             </label>
 
-            {!form.is_special && (
-              <>
-                <input
-                  placeholder="ZIP File Name"
-                  value={form.expectedzipfilename}
-                  onChange={e => setForm({ ...form, expectedzipfilename: e.target.value })}
-                  className="border p-2 rounded w-full"
-                />
+            <input
+              placeholder="ZIP File Name"
+              value={form.expectedzipfilename}
+              onChange={e => setForm({ ...form, expectedzipfilename: e.target.value })}
+              className="border p-2 rounded w-full"
+            />
 
-                <input
-                  placeholder="Inner File Name"
-                  value={form.expectedinnerfilename}
-                  onChange={e => setForm({ ...form, expectedinnerfilename: e.target.value })}
-                  className="border p-2 rounded w-full"
-                />
-              </>
+            <input
+              placeholder="Inner File Name"
+              value={form.expectedinnerfilename}
+              onChange={e => setForm({ ...form, expectedinnerfilename: e.target.value })}
+              className="border p-2 rounded w-full"
+            />
+
+            {form.is_special && (
+              <input
+                type="number"
+                placeholder="Special Reward Amount"
+                value={form.amount}
+                onChange={e => setForm({ ...form, amount: Number(e.target.value) })}
+                className="border p-2 rounded w-full"
+              />
             )}
 
             <button
