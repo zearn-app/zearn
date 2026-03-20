@@ -28,6 +28,7 @@ const AdminTasks: React.FC = () => {
   const [editingTask, setEditingTask] = useState<Task | null>(null)
 
   const [form, setForm] = useState({
+    task_name: "",
     link: "",
     is_special: false,
     expectedzipfilename: "",
@@ -58,6 +59,7 @@ const AdminTasks: React.FC = () => {
     setEditingTask(null)
 
     setForm({
+      task_name: "",
       link: "",
       is_special: false,
       expectedzipfilename: "",
@@ -75,6 +77,7 @@ const AdminTasks: React.FC = () => {
     setEditingTask(task)
 
     setForm({
+      task_name: task.task_name || "",
       link: task.link || "",
       is_special: task.is_special || false,
       expectedzipfilename: task.expectedzipfilename || "",
@@ -92,18 +95,18 @@ const AdminTasks: React.FC = () => {
 
     try {
 
+      if (!form.task_name.trim()) {
+        alert("Task name required")
+        return
+      }
+
       if (!form.link.trim()) {
         alert("Link required")
         return
       }
 
-      if (!form.expectedzipfilename.trim()) {
-        alert("ZIP filename required")
-        return
-      }
-
-      if (!form.expectedinnerfilename.trim()) {
-        alert("Inner filename required")
+      if (!form.expectedzipfilename || !form.expectedinnerfilename) {
+        alert("ZIP details required")
         return
       }
 
@@ -113,23 +116,18 @@ const AdminTasks: React.FC = () => {
       }
 
       const payload: any = {
+        task_name: form.task_name.trim(),
         link: form.link.trim(),
         is_special: form.is_special,
-        expectedzipfilename: form.expectedzipfilename.trim(),
-        expectedinnerfilename: form.expectedinnerfilename.trim(),
+        expectedzipfilename: form.expectedzipfilename,
+        expectedinnerfilename: form.expectedinnerfilename,
         is_started: false,
         started_by: "",
         started_at: null
       }
 
-      /* Special extra field */
       if (form.is_special) {
         payload.amount = Number(form.amount)
-      }
-
-      /* Create → generate name */
-      if (!editingTask) {
-        payload.task_name = Store.generateRandomTaskName()
       }
 
       if (editingTask) {
@@ -252,6 +250,13 @@ const AdminTasks: React.FC = () => {
                 <X />
               </button>
             </div>
+
+            <input
+              placeholder="Task Name"
+              value={form.task_name}
+              onChange={e => setForm({ ...form, task_name: e.target.value })}
+              className="border p-2 rounded w-full"
+            />
 
             <input
               placeholder="Task Link"
