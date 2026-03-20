@@ -204,17 +204,17 @@ async createTask(data:any) {
     ...data,
     task_id: ref.id
   })
-}
+},
 
 /* UPDATE */
 async updateTask(id:string, data:any) {
   await updateDoc(doc(db,"tasks",id), data)
-}
+},
 
 /* DELETE */
 async deleteTask(id:string) {
   await deleteDoc(doc(db,"tasks",id))
-}
+},
 //////////////////////////// task ////////////////////////////
 async getTasks() {
     const snap = await getDocs(collection(db, "tasks"))
