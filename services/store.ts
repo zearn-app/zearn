@@ -199,9 +199,9 @@ await setDoc(doc(db,"settings","config"),settings)
 
   /* CREATE */
 async createTask(data:any) {
-  const ref = doc(collection(db, "tasks"))
+  const ref = doc(collection(db,"tasks"))
 
-  await setDoc(ref, {
+  await setDoc(ref,{
     ...data,
     task_id: ref.id
   })
