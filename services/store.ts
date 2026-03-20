@@ -293,7 +293,7 @@ async getTasks() {
       console.error(e)
       return TaskStatus.FAILED
     }
-  }
+  },
 
 //////////////////////////// WITHDRAW ////////////////////////////
 
