@@ -37,6 +37,16 @@ dailyClaimLimit: 10,
 minWithdrawal: 50,
 randomWinnerEntryFee: 20
 };
+//////////////////////////// utils ////////////////////////////
+
+export function generateRandomTaskName() {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+  let id = "ztask"
+  for (let i = 0; i < 8; i++) {
+    id += chars[Math.floor(Math.random() * chars.length)]
+  }
+  return id
+}
 
 //////////////////////////// STORE ////////////////////////////
 
