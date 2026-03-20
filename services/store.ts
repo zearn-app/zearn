@@ -48,6 +48,12 @@ export function generateRandomTaskName() {
   return id
 }
 
+export enum TaskStatus {
+  NONE = "NONE",
+  PROCESS = "PROCESS",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED"
+}
 //////////////////////////// STORE ////////////////////////////
 
 export const Store = {
