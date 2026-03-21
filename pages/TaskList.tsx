@@ -36,21 +36,24 @@ const TaskList = () => {
 
   }, [tasks, activeTab])
 
-  const handleStartTask = async (task: Task) => {
-   if (!task.link) {
+ const handleStartTask = async (task: Task) => {
+
+  if (!task.link) {
     alert("Link is empty")
-     return
+    return
   }
 
-// 🔥 OPEN FIRST (important)
-    
-    
+  try {
+
     await Store.startTask(task, uid)
-    console.log("Updating task:", task.id)
-    window.location.href = task.link
-    load()
-  }
 
+    window.location.href = task.link
+
+  } catch (e) {
+    console.error(e)
+    alert("Failed to start task")
+  }
+ }
   return (
     <Layout title="Tasks">
 
