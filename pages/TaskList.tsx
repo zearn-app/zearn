@@ -37,13 +37,15 @@ const TaskList = () => {
   }, [tasks, activeTab])
 
   const handleStartTask = async (task: Task) => {
+   if (!task.link) {
+    alert("Link is empty")
+     return
+  }
 
+// 🔥 OPEN FIRST (important)
+    window.location.href = task.link
+    
     await Store.startTask(task, uid)
-
-    if (task.link) {
-      window.open(task.link, "_blank")
-    }
-
     load()
   }
 
