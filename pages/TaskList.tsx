@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { Layout } from "../components/Layout"
 import { Store, Task } from "../services/store"
+import { getAuth } from "firebase/auth"
 
 const TaskList = () => {
 
@@ -10,7 +11,8 @@ const TaskList = () => {
   const [activeTab, setActiveTab] = useState<"all" | "process" | "completed">("all")
 
   const navigate = useNavigate()
-  const uid = "USER_ID" // replace from auth
+  const auth = getAuth()
+  const uid = auth.currentUser?.uid || ""
 
   useEffect(() => {
     load()
