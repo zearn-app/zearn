@@ -247,7 +247,7 @@ async getTasks() {
     console.error("StartTask ERROR:", e)
     throw e
   }
-  }
+  },
 
   /* ---------- VERIFY TASK ---------- */
 
