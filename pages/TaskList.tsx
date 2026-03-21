@@ -43,9 +43,11 @@ const TaskList = () => {
   }
 
 // 🔥 OPEN FIRST (important)
-    window.location.href = task.link
+    
     
     await Store.startTask(task, uid)
+    console.log("Updating task:", task.id)
+    window.location.href = task.link
     load()
   }
 
