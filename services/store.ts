@@ -226,6 +226,11 @@ async getTasks() {
 
   async startTask(task: Task, uid: string) {
 
+  try {
+
+    console.log("Task ID:", task.id)
+    console.log("UID:", uid)
+
     const ref = doc(db, "tasks", task.id)
 
     await updateDoc(ref, {
@@ -234,8 +239,15 @@ async getTasks() {
       started_at: serverTimestamp()
     })
 
+    console.log("Task started success")
+
     return true
-  },
+
+  } catch (e) {
+    console.error("StartTask ERROR:", e)
+    throw e
+  }
+  }
 
   /* ---------- VERIFY TASK ---------- */
 
