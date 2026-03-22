@@ -235,7 +235,7 @@ async getTasks() {
     console.log("Task ID:", task.id)
     console.log("UID:", uid)
 
-    const ref = doc(db, "tasks", task.id)
+    const ref = doc(db, "tasks", task.task_id || task.id)
 
     await updateDoc(ref, {
       is_started: true,
