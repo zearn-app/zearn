@@ -53,10 +53,10 @@ useEffect(() => {
 
  const handleStartTask = async (task: Task) => {
 if (!uid) {
-  alert("User not logged in")
+  alert("Please wait, logging in...")
   return
 }
-  if (!task.link) {
+   if (!task.link) {
     alert("Link is empty")
     return
   }
@@ -64,7 +64,7 @@ if (!uid) {
   try {
 
     await Store.startTask(task, uid)
-
+load()
     window.location.href = task.link
 
   } catch (e) {
