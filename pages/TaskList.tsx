@@ -1,133 +1,75 @@
-import React, { useEffect, useState, useMemo } from "react"
-import { useNavigate } from "react-router-dom"
-import { Layout } from "../components/Layout"
-import { Store, Task } from "../services/store"
-import { getAuth } from "firebase/auth"
+import React, { useEffect, useState } from "react";
+import { Store, Task } from "../services/store";
+import { getAuth } from "firebase/auth";
 
-const TaskList = () => {
+const TaskPage = () => {
 
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<"all" | "process" | "completed">("all")
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tab, setTab] = useState("all");
 
-  const navigate = useNavigate()
-  const auth = getAuth()
-const [uid, setUid] = useState<string>("")
-const [authLoading, setAuthLoading] = useState(true)
+  const uid = getAuth().currentUser?.uid;
 
-useEffect(() => {
-  
-  const unsub = auth.onAuthStateChanged(user => {
-    if (user) {
-      setUid(user.uid)
-    } else {
-      setUid("")
-    }
-    setAuthLoading(false)
-  })
-
-  return () => unsub()
-}, [])
   useEffect(() => {
-     if (!authLoading && uid) {
-    load()
-     }
-  }, [])
+    loadTasks();
+  }, []);
 
-  const load = async () => {
-    const data = await Store.getTasks()
-    setTasks(data)
-    setLoading(false)
-  }
+  const loadTasks = async () => {
+    const data = await Store.getTasks();
+    setTasks(data);
+  };
 
-  const filteredTasks = useMemo(() => {
+  const startTask = async (task: Task) => {
+    if (!uid) return alert("User not ready yet");
 
-    if (activeTab === "all") {
-      return tasks.filter(t => !t.is_started)
-    }
+    await Store.startTask(task, uid);
+    window.open(task.link, "_blank");
 
-    if (activeTab === "process") {
-      return tasks.filter(t => t.is_started && t.started_by === uid)
-    }
+    loadTasks();
+  };
 
-    return [] // completed handled from history page
+  // FILTERS
+  const allTasks = tasks.filter(t => !t.is_started);
+  const inProcess = tasks.filter(t => t.is_started && t.started_by === uid);
 
-  }, [tasks, activeTab , uid])
-
- const handleStartTask = async (task: Task) => {
-if (!uid) {
-  alert("uid us empty")
-  
-  return
-}
-   if (!task.link) {
-    alert("Link is empty")
-    return
-  }
-
-  try {
-
-    await Store.startTask(task, uid)
-load()
-    window.location.href = task.link
-
-  } catch (e) {
-    console.error(e)
-    alert("Failed to start task")
-  }
- }
   return (
-    <Layout title="Tasks">
+    <div>
 
-      {/* Tabs */}
-      <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
+      <h2>Tasks</h2>
 
-        {["all", "process", "completed"].map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab as any)}
-            className={`flex-1 py-2 rounded-lg text-sm font-bold ${
-              activeTab === tab ? "bg-white shadow" : "text-gray-500"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+      <button onClick={() => setTab("all")}>All Tasks</button>
+      <button onClick={() => setTab("process")}>In Process</button>
 
-      </div>
-
-      {/* Loading */}
-      {(loading || authLoading) && (
-  <div className="text-center">Loading...</div>
-)}
-      {/* Tasks */}
-   {!authLoading && (
-      <div className="space-y-4">
-
-        {filteredTasks.map(task => (
-
-          <div
-            key={task.id}
-            onClick={() => {
-              
-              if (authLoading || !uid) return   // 🚀 BLOCK CLICK
-              if (activeTab === "all") handleStartTask(task)
-              if (activeTab === "process") navigate(`/task-check/${task.id}`)
-            }}
-            className="bg-white p-4 rounded-xl shadow cursor-pointer"
-          >
-
-            <h3 className="font-bold">{task.task_name}</h3>
-
-          </div>
-
-        ))}
-
-      </div>
+      {tab === "all" && (
+        <div>
+          {allTasks.map(task => (
+            <div key={task.task_id} onClick={() => startTask(task)}>
+              <h4>{task.task_name}</h4>
+              <p>
+                Reward: {task.is_special ? task.reward_spe : "Standard"}
+              </p>
+            </div>
+          ))}
+        </div>
       )}
 
-    </Layout>
-  )
-}
+      {tab === "process" && (
+        <div>
+          {inProcess.map(task => (
+            <div
+              key={task.task_id}
+              onClick={() =>
+                window.location.href = `/taskcheck/${task.task_id}`
+              }
+            >
+              <h4>{task.task_name}</h4>
+              <p>Click to submit</p>
+            </div>
+          ))}
+        </div>
+      )}
 
-export default TaskList
+    </div>
+  );
+};
+
+export default TaskPage;
