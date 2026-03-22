@@ -52,10 +52,7 @@ useEffect(() => {
   }, [tasks, activeTab])
 
  const handleStartTask = async (task: Task) => {
-if (!uid) {
-  alert("Please wait, logging in...")
-  return
-}
+if (!uid) return
    if (!task.link) {
     alert("Link is empty")
     return
