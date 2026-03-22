@@ -52,7 +52,9 @@ useEffect(() => {
   }, [tasks, activeTab , uid])
 
  const handleStartTask = async (task: Task) => {
-if (!uid) return
+if (!uid) {
+  alert("uid us empty")
+  return
    if (!task.link) {
     alert("Link is empty")
     return
