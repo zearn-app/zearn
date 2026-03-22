@@ -232,136 +232,71 @@ async deleteTask(id:string) {
   await deleteDoc(doc(db,"tasks",id))
 },
 //////////////////////////// task ////////////////////////////
-async getTasks() {
-  const snap = await getDocs(collection(db, "tasks"))
+async getTasks(): Promise<Task[]> {
+    const snap = await getDocs(collection(db, "tasks"));
+    return snap.docs.map(d => d.data() as Task);
+  },
 
-  return snap.docs.map(doc => ({
-    id: doc.id,        // ✅ THIS IS CRITICAL
-    ...doc.data()
-  }))
-},
-  /* ---------- START TASK ---------- */
-
+  // START TASK
   async startTask(task: Task, uid: string) {
-
-  try {
-
-    if (!task?.id && !task?.task_id) {
-      throw new Error("Invalid Task ID")
-    }
-
-    if (!uid) {
-      throw new Error("User not logged in")
-    }
-
-    const taskId = task.task_id || task.id
-
-    const ref = doc(db, "tasks", taskId)
-
-    const snap = await getDoc(ref)
-
-    if (!snap.exists()) {
-      throw new Error("Task not found in DB")
-    }
+    const ref = doc(db, "tasks", task.task_id);
 
     await updateDoc(ref, {
       is_started: true,
       started_by: uid,
-      started_at: serverTimestamp()
-    })
-
-    console.log("Task started success")
-
-    return true
-
-  } catch (e) {
-    console.error("StartTask ERROR:", e)
-    throw e
-  }
+      started_at: new Date()
+    });
   },
-  /* ---------- VERIFY TASK ---------- */
 
-  async verifyTask(
-    file: File,
-    task: Task,
-    uid: string
-  ): Promise<TaskStatus> {
+  // COMPLETE TASK
+  async completeTask(task: Task, uid: string) {
 
-    try {
+    const userRef = doc(db, "users", uid);
+    const taskRef = doc(db, "tasks", task.task_id);
+    const settingsRef = doc(db, "settings", "config");
 
-      /* ---- ZIP CHECK ---- */
-      if (!task.is_special) {
+    const settingsSnap = await getDoc(settingsRef);
+    const settings = settingsSnap.data();
 
-        if (file.name !== task.expectedzipfilename) {
-          return TaskStatus.FAILED
-        }
+    const amount = settings?.task_amount || 10;
 
-        const zip = await JSZip.loadAsync(file)
-        const files = Object.keys(zip.files)
+    let updateData: any = {
+      balance: increment(amount),
+      lifetime_earnings: increment(amount),
+      gold: increment(1),
+      lifetime_gold: increment(1),
+      tasks_today: increment(1)
+    };
 
-        if (!files.includes(task.expectedinnerfilename)) {
-          return TaskStatus.FAILED
-        }
-      }
-
-      /* ---- REWARDS ---- */
-
-      const settingsRef = doc(db, "settings", "config")
-      const settingsSnap = await getDoc(settingsRef)
-      const settings = settingsSnap.data()
-
-      const userRef = doc(db, "users", uid)
-
-      let amount = settings.standard_amount
-      let diamond = 0
-      let gold = 1
-
-      if (task.is_special) {
-        amount = settings.special_reward
-        diamond = 1
-        gold = 0
-      }
-
-      await updateDoc(userRef, {
-        balance: increment(amount),
-        lifetime_earnings: increment(amount),
-        gold: increment(gold),
-        lifetime_gold: increment(gold),
-        diamond: increment(diamond),
-        lifetime_diamond: increment(diamond),
-        no_of_tasks_today: increment(1)
-      })
-
-      /* ---- HISTORY ---- */
-
-      const historyRef = doc(collection(db, "users", uid, "history"))
-
-      await setDoc(historyRef, {
-        task_id: task.task_id,
-        task_name: task.task_name,
-        amount,
-        profit: true,
-        type: task.is_special ? "SPECIAL" : "STANDARD",
-        date: new Date()
-      })
-
-      /* ---- RESET TASK ---- */
-
-      const taskRef = doc(db, "tasks", task.id)
-
-      await updateDoc(taskRef, {
-        task_name: generateRandomTaskName(),
-        is_started: false,
-        started_by: "",
-        started_at: null
-      })
-
-      return TaskStatus.COMPLETED
-
-    } catch (e) {
-      console.error(e)
-      return TaskStatus.FAILED
+    // SPECIAL TASK BONUS
+    if (task.is_special) {
+      updateData.balance = increment(task.reward_spe || 0);
+      updateData.lifetime_earnings = increment(task.reward_spe || 0);
+      updateData.diamond = increment(1);
+      updateData.lifetime_diamond = increment(1);
     }
+
+    await updateDoc(userRef, updateData);
+
+    // ADD HISTORY
+    const historyRef = doc(collection(db, "users", uid, "history"));
+
+    await setDoc(historyRef, {
+      task_id: task.task_id,
+      task_name: task.task_name,
+      amount: task.is_special ? task.reward_spe : amount,
+      profit: true,
+      type: task.is_special ? "SPECIAL" : "NORMAL",
+      date: new Date()
+    });
+
+    // RESET TASK
+    await updateDoc(taskRef, {
+      task_name: generateTaskName(),
+      is_started: false,
+      started_by: "",
+      started_at: ""
+    });
   },
 
 //////////////////////////// WITHDRAW ////////////////////////////
