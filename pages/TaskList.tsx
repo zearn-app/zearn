@@ -104,6 +104,8 @@ load()
           <div
             key={task.id}
             onClick={() => {
+              
+              if (authLoading) return   // 🚀 BLOCK CLICK
               if (activeTab === "all") handleStartTask(task)
               if (activeTab === "process") navigate(`/task-check/${task.id}`)
             }}
