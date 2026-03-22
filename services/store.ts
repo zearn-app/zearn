@@ -28,6 +28,20 @@ WithdrawalStatus,
 WinnerEntry,
 UserTask
 } from "../types";
+export interface Task {
+  task_id: string;
+  task_name: string;
+  reward_spe?: number;
+  diamond?: number;
+  link: string;
+  is_special: boolean;
+  expectedzipfilename: string;
+  expectedinnerfilename: string;
+
+  is_started: boolean;
+  started_by?: string;
+  started_at?: any;
+}
 
 //////////////////////////// SETTINGS ////////////////////////////
 
