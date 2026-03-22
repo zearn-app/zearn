@@ -16,6 +16,7 @@ const [uid, setUid] = useState<string>("")
 const [authLoading, setAuthLoading] = useState(true)
 
 useEffect(() => {
+  
   const unsub = auth.onAuthStateChanged(user => {
     if (user) {
       setUid(user.uid)
@@ -28,7 +29,9 @@ useEffect(() => {
   return () => unsub()
 }, [])
   useEffect(() => {
+     if (!authLoading && uid) {
     load()
+     }
   }, [])
 
   const load = async () => {
@@ -107,7 +110,7 @@ load()
             key={task.id}
             onClick={() => {
               
-              if (authLoading) return   // 🚀 BLOCK CLICK
+              if (authLoading || !uid) return   // 🚀 BLOCK CLICK
               if (activeTab === "all") handleStartTask(task)
               if (activeTab === "process") navigate(`/task-check/${task.id}`)
             }}
