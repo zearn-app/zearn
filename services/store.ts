@@ -219,10 +219,13 @@ async deleteTask(id:string) {
 },
 //////////////////////////// task ////////////////////////////
 async getTasks() {
-    const snap = await getDocs(collection(db, "tasks"))
-    return snap.docs.map(d => ({ id: d.id, ...d.data() })) as Task[]
-  },
+  const snap = await getDocs(collection(db, "tasks"))
 
+  return snap.docs.map(doc => ({
+    id: doc.id,        // ✅ THIS IS CRITICAL
+    ...doc.data()
+  }))
+},
   /* ---------- START TASK ---------- */
 
   async startTask(task: Task, uid: string) {
