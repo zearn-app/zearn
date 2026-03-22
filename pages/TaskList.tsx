@@ -97,6 +97,7 @@ load()
   <div className="text-center">Loading...</div>
 )}
       {/* Tasks */}
+   {!authLoading && (
       <div className="space-y-4">
 
         {filteredTasks.map(task => (
@@ -119,6 +120,7 @@ load()
         ))}
 
       </div>
+      )}
 
     </Layout>
   )
