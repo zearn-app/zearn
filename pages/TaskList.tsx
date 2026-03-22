@@ -12,8 +12,21 @@ const TaskList = () => {
 
   const navigate = useNavigate()
   const auth = getAuth()
-  const uid = auth.currentUser?.uid || ""
+const [uid, setUid] = useState<string>("")
+const [authLoading, setAuthLoading] = useState(true)
 
+useEffect(() => {
+  const unsub = auth.onAuthStateChanged(user => {
+    if (user) {
+      setUid(user.uid)
+    } else {
+      setUid("")
+    }
+    setAuthLoading(false)
+  })
+
+  return () => unsub()
+}, [])
   useEffect(() => {
     load()
   }, [])
