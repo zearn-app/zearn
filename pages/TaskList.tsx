@@ -49,7 +49,7 @@ useEffect(() => {
 
     return [] // completed handled from history page
 
-  }, [tasks, activeTab])
+  }, [tasks, activeTab , uid])
 
  const handleStartTask = async (task: Task) => {
 if (!uid) return
