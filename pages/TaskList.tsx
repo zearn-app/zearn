@@ -93,8 +93,9 @@ if (!uid) {
       </div>
 
       {/* Loading */}
-      {loading && <div className="text-center">Loading...</div>}
-
+      {(loading || authLoading) && (
+  <div className="text-center">Loading...</div>
+)}
       {/* Tasks */}
       <div className="space-y-4">
 
