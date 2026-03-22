@@ -1,73 +1,74 @@
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import JSZip from "jszip";
-import { Store, Task } from "../services/store";
-import { getAuth } from "firebase/auth";
+import { Store } from "../services/store";
+import { UserContext } from "../App";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../services/firebase";
 
-const TaskCheck = () => {
+export const TaskCheck: React.FC = () => {
 
   const { id } = useParams();
-  const [task, setTask] = useState<Task | null>(null);
-  const [file, setFile] = useState<File | null>(null);
+  const { user } = useContext(UserContext);
+  const navigate = useNavigate();
 
-  const uid = getAuth().currentUser?.uid;
+  const [task, setTask] = useState<any>(null);
 
   useEffect(() => {
     loadTask();
   }, []);
 
   const loadTask = async () => {
-    const tasks = await Store.getTasks();
-    const t = tasks.find(x => x.task_id === id);
-    if (t) setTask(t);
+    const snap = await getDoc(doc(db, "tasks", id!));
+    if (snap.exists()) setTask(snap.data());
   };
 
-  const handleSubmit = async () => {
-    if (!file || !task || !uid) return;
+  const handleFile = async (file: File) => {
 
-    // CHECK ZIP NAME
+    // ✅ Check ZIP Name
     if (file.name !== task.expectedzipfilename) {
-      alert("Wrong ZIP name");
+      alert("Wrong ZIP filename");
       return;
     }
 
     const zip = await JSZip.loadAsync(file);
 
-    let found = false;
+    const files = Object.keys(zip.files);
 
-    Object.keys(zip.files).forEach(name => {
-      if (name.includes(task.expectedinnerfilename)) {
-        found = true;
-      }
-    });
-
-    if (!found) {
+    // ✅ Check Inner File
+    if (!files.includes(task.expectedinnerfilename)) {
       alert("Inner file not found");
       return;
     }
 
-    // SUCCESS
-    await Store.completeTask(task, uid);
+    // ✅ Success → Reward
+    await Store.completeTask(user.uid, task, task.is_special);
 
-    alert("Task Completed Successfully 🎉");
-    window.location.href = "/";
+    alert("Task Completed Successfully!");
+    navigate("/tasks");
   };
 
   return (
     <div>
 
-      <h2>Task Check</h2>
+      <h3>Task Verification</h3>
 
-      <input
-        type="file"
-        accept=".zip"
-        onChange={(e) => setFile(e.target.files?.[0] || null)}
-      />
+      {task && (
+        <>
+          <p>{task.task_name}</p>
 
-      <button onClick={handleSubmit}>Submit</button>
+          <input
+            type="file"
+            accept=".zip"
+            onChange={(e) => {
+              if (e.target.files?.[0]) {
+                handleFile(e.target.files[0]);
+              }
+            }}
+          />
+        </>
+      )}
 
     </div>
   );
 };
-
-export default TaskCheck;
