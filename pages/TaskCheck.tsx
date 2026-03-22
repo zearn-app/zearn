@@ -1,83 +1,73 @@
-import React, { useEffect, useState } from "react"
-import { useParams } from "react-router-dom"
-import { Layout } from "../components/Layout"
-import { Store, Task, TaskStatus } from "../services/store"
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import JSZip from "jszip";
+import { Store, Task } from "../services/store";
+import { getAuth } from "firebase/auth";
 
 const TaskCheck = () => {
 
-  const { id } = useParams()
-  const [task, setTask] = useState<Task | null>(null)
-  const [file, setFile] = useState<File | null>(null)
-  const [status, setStatus] = useState<TaskStatus>(TaskStatus.NONE)
-  const [loading, setLoading] = useState(true)
+  const { id } = useParams();
+  const [task, setTask] = useState<Task | null>(null);
+  const [file, setFile] = useState<File | null>(null);
 
-  const uid = "USER_ID"
+  const uid = getAuth().currentUser?.uid;
 
   useEffect(() => {
-    load()
-  }, [])
+    loadTask();
+  }, []);
 
-  const load = async () => {
-    const tasks = await Store.getTasks()
-    const t = tasks.find(x => x.id === id)
-    setTask(t || null)
-    setLoading(false)
-  }
+  const loadTask = async () => {
+    const tasks = await Store.getTasks();
+    const t = tasks.find(x => x.task_id === id);
+    if (t) setTask(t);
+  };
 
-  const handleCheck = async () => {
+  const handleSubmit = async () => {
+    if (!file || !task || !uid) return;
 
-    if (!file || !task) return
+    // CHECK ZIP NAME
+    if (file.name !== task.expectedzipfilename) {
+      alert("Wrong ZIP name");
+      return;
+    }
 
-    setStatus(TaskStatus.PROCESS)
+    const zip = await JSZip.loadAsync(file);
 
-    const result = await Store.verifyTask(file, task, uid)
+    let found = false;
 
-    setStatus(result)
-  }
+    Object.keys(zip.files).forEach(name => {
+      if (name.includes(task.expectedinnerfilename)) {
+        found = true;
+      }
+    });
 
-  if (loading) {
-    return <Layout>Loading...</Layout>
-  }
+    if (!found) {
+      alert("Inner file not found");
+      return;
+    }
 
-  if (!task) {
-    return <Layout>Task not found</Layout>
-  }
+    // SUCCESS
+    await Store.completeTask(task, uid);
+
+    alert("Task Completed Successfully 🎉");
+    window.location.href = "/";
+  };
 
   return (
-    <Layout>
+    <div>
 
-      <div className="text-center mb-6">
-        <h2 className="font-bold">
-          {task.is_special ? "Upload APK" : "Upload ZIP"}
-        </h2>
-      </div>
+      <h2>Task Check</h2>
 
-      {/* Upload */}
       <input
         type="file"
-        accept={task.is_special ? ".apk" : ".zip"}
+        accept=".zip"
         onChange={(e) => setFile(e.target.files?.[0] || null)}
       />
 
-      {/* Button */}
-      <button
-        onClick={handleCheck}
-        className="w-full mt-4 bg-blue-600 text-white p-3 rounded"
-      >
-        Verify
-      </button>
+      <button onClick={handleSubmit}>Submit</button>
 
-      {/* Status */}
-      {status === TaskStatus.COMPLETED && (
-        <div className="text-green-600 mt-4">Success ✅</div>
-      )}
+    </div>
+  );
+};
 
-      {status === TaskStatus.FAILED && (
-        <div className="text-red-600 mt-4">Failed ❌</div>
-      )}
-
-    </Layout>
-  )
-}
-
-export default TaskCheck
+export default TaskCheck;
