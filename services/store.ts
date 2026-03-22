@@ -232,10 +232,23 @@ async getTasks() {
 
   try {
 
-    console.log("Task ID:", task.id)
-    console.log("UID:", uid)
+    if (!task?.id && !task?.task_id) {
+      throw new Error("Invalid Task ID")
+    }
 
-    const ref = doc(db, "tasks", task.task_id || task.id)
+    if (!uid) {
+      throw new Error("User not logged in")
+    }
+
+    const taskId = task.task_id || task.id
+
+    const ref = doc(db, "tasks", taskId)
+
+    const snap = await getDoc(ref)
+
+    if (!snap.exists()) {
+      throw new Error("Task not found in DB")
+    }
 
     await updateDoc(ref, {
       is_started: true,
@@ -252,7 +265,6 @@ async getTasks() {
     throw e
   }
   },
-
   /* ---------- VERIFY TASK ---------- */
 
   async verifyTask(
