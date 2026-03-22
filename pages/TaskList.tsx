@@ -39,7 +39,10 @@ const TaskList = () => {
   }, [tasks, activeTab])
 
  const handleStartTask = async (task: Task) => {
-
+if (!uid) {
+  alert("User not logged in")
+  return
+}
   if (!task.link) {
     alert("Link is empty")
     return
