@@ -1,77 +1,79 @@
 import React, { useEffect, useState, useContext } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Store } from "../services/store";
 import { UserContext } from "../App";
-import { useNavigate } from "react-router-dom";
 
-export const TaskPage: React.FC = () => {
+const TaskList: React.FC = () => {
+
+  const { type } = useParams();
+  const navigate = useNavigate();
+  const { user } = useContext(UserContext);
 
   const [tasks, setTasks] = useState<any[]>([]);
   const [tab, setTab] = useState("all");
-  const { user } = useContext(UserContext);
-  const navigate = useNavigate();
 
   useEffect(() => {
+    if (!user?.uid) return;
+
     loadTasks();
-  }, []);
+  }, [type, user]);
 
   const loadTasks = async () => {
-    const data = await Store.getAllTasks();
+    const data = await Store.getTasks(type === "special");
     setTasks(data);
   };
 
+  if (!user?.uid) return <div>User not ready yet...</div>;
+
+  // 🔹 FILTERS
+  const allTasks = tasks.filter(t => !t.is_started);
+  const inProcess = tasks.filter(
+    t => t.is_started && t.started_by === user.uid
+  );
+
+  const completed = []; // optional future
+
+  // 🔹 CLICK ALL TASK
   const handleStart = async (task: any) => {
-    const updated = await Store.startTask(task.task_id, user.uid);
-
-    if (!updated.link) {
-      alert("Link is empty");
-      return;
-    }
-
-    window.open(updated.link, "_blank");
+    await Store.startTask(task.id, user.uid);
+    window.open(task.link, "_blank");
     loadTasks();
   };
 
-  const openTaskCheck = (task: any) => {
-    navigate(`/task-check/${task.task_id}`);
-  };
-
-  const filteredTasks = tasks.filter(t => {
-    if (tab === "all") return !t.is_started;
-    if (tab === "process") return t.is_started && t.started_by === user.uid;
-    if (tab === "completed") return false; // handled via history if needed
-  });
-
   return (
-    <div>
+    <div className="p-4">
 
-      <h2>Tasks</h2>
-
-      <div>
-        <button onClick={() => setTab("all")}>All Tasks</button>
+      {/* Tabs */}
+      <div className="flex gap-3 mb-4">
+        <button onClick={() => setTab("all")}>All</button>
         <button onClick={() => setTab("process")}>In Process</button>
-        <button onClick={() => setTab("completed")}>Completed</button>
+        <button onClick={() => setTab("done")}>Completed</button>
       </div>
 
-      {filteredTasks.map(task => (
-        <div key={task.task_id} style={{ border: "1px solid #ccc", margin: 10, padding: 10 }}>
+      {/* ALL TASKS */}
+      {tab === "all" &&
+        allTasks.map(task => (
+          <div key={task.id} onClick={() => handleStart(task)}>
+            <h3>{task.task_name}</h3>
+            <p>{task.is_special ? "💎 Special" : "🪙 Standard"}</p>
+          </div>
+        ))}
 
-          <h4>{task.task_name}</h4>
+      {/* IN PROCESS */}
+      {tab === "process" &&
+        inProcess.map(task => (
+          <div
+            key={task.id}
+            onClick={() => navigate(`/task-check/${task.id}`)}
+          >
+            <h3>{task.task_name}</h3>
+          </div>
+        ))}
 
-          <p>
-            Reward: {task.is_special ? task.rewards_spe : "Standard Amount"}
-          </p>
-
-          {tab === "all" && (
-            <button onClick={() => handleStart(task)}>Start Task</button>
-          )}
-
-          {tab === "process" && (
-            <button onClick={() => openTaskCheck(task)}>Verify Task</button>
-          )}
-
-        </div>
-      ))}
-
+      {/* COMPLETED */}
+      {tab === "done" && <div>No completed yet</div>}
     </div>
   );
 };
+
+export default TaskList;
