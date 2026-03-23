@@ -8,7 +8,6 @@ import {
   getDocs,
   setDoc,
   updateDoc,
-  deleteDoc,
   query,
   where,
   orderBy,
@@ -26,6 +25,13 @@ import {
   WithdrawalStatus,
   WinnerEntry
 } from "../types";
+
+//////////////////////////// TYPES ////////////////////////////
+
+interface RewardSettings {
+  standard_amount: number;
+  special_reward: number;
+}
 
 //////////////////////////// SETTINGS ////////////////////////////
 
@@ -63,14 +69,16 @@ export const Store = {
 
 getAllUsers: async (): Promise<User[]> => {
   const snap = await getDocs(collection(db, "users"));
+
   return snap.docs.map(d => ({
     uid: d.id,
-    ...d.data()
+    ...(d.data() as any)
   })) as User[];
 },
 
 updateUser: async (uid: string, data: Partial<User>) => {
   const ref = doc(db, "users", uid);
+
   await updateDoc(ref, {
     ...data,
     updatedAt: new Date().toISOString()
@@ -95,7 +103,7 @@ checkUserExists: async (email: string) => {
 
   return {
     uid: snap.docs[0].id,
-    ...snap.docs[0].data()
+    ...(snap.docs[0].data() as any)
   } as User;
 },
 
@@ -171,9 +179,10 @@ async getTasks(isSpecial: boolean) {
   );
 
   const snap = await getDocs(q);
+
   return snap.docs.map(d => ({
     id: d.id,
-    ...d.data()
+    ...(d.data() as any)
   }));
 },
 
@@ -190,21 +199,24 @@ async startTask(taskId: string, uid: string) {
 async getTask(taskId: string) {
   const ref = doc(db, "tasks", taskId);
   const snap = await getDoc(ref);
-  return { id: snap.id, ...snap.data() };
+
+  if (!snap.exists()) throw new Error("Task not found");
+
+  return { id: snap.id, ...(snap.data() as any) };
 },
 
-//////////////////////////// 🔥 FIXED ZIP LOGIC ////////////////////////////
+//////////////////////////// ZIP LOGIC ////////////////////////////
 
 async completeTask(task: any, uid: string, zipFile: File) {
 
   const zip = await JSZip.loadAsync(zipFile);
 
-  // ✅ filename check (case insensitive)
+  // filename check
   if (zipFile.name.toLowerCase() !== task.expectedzipfilename.toLowerCase()) {
     throw new Error("Zip filename mismatch");
   }
 
-  // ✅ FIXED inner file check (handles folders)
+  // inner file check (handles folders)
   const innerFile = Object.keys(zip.files).find(f =>
     f.endsWith(task.expectedinnerfilename)
   );
@@ -213,14 +225,13 @@ async completeTask(task: any, uid: string, zipFile: File) {
     throw new Error("Inner file mismatch");
   }
 
-  
   const settingsSnap = await getDoc(doc(db, "settings", "rewards"));
 
   if (!settingsSnap.exists()) {
     throw new Error("Settings not found");
   }
 
-  const settings = settingsSnap.data();
+  const settings = settingsSnap.data() as RewardSettings;
 
   const userRef = doc(db, "users", uid);
 
@@ -264,7 +275,7 @@ async completeTask(task: any, uid: string, zipFile: File) {
     task_name: this.generateTaskName(),
     is_started: false,
     started_by: "",
-    started_at: ""
+    started_at: null
   });
 
   return true;
@@ -284,6 +295,7 @@ createWithdrawal: async (input: WithdrawalRequest) => {
 },
 
 getWithdrawals: async (uid?: string): Promise<WithdrawalRequest[]> => {
+
   let q: any;
 
   if (uid) {
@@ -299,7 +311,7 @@ getWithdrawals: async (uid?: string): Promise<WithdrawalRequest[]> => {
 
   return snap.docs.map(d => ({
     id: d.id,
-    ...d.data()
+    ...(d.data() as any)
   })) as WithdrawalRequest[];
 },
 
@@ -312,6 +324,7 @@ adminUpdateWithdrawal: async (id: string, status: WithdrawalStatus) => {
 //////////////////////////// LEADERBOARD ////////////////////////////
 
 getLeaderboard: async () => {
+
   const q = query(
     collection(db, "users"),
     orderBy("balance", "desc"),
@@ -320,10 +333,13 @@ getLeaderboard: async () => {
 
   const snap = await getDocs(q);
 
-  return snap.docs.map(d => ({
-    name: d.data().name,
-    balance: d.data().balance
-  }));
+  return snap.docs.map(d => {
+    const data = d.data() as any;
+    return {
+      name: data.name,
+      balance: data.balance
+    };
+  });
 },
 
 //////////////////////////// RANDOM WINNER ////////////////////////////
@@ -333,7 +349,7 @@ getWinnerEntries: async (): Promise<WinnerEntry[]> => {
 
   return snap.docs.map(d => ({
     id: d.id,
-    ...d.data()
+    ...(d.data() as any)
   })) as WinnerEntry[];
 },
 
@@ -343,7 +359,11 @@ enterRandomWinner: async (uid: string, fee: number) => {
   const snap = await getDoc(userRef);
 
   if (!snap.exists()) throw new Error("User not found");
-  if (snap.data().balance < fee) throw new Error("Low balance");
+
+  const data = snap.data();
+  if (!data) throw new Error("User data missing");
+
+  if (data.balance < fee) throw new Error("Low balance");
 
   const batch = writeBatch(db);
 
@@ -353,8 +373,8 @@ enterRandomWinner: async (uid: string, fee: number) => {
 
   const entry: WinnerEntry = {
     uid,
-    name: snap.data().name,
-    avatarChar: snap.data().name.charAt(0),
+    name: data.name,
+    avatarChar: data.name.charAt(0),
     amountSpent: fee,
     month: new Date().toISOString(),
     timestamp: new Date().toISOString()
