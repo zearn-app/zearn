@@ -69,7 +69,7 @@ const Login: React.FC = () => {
     }
 
     if (!isValid) {
-      notify("Invalid Admin Password", "error");
+      notify("Invalid Admin Pass", "error");
       return;
     }
 
