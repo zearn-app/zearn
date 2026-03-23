@@ -26,7 +26,7 @@ const Home: React.FC = () => {
     /* ✅ NEW CONDITION INSERTED */
     /* ========================= */
     if ((user.noOfTodayTask || 0) < 5) {
-        notify("Complete 5 tasks today to unlock Daily Bonus.", 'info');
+        notify("Complete 5 tasks today to unlock Daily claim", 'info');
         return;
     }
     /* ========================= */
