@@ -211,26 +211,6 @@ await setDoc(doc(db,"settings","config"),settings)
 },
 //////////////////////////// task admin ////////////////////////////
 
-
-  /* CREATE */
-async createTask(data:any) {
-  const ref = doc(collection(db,"tasks"))
-
-  await setDoc(ref,{
-    ...data,
-    task_id: ref.id
-  })
-},
-
-/* UPDATE */
-async updateTask(id:string, data:any) {
-  await updateDoc(doc(db,"tasks",id), data)
-},
-
-/* DELETE */
-async deleteTask(id:string) {
-  await deleteDoc(doc(db,"tasks",id))
-},
 //////////////////////////// task ////////////////////////////
 
 //////////////////////////// WITHDRAW ////////////////////////////
