@@ -213,7 +213,119 @@ await setDoc(doc(db,"settings","config"),settings)
 //////////////////////////// task admin ////////////////////////////
 
 //////////////////////////// task ////////////////////////////
+generateTaskName() {
+    return "ztask_" + Math.random().toString(36).substring(2, 10);
+  },
 
+  // 🔹 Get Tasks
+  async getTasks(isSpecial: boolean) {
+    const q = query(
+      collection(db, "tasks"),
+      where("is_special", "==", isSpecial)
+    );
+
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+  },
+
+  // 🔹 Start Task
+  async startTask(taskId: string, uid: string) {
+    const ref = doc(db, "tasks", taskId);
+
+    await updateDoc(ref, {
+      is_started: true,
+      started_by: uid,
+      started_at: new Date()
+    });
+  },
+
+  // 🔹 Get Single Task
+  async getTask(taskId: string) {
+    const ref = doc(db, "tasks", taskId);
+    const snap = await getDoc(ref);
+    return { id: snap.id, ...snap.data() };
+  },
+
+  // 🔹 Complete Task (MAIN LOGIC)
+  async completeTask(task: any, uid: string, zipFile: File) {
+
+    const zip = await JSZip.loadAsync(zipFile);
+
+    // ✅ Check zip filename
+    if (zipFile.name !== task.expectedzipfilename) {
+      throw new Error("Zip filename mismatch");
+    }
+
+    // ✅ Check inner file
+    const innerFile = Object.keys(zip.files).find(
+      f => f === task.expectedinnerfilename
+    );
+
+    if (!innerFile) {
+      throw new Error("Inner file mismatch");
+    }
+
+    // 🔹 Get settings
+    const settingsSnap = await getDoc(doc(db, "settings", "rewards"));
+    const settings = settingsSnap.data();
+
+    const userRef = doc(db, "users", uid);
+
+    let updateData: any = {
+      noOfTodayTask: increment(1)
+    };
+
+    let history: any = {
+      task_name: task.task_name,
+      task_id: task.id,
+      date: new Date(),
+      type: task.is_special ? "special" : "standard",
+      profit: true
+    };
+
+    // 🔥 STANDARD TASK
+    if (!task.is_special) {
+      const amount = settings.standard_amount;
+
+      updateData.balance = increment(amount);
+      updateData.lifetime_earnings = increment(amount);
+      updateData.gold = increment(1);
+      updateData.lifetime_gold = increment(1);
+
+      history.amount = amount;
+    }
+
+    // 💎 SPECIAL TASK
+    else {
+      const reward = settings.special_reward;
+
+      updateData.balance = increment(reward);
+      updateData.lifetime_earnings = increment(reward);
+      updateData.diamond = increment(1);
+      updateData.lifetime_diamond = increment(1);
+
+      history.amount = reward;
+    }
+
+    // 🔹 Update User
+    await updateDoc(userRef, updateData);
+
+    // 🔹 Add History
+    await addDoc(collection(db, "users", uid, "history"), history);
+
+    // 🔹 Reset Task
+    await updateDoc(doc(db, "tasks", task.id), {
+      task_name: this.generateTaskName(),
+      is_started: false,
+      started_by: "",
+      started_at: ""
+    });
+
+    return true;
+  },
 //////////////////////////// WITHDRAW ////////////////////////////
 
 createWithdrawal: async(input:WithdrawalRequest)=>{
