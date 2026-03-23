@@ -1,4 +1,5 @@
 import { db } from "./firebase";
+import JSZip from "jszip";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore"
 import { collection, doc, setDoc } from "firebase/firestore";
 import { db } from "./firebase";
