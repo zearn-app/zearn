@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Store } from "../services/store";
 import { UserContext } from "../App";
+import JSZip from "jszip";
 
 const TaskCheck: React.FC = () => {
 
