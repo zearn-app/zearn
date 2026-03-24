@@ -11,67 +11,142 @@ const TaskList: React.FC = () => {
 
   const [tasks, setTasks] = useState<any[]>([]);
   const [tab, setTab] = useState("all");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user?.uid) return;
-
     loadTasks();
   }, [type, user]);
 
   const loadTasks = async () => {
+    setLoading(true);
     const data = await Store.getTasks(type === "special");
     setTasks(data);
+    setLoading(false);
   };
 
-  if (!user?.uid) return <div>User not ready yet...</div>;
+  if (!user?.uid) {
+    return (
+      <div className="flex justify-center items-center h-screen text-gray-500">
+        Loading user...
+      </div>
+    );
+  }
 
-  // 🔹 FILTERS
+  // Filters
   const allTasks = tasks.filter(t => !t.is_started);
   const inProcess = tasks.filter(
     t => t.is_started && t.started_by === user.uid
   );
 
-  const completed = []; // optional future
-
-  // 🔹 CLICK ALL TASK
   const handleStart = async (task: any) => {
     await Store.startTask(task.id, user.uid);
-    window.open(task.link, "_blank");
+    if (task.link) window.open(task.link, "_blank");
     loadTasks();
   };
 
-  return (
-    <div className="p-4">
+  const renderTaskCard = (task: any, isProcess = false) => (
+    <div
+      key={task.id}
+      onClick={() =>
+        isProcess
+          ? navigate(`/task-check/${task.id}`)
+          : handleStart(task)
+      }
+      className="bg-white rounded-2xl shadow-md p-4 mb-4 cursor-pointer 
+                 hover:shadow-xl transition-all duration-300 border"
+    >
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold text-gray-800">
+          {task.task_name}
+        </h3>
 
-      {/* Tabs */}
-      <div className="flex gap-3 mb-4">
-        <button onClick={() => setTab("all")}>All</button>
-        <button onClick={() => setTab("process")}>In Process</button>
-        <button onClick={() => setTab("done")}>Completed</button>
+        <span
+          className={`text-xs px-2 py-1 rounded-full ${
+            task.is_special
+              ? "bg-purple-100 text-purple-600"
+              : "bg-green-100 text-green-600"
+          }`}
+        >
+          {task.is_special ? "💎 Special" : "🪙 Standard"}
+        </span>
       </div>
 
-      {/* ALL TASKS */}
-      {tab === "all" &&
-        allTasks.map(task => (
-          <div key={task.id} onClick={() => handleStart(task)}>
-            <h3>{task.task_name}</h3>
-            <p>{task.is_special ? "💎 Special" : "🪙 Standard"}</p>
-          </div>
-        ))}
+      <div className="mt-2 text-sm text-gray-500">
+        {isProcess
+          ? "Continue your task →"
+          : "Tap to start task"}
+      </div>
+    </div>
+  );
 
-      {/* IN PROCESS */}
-      {tab === "process" &&
-        inProcess.map(task => (
-          <div
-            key={task.id}
-            onClick={() => navigate(`/task-check/${task.id}`)}
+  return (
+    <div className="p-4 max-w-xl mx-auto">
+
+      {/* Title */}
+      <h1 className="text-2xl font-bold mb-4 text-gray-800">
+        Tasks
+      </h1>
+
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-xl">
+        {["all", "process", "done"].map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
+              tab === t
+                ? "bg-white shadow text-blue-600"
+                : "text-gray-500"
+            }`}
           >
-            <h3>{task.task_name}</h3>
-          </div>
+            {t === "all" && "All"}
+            {t === "process" && "In Process"}
+            {t === "done" && "Completed"}
+          </button>
         ))}
+      </div>
 
-      {/* COMPLETED */}
-      {tab === "done" && <div>No completed yet</div>}
+      {/* Loading */}
+      {loading && (
+        <div className="text-center text-gray-400">
+          Loading tasks...
+        </div>
+      )}
+
+      {/* All Tasks */}
+      {!loading && tab === "all" && (
+        <>
+          {allTasks.length === 0 ? (
+            <div className="text-center text-gray-400">
+              No tasks available
+            </div>
+          ) : (
+            allTasks.map(task => renderTaskCard(task))
+          )}
+        </>
+      )}
+
+      {/* In Process */}
+      {!loading && tab === "process" && (
+        <>
+          {inProcess.length === 0 ? (
+            <div className="text-center text-gray-400">
+              No tasks in progress
+            </div>
+          ) : (
+            inProcess.map(task => renderTaskCard(task, true))
+          )}
+        </>
+      )}
+
+      {/* Completed */}
+      {!loading && tab === "done" && (
+        <div className="text-center text-gray-400">
+          No completed tasks yet 🚀
+        </div>
+      )}
+
     </div>
   );
 };
