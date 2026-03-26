@@ -165,7 +165,54 @@ getSettings: async (): Promise<AdminSettings> => {
 updateSettings: async (settings: AdminSettings) => {
   await setDoc(doc(db, "settings", "config"), settings);
 },
+//////////////////////////// admin task ////////////////////////////
+  /* ---------------- CREATE TASK ---------------- */
+  async createTask(data: any) {
+    try {
 
+      const payload = {
+        ...data,
+        task_id: crypto.randomUUID(), // unique id
+        created_at: serverTimestamp()
+      }
+
+      await addDoc(collection(db, "tasks"), payload)
+
+    } catch (err) {
+      console.error("createTask error:", err)
+      throw err
+    }
+  },
+
+  /* ---------------- UPDATE TASK ---------------- */
+  async updateTask(id: string, data: any) {
+    try {
+
+      const ref = doc(db, "tasks", id)
+
+      await updateDoc(ref, {
+        ...data,
+        updated_at: serverTimestamp()
+      })
+
+    } catch (err) {
+      console.error("updateTask error:", err)
+      throw err
+    }
+  },
+
+  /* ---------------- DELETE TASK ---------------- */
+  async deleteTask(id: string) {
+    try {
+
+      const ref = doc(db, "tasks", id)
+      await deleteDoc(ref)
+
+    } catch (err) {
+      console.error("deleteTask error:", err)
+      throw err
+    }
+  },
 //////////////////////////// TASK ////////////////////////////
 
 generateTaskName() {
