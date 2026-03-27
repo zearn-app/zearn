@@ -124,7 +124,7 @@ getCurrentUser: (): User | null => {
 
 registerUser: async (data: any) => {
   const ref = doc(collection(db, "users"));
-
+  const referralCode = data.name.slice(0, 3).toUpperCase() + Math.floor(1000 + Math.random() * 9000);
   const user: User = {
     uid: ref.id,
     email: data.email,
@@ -138,6 +138,7 @@ registerUser: async (data: any) => {
     isBanned: false,
     isAdmin: false,
     createdAt: new Date().toISOString()
+    referralCode: referralCode    
   };
 
   await setDoc(ref, user);
