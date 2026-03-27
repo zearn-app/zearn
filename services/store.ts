@@ -380,14 +380,25 @@ requestWithdrawal: async (input: WithdrawalRequest) => {
 
     // ✅ Deduct balance
     transaction.update(userRef, {
-  balance: increment(-input.amount)
-});
+      balance: increment(-input.amount)
+    });
+
     // ✅ Create withdrawal record
     transaction.set(withdrawRef, {
       ...input,
       id: withdrawRef.id,
       status: "PENDING",
       requestedAt: new Date().toISOString()
+    });
+
+    // ✅ NEW: Add history under user
+    const historyRef = doc(collection(db, "users", input.uid, "history"));
+
+    transaction.set(historyRef, {
+      amount: input.amount,
+      date: new Date(), // Firestore timestamp
+      profit: false,
+      type: "withdrawal request"
     });
   });
 },
