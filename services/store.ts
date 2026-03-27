@@ -360,8 +360,7 @@ async completeTask(task: any, uid: string, zipFile: File) {
   return true;
 },
 //////////////////////////// WITHDRAW ////////////////////////////
-
-createWithdrawal: async (input: WithdrawalRequest) => {
+requestWithdrawal: async (input: WithdrawalRequest) => {
   const ref = doc(collection(db, "withdrawals"));
 
   await setDoc(ref, {
