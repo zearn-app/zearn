@@ -102,8 +102,7 @@ const App: React.FC = () => {
               <Route path="/profile/edit" element={user ? <EditProfile /> : <Navigate to="/login" />} />
               <Route path="/settings" element={user ? <Settings /> : <Navigate to="/login" />} />
               <Route path="/about" element={<About />} />
-              <Route path="/history" element={<HistoryPage />} />
-              <Route path="/admin" element={user?.isAdmin ? <AdminDashboard /> : <Navigate to="/home" />} />
+              <Route path="/history" element={user ? <HistoryPage /> : <Navigate to="/login" />} />
               <Route path="/admin" element={user?.isAdmin ? <AdminDashboard /> : <Navigate to="/home" />} />
 
 <Route path="/admin-tasks" element={user?.isAdmin ? <AdminTasks /> : <Navigate to="/home" />} />
