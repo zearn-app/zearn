@@ -23,14 +23,14 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
 
   const [formData, setFormData] = useState({
-    name: '',
-    mobile: '',
-    dob: '',
-    district: '',
-    password: '',
-    country: 'India'
-  });
-
+  name: '',
+  mobile: '',
+  dob: '',
+  state: '',
+  district: '',
+  password: '',
+  country: 'India'
+});
   /* ================= ADMIN MULTI TAP LOGIC ================= */
 
   const [tapCount, setTapCount] = useState(0);
