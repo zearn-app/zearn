@@ -68,6 +68,12 @@ useEffect(() => {
     try {
       console.log("Initializing app...");
       await Store.initializeAdmin();
+      // ✅ If user already loaded from cache, skip overwrite
+      if (user) {
+          console.log("Using cached user, skipping refresh");
+          setLoading(false);
+          return;
+      }
 
       // ✅ Handle redirect (keep this)
       try {
