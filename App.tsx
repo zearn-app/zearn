@@ -41,15 +41,18 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   const refreshUser = async () => {
-    try {
-      console.log("Refreshing user...");
-      const u = await Store.getCurrentUser();
-      console.log("Current user:", u);
-      setUser(u);
-    } catch (e) {
-      console.error("User fetch error", e);
+  try {
+    const u = await Store.getCurrentUser();
+
+    if (!u) {
+      console.warn("No user in Store");
     }
-  };
+
+    setUser(u);
+  } catch (e) {
+    console.error("User fetch error", e);
+  }
+};
 
   useEffect(() => {
   const init = async () => {
