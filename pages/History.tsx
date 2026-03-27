@@ -31,9 +31,7 @@ const History: React.FC = () => {
 
     const fetchHistory = async () => {
       try {
-        const q = query(
-          collection(db, 'users', user.uid, 'history'),
-          orderBy('date', 'desc')
+        const q = collection(db, 'users', user.uid, 'history');      
         );
 
         const snapshot = await getDocs(q);
