@@ -23,7 +23,13 @@ const Withdrawal: React.FC = () => {
   const [whatsapp, setWhatsapp] = useState('');
   const [email, setEmail] = useState('');
   const [bankDetails, setBankDetails] = useState({ acct: '', ifsc: '' });
+const [user, setUser] = useState<User | null>(null);
 
+const refreshUser = async () => {
+  if (!user) return;
+  const updatedUser = await Store.getUser(user.uid);
+  setUser(updatedUser); // ✅ THIS triggers UI update
+};
   useEffect(() => {
     Store.getSettings().then(s => setMinWithdrawal(s.minWithdrawal));
     if (activeTab === 'history' && user) {
