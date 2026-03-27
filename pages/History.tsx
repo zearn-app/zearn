@@ -32,7 +32,7 @@ const History: React.FC = () => {
     const fetchHistory = async () => {
       try {
         const q = collection(db, 'users', user.uid, 'history');      
-        );
+      
 
         const snapshot = await getDocs(q);
 
