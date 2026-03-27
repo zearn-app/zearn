@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { useNavigate } from 'react-router-dom';
-import { Bell, User, Shield, ChevronRight, LogOut } from 'lucide-react';
+import { Bell, User, Shield, ChevronRight, LogOut ,History } from 'lucide-react';
 import { Store } from '../services/store';
 import { useContext } from 'react';
 import { UserContext } from '../App';
+import { Bell, User, Shield, ChevronRight, LogOut, History } from 'lucide-react';
 import { useNotification } from '../components/NotificationSystem';
 
 const Settings: React.FC = () => {
@@ -71,6 +72,11 @@ const Settings: React.FC = () => {
             label="Edit Profile" 
             action={() => navigate('/profile/edit')} 
           />
+         <SettingItem 
+  icon={<History size={20}/>} 
+  label="History" 
+  action={() => navigate('/history')} 
+/>
           <SettingItem 
             icon={<User size={20}/>} 
             label="About Us"
