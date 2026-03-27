@@ -41,7 +41,7 @@ const AdminTasks: React.FC = () => {
   const loadTasks = async () => {
     setLoading(true)
     try {
-      const t = await Store.getTasks()
+      const t = await Store.getadminTasks()
       setTasks(t || [])
     } catch (e) {
       console.error(e)
