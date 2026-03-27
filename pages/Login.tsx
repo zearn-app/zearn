@@ -22,30 +22,50 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const STATE_DISTRICT_MAP: Record<string, string[]> = {
+  "Andhra Pradesh": ["Anantapur", "Chittoor", "East Godavari", "Guntur", "Krishna", "Kurnool", "Prakasam", "Srikakulam", "Visakhapatnam", "Vizianagaram", "West Godavari", "YSR Kadapa"],
+  
+  "Arunachal Pradesh": ["Tawang", "West Kameng", "East Kameng", "Papum Pare", "Kurung Kumey", "Kra Daadi", "Lower Subansiri", "Upper Subansiri", "West Siang", "East Siang", "Siang", "Upper Siang", "Lower Siang", "Lower Dibang Valley", "Dibang Valley", "Anjaw", "Lohit", "Namsai", "Changlang", "Tirap", "Longding"],
+
+  "Assam": ["Baksa", "Barpeta", "Biswanath", "Bongaigaon", "Cachar", "Charaideo", "Chirang", "Darrang", "Dhemaji", "Dhubri", "Dibrugarh", "Dima Hasao", "Goalpara", "Golaghat", "Hailakandi", "Hojai", "Jorhat", "Kamrup", "Kamrup Metropolitan", "Karbi Anglong", "Karimganj", "Kokrajhar", "Lakhimpur", "Majuli", "Morigaon", "Nagaon", "Nalbari", "Sivasagar", "Sonitpur", "South Salmara", "Tinsukia", "Udalguri", "West Karbi Anglong"],
+
+  "Bihar": ["Araria", "Arwal", "Aurangabad", "Banka", "Begusarai", "Bhagalpur", "Bhojpur", "Buxar", "Darbhanga", "East Champaran", "Gaya", "Gopalganj", "Jamui", "Jehanabad", "Kaimur", "Katihar", "Khagaria", "Kishanganj", "Lakhisarai", "Madhepura", "Madhubani", "Munger", "Muzaffarpur", "Nalanda", "Nawada", "Patna", "Purnia", "Rohtas", "Saharsa", "Samastipur", "Saran", "Sheikhpura", "Sheohar", "Sitamarhi", "Siwan", "Supaul", "Vaishali", "West Champaran"],
+
   "Tamil Nadu": [
-    "Chennai",
-    "Coimbatore",
-    "Madurai",
-    "Salem",
-    "Trichy",
-    "Erode",
-    "Tirunelveli",
-    "Vellore",
-    "Thanjavur"
+    "Chennai", "Coimbatore", "Madurai", "Salem", "Tiruchirappalli",
+    "Erode", "Tirunelveli", "Vellore", "Thanjavur", "Dindigul",
+    "Kanchipuram", "Cuddalore", "Thoothukudi", "Namakkal",
+    "Karur", "Nagapattinam", "Krishnagiri", "Dharmapuri",
+    "Virudhunagar", "Sivaganga", "Ramanathapuram", "Nilgiris",
+    "Perambalur", "Ariyalur", "Tenkasi", "Ranipet",
+    "Tirupattur", "Chengalpattu", "Kallakurichi", "Mayiladuthurai"
   ],
+
   "Karnataka": [
-    "Bangalore",
-    "Mysore",
-    "Mangalore",
-    "Hubli",
-    "Belgaum"
+    "Bangalore Urban", "Bangalore Rural", "Mysore", "Mangalore (Dakshina Kannada)",
+    "Udupi", "Belgaum", "Hubli-Dharwad", "Gulbarga", "Bidar",
+    "Raichur", "Bellary", "Tumkur", "Shimoga", "Chitradurga",
+    "Davangere", "Hassan", "Kodagu", "Mandya", "Chamarajanagar",
+    "Koppal", "Yadgir", "Bagalkot", "Gadag", "Haveri", "Vijayapura"
   ],
+
   "Kerala": [
-    "Kochi",
-    "Trivandrum",
-    "Kozhikode",
-    "Thrissur"
+    "Thiruvananthapuram", "Kollam", "Pathanamthitta", "Alappuzha",
+    "Kottayam", "Idukki", "Ernakulam", "Thrissur",
+    "Palakkad", "Malappuram", "Kozhikode", "Wayanad",
+    "Kannur", "Kasaragod"
+  ],
+
+  "Maharashtra": [
+    "Mumbai", "Mumbai Suburban", "Pune", "Nagpur", "Nashik",
+    "Thane", "Aurangabad", "Solapur", "Kolhapur", "Satara",
+    "Sangli", "Amravati", "Akola", "Yavatmal", "Buldhana",
+    "Jalgaon", "Ahmednagar", "Beed", "Latur", "Osmanabad",
+    "Nanded", "Parbhani", "Hingoli", "Wardha", "Chandrapur",
+    "Gadchiroli", "Ratnagiri", "Sindhudurg", "Palghar",
+    "Raigad", "Dhule", "Nandurbar"
   ]
+
+  // 👉 Continue for all states...
 };
   const [formData, setFormData] = useState({
   name: '',
