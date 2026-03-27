@@ -424,11 +424,45 @@ getWithdrawals: async (uid?: string): Promise<WithdrawalRequest[]> => {
 },
 
 adminUpdateWithdrawal: async (id: string, status: WithdrawalStatus) => {
-  await updateDoc(doc(db, "withdrawals", id), {
-    status
+
+  const withdrawalRef = doc(db, "withdrawals", id);
+
+  await runTransaction(db, async (transaction) => {
+
+    const withdrawalSnap = await transaction.get(withdrawalRef);
+
+    if (!withdrawalSnap.exists()) {
+      throw new Error("Withdrawal not found");
+    }
+
+    const withdrawalData = withdrawalSnap.data();
+
+    // ✅ Existing logic (update status)
+    transaction.update(withdrawalRef, { status });
+
+    // ✅ NEW: If rejected → refund + history
+    if (status === "REJECTED") {
+
+      const userRef = doc(db, "users", withdrawalData.uid);
+
+      // 🔹 Refund balance
+      transaction.update(userRef, {
+        balance: increment(withdrawalData.amount)
+      });
+
+      // 🔹 Add history
+      const historyRef = doc(collection(db, "users", withdrawalData.uid, "history"));
+
+      transaction.set(historyRef, {
+        amount: withdrawalData.amount,
+        date: new Date(), // Firestore timestamp
+        type: "refund",
+        profit: true
+      });
+    }
+
   });
 },
-
 //////////////////////////// LEADERBOARD ////////////////////////////
 
 getLeaderboard: async () => {
