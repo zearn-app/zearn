@@ -379,12 +379,9 @@ requestWithdrawal: async (input: WithdrawalRequest) => {
     }
 
     // ✅ Deduct balance
-    const newBalance = userData.balance - input.amount;
-
     transaction.update(userRef, {
-      balance: newBalance
-    });
-
+  balance: increment(-input.amount)
+});
     // ✅ Create withdrawal record
     transaction.set(withdrawRef, {
       ...input,
