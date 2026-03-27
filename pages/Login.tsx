@@ -55,42 +55,46 @@ const Login: React.FC = () => {
   };
 
   const handleAdminLogin = async () => {
-    let isValid = false;
+  if (!adminPass) {
+    notify("Enter Admin Password", "error");
+    return;
+  }
 
-    if (adminPass === 'admin') {
-      isValid = true;
-      navigate('/admin');
-    } else {
+  setLoading(true);
+
+  try {
+    // Default password
+    let isValid = adminPass === "admin";
+
+    // Optional: check from settings (if exists)
+    try {
       const settings = await Store.getSettings();
-      if (adminPass === settings.adminPassword) {
+      if (settings?.adminPassword === adminPass) {
         isValid = true;
-        navigate('/admin');
       }
+    } catch (e) {
+      console.log("Settings fetch failed, using default password");
     }
 
     if (!isValid) {
-      notify("Invalid Admin Pass", "error");
+      notify("Invalid Admin Password", "error");
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
-    try {
-      const adminUser = await Store.checkUserExists('admin@zearn.app');
-      if (adminUser) {
-        await Store.loginUser(adminUser);
-        await refreshUser();
-        setShowAdminDialog(false);
-        setAdminPass('');
-        navigate('/admin');
-        notify("Welcome Admin", "success");
-      }
-    } catch (e) {
-      notify("Admin Login Failed", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+    // ✅ DIRECT NAVIGATION (NO USER LOGIN)
+    notify("Welcome Admin 🚀", "success");
+    setShowAdminDialog(false);
+    setAdminPass("");
 
+    navigate("/admin", { replace: true });
+
+  } catch (e) {
+    notify("Admin Login Failed", "error");
+  } finally {
+    setLoading(false);
+  }
+};
   /* ================= EMAIL LOGIN ================= */
 
   const processEmailLogin = async () => {
