@@ -63,7 +63,7 @@ const Login: React.FC = () => {
     "Nanded", "Parbhani", "Hingoli", "Wardha", "Chandrapur",
     "Gadchiroli", "Ratnagiri", "Sindhudurg", "Palghar",
     "Raigad", "Dhule", "Nandurbar"
-  ]
+  ],
 "Gujarat": [
     "Ahmedabad","Amreli","Anand","Aravalli","Banaskantha","Bharuch",
     "Bhavnagar","Botad","Chhota Udaipur","Dahod","Dang","Devbhoomi Dwarka",
