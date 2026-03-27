@@ -41,8 +41,8 @@ const History: React.FC = () => {
           amount: doc.data().amount || 0,
           date: doc.data().date,
           profit: doc.data().profit ?? true,
-          task_name: doc.data().task_name || doc.data().type || 'Task'
-          type: doc.data().type || 'standard'
+        task_name: doc.data().task_name || doc.data().type || 'Task',
+type: doc.data().type || 'standard'
         }));
 
         setHistory(list);
