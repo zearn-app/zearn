@@ -53,7 +53,14 @@ const App: React.FC = () => {
     console.error("User fetch error", e);
   }
 };
+useEffect(() => {
+  const cachedUser = localStorage.getItem("user");
 
+  if (cachedUser) {
+    console.log("Loaded user from cache");
+    setUser(JSON.parse(cachedUser));
+  }
+}, []);
   useEffect(() => {
   const init = async () => {
     try {
@@ -107,6 +114,14 @@ const App: React.FC = () => {
 
   init();
 }, []);
+
+  useEffect(() => {
+  if (user) {
+    localStorage.setItem("user", JSON.stringify(user));
+  }
+}, [user]);
+
+  
   if (loading) return <div className="flex h-screen items-center justify-center bg-blue-50 font-bold text-blue-600">Loading Zearn...</div>;
 
   return (
