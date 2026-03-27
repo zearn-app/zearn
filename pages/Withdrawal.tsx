@@ -84,7 +84,7 @@ const Withdrawal: React.FC = () => {
         details: detailsStr
       });
       notify("Request Submitted Successfully!", 'success');
-      refreshUser();
+      await refreshUser();
       setAmount('');
       setUpiId('');
       setWhatsapp('');
