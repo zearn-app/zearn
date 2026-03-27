@@ -156,8 +156,8 @@ const Login: React.FC = () => {
     }
 
     if (!dob) errors.push('Date of birth');
+    if (!formData.state) errors.push('State');
     if (!district) errors.push('District');
-
     if (errors.length > 0) {
       notify(`Please provide: ${errors.join(', ')}`, 'error');
       return;
@@ -256,16 +256,46 @@ const Login: React.FC = () => {
                 }
               />
 
-              <input
-                type="text"
-                placeholder="District"
-                className="w-full p-4 border rounded-xl"
-                value={formData.district}
-                onChange={(e) =>
-                  setFormData({ ...formData, district: e.target.value })
-                }
-              />
+              {/* STATE SELECT */}
+<select
+  className="w-full p-4 border rounded-xl"
+  value={formData.state}
+  onChange={(e) =>
+    setFormData({
+      ...formData,
+      state: e.target.value,
+      district: "" // reset district
+    })
+  }
+>
+  <option value="">Select State</option>
+  {Object.keys(STATE_DISTRICT_MAP).map((state) => (
+    <option key={state} value={state}>
+      {state}
+    </option>
+  ))}
+</select>
 
+{/* DISTRICT SELECT */}
+<select
+  className="w-full p-4 border rounded-xl"
+  value={formData.district}
+  disabled={!formData.state}
+  onChange={(e) =>
+    setFormData({ ...formData, district: e.target.value })
+  }
+>
+  <option value="">
+    {formData.state ? "Select District" : "Select State First"}
+  </option>
+
+  {formData.state &&
+    STATE_DISTRICT_MAP[formData.state].map((district) => (
+      <option key={district} value={district}>
+        {district}
+      </option>
+    ))}
+</select>
               <div className="relative">
                 <input
                   type={showRegisterPassword ? "text" : "password"}
