@@ -75,12 +75,18 @@ const App: React.FC = () => {
       await new Promise((resolve) => {
         const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
           if (firebaseUser) {
-            const email = firebaseUser.email || '';
-            const exists = await Store.checkUserExists(email);
-            if (exists) {
-              await Store.loginUser(exists);
-            }
-          }
+  const email = firebaseUser.email || '';
+
+  console.log("Firebase user found:", email);
+
+  // 🔥 Always fetch fresh user from DB
+  const userData = await Store.getUserByEmail(email);
+
+  if (userData) {
+    await Store.setCurrentUser(userData); // ✅ IMPORTANT
+    setUser(userData); // 🔥 directly update state
+  }
+        }
           unsubscribe();
           resolve(true);
         });
