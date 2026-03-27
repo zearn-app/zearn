@@ -512,48 +512,58 @@ checkDailyClaimStatus: async (uid: string): Promise<boolean> => {
   return !snap.empty;
 },
 
-claimDaily: async (uid: string) => {
+claimDaily: async (uid: string) => {  
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date().toISOString().slice(0, 10);  
 
-  const q = query(
-    collection(db, "daily_claims"),
-    where("uid", "==", uid),
-    where("date", "==", today)
-  );
+  const q = query(  
+    collection(db, "daily_claims"),  
+    where("uid", "==", uid),  
+    where("date", "==", today)  
+  );  
 
-  const snap = await getDocs(q);
+  const snap = await getDocs(q);  
 
-  if (!snap.empty) {
-    return {
-      success: false,
-      message: "Already claimed today"
-    };
-  }
+  if (!snap.empty) {  
+    return {  
+      success: false,  
+      message: "Already claimed today"  
+    };  
+  }  
 
-  const userRef = doc(db, "users", uid);
+  const userRef = doc(db, "users", uid);  
 
-  const batch = writeBatch(db);
+  const batch = writeBatch(db);  
 
-  batch.update(userRef, {
-    balance: increment(10)
+  batch.update(userRef, {  
+    balance: increment(10)  
+  });  
+
+  const ref = doc(collection(db, "daily_claims"));  
+
+  batch.set(ref, {  
+    uid,  
+    date: today,  
+    reward: 10,  
+    timestamp: new Date().toISOString()  
+  });  
+
+  // ✅ NEW: Add history under user
+  const historyRef = doc(collection(db, "users", uid, "history"));
+
+  batch.set(historyRef, {
+    amount: 10,
+    date: new Date(), // Firestore timestamp
+    profit: true,
+    type: "daily claim"
   });
 
-  const ref = doc(collection(db, "daily_claims"));
+  await batch.commit();  
 
-  batch.set(ref, {
-    uid,
-    date: today,
-    reward: 10,
-    timestamp: new Date().toISOString()
-  });
-
-  await batch.commit();
-
-  return {
-    success: true,
-    message: "Daily bonus claimed! +10 coins"
-  };
-}
-
+  return {  
+    success: true,  
+    message: "Daily bonus claimed! +10 coins"  
+  };  
+    }
+  
 };
