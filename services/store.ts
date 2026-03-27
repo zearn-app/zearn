@@ -166,6 +166,32 @@ updateSettings: async (settings: AdminSettings) => {
   await setDoc(doc(db, "settings", "config"), settings);
 },
 //////////////////////////// admin task ////////////////////////////
+ getadminTasks: async () => {
+    try {
+      const q = query(
+        collection(db, "tasks"),
+        orderBy("task_name", "asc") // optional sorting
+      )
+
+      const snapshot = await getDocs(q)
+
+      const tasks: any[] = []
+
+      snapshot.forEach((doc) => {
+        tasks.push({
+          id: doc.id,
+          ...doc.data()
+        })
+      })
+
+      return tasks
+
+    } catch (error) {
+      console.error("Error fetching admin tasks:", error)
+      return []
+    }
+  },
+  
   /* ---------------- CREATE TASK ---------------- */
   async createTask(data: any) {
     try {
