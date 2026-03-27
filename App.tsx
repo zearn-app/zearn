@@ -47,8 +47,10 @@ const App: React.FC = () => {
     if (!u) {
       console.warn("No user in Store");
     }
-
-    setUser(u);
+    if (u) {
+      setUser(u);
+    }
+  
   } catch (e) {
     console.error("User fetch error", e);
   }
@@ -102,8 +104,12 @@ useEffect(() => {
         });
       });
 
-      // ✅ Now fetch user AFTER auth is ready
-      await refreshUser();
+     
+      
+    // ✅ Now fetch user AFTER auth is ready
+    if (!user) {
+  await refreshUser();
+    }
 
     } catch (e) {
       console.error("Initialization error:", e);
@@ -135,8 +141,13 @@ useEffect(() => {
               <Route path="/login" element={<Login />} />
               
               {/* Protected Routes */}
-              <Route path="/home" element={user ? <Home /> : <Navigate to="/login" />} />
-             
+
+<Route
+  path="/home"
+  element={loading ? null : user ? <Home /> : <Navigate to="/login" />}
+/>
+              
+      
               <Route path="/tasks/:type" element={user ? <TaskList /> : <Navigate to="/login" />} />
               <Route path="/task-check/:taskId" element={user ? <TaskCheck /> : <Navigate to="/login" />} />
              
