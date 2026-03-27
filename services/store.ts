@@ -298,14 +298,8 @@ async completeTask(task: any, uid: string, zipFile: File) {
     throw new Error("Inner file mismatch");
   }
 
-  const settingsSnap = await getDoc(doc(db, "settings", "config"));
-
-  if (!settingsSnap.exists()) {
-    throw new Error("Settings not found");
-  }
-
-  const settings = settingsSnap.data() as RewardSettings;
-
+  const settings = await Store.getSettings();
+  
   const userRef = doc(db, "users", uid);
 
   let updateData: any = {
