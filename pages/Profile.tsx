@@ -103,7 +103,7 @@ const Profile: React.FC = () => {
         <div className="p-4 flex justify-between items-center hover:bg-gray-50 transition">
           <span className="text-gray-600 font-medium flex items-center">
             <Gem size={14} className="mr-1 text-cyan-500" />
-            Lifetime Diamonds
+            Lifetime Gold
           </span>
           <span className="font-bold text-cyan-600">
             {lifetimeDiamonds}
