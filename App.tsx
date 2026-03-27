@@ -52,33 +52,52 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    const init = async () => {
-        try {
-          console.log("Initializing app...");
-          await Store.initializeAdmin();
-          // Handle OAuth redirect results (Google Redirect fallback)
-          try {
-            const result = await getRedirectResult(auth);
-            if (result && result.user) {
-              const gEmail = result.user.email || '';
-              const exists = await Store.checkUserExists(gEmail);
-              if (exists) {
-                await Store.loginUser(exists);
-              }
-            }
-          } catch (e) {
-            console.debug('No redirect result during init', e);
-          }
-          console.log("Admin initialized");
-          await refreshUser();
-        } catch (e) {
-          console.error("Initialization error:", e);
-        }
-        setLoading(false);
-    };
-    init();
-  }, []);
+  const init = async () => {
+    try {
+      console.log("Initializing app...");
+      await Store.initializeAdmin();
 
+      // ✅ Handle redirect (keep this)
+      try {
+        const result = await getRedirectResult(auth);
+        if (result && result.user) {
+          const email = result.user.email || '';
+          const exists = await Store.checkUserExists(email);
+          if (exists) {
+            await Store.loginUser(exists);
+          }
+        }
+      } catch (e) {
+        console.debug("No redirect result", e);
+      }
+
+      // 🔥 MAIN FIX: wait for Firebase auth restore
+      await new Promise((resolve) => {
+        const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+          if (firebaseUser) {
+            const email = firebaseUser.email || '';
+            const exists = await Store.checkUserExists(email);
+            if (exists) {
+              await Store.loginUser(exists);
+            }
+          }
+          unsubscribe();
+          resolve(true);
+        });
+      });
+
+      // ✅ Now fetch user AFTER auth is ready
+      await refreshUser();
+
+    } catch (e) {
+      console.error("Initialization error:", e);
+    }
+
+    setLoading(false);
+  };
+
+  init();
+}, []);
   if (loading) return <div className="flex h-screen items-center justify-center bg-blue-50 font-bold text-blue-600">Loading Zearn...</div>;
 
   return (
