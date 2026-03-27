@@ -8,6 +8,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { NotificationProvider } from './components/NotificationSystem';
 
 // Pages
+import HistoryPage from './pages/History';
 import Onboarding from './pages/Onboarding';
 import Login from './pages/Login';
 import Home from './pages/Home';
