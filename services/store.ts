@@ -361,16 +361,39 @@ async completeTask(task: any, uid: string, zipFile: File) {
 },
 //////////////////////////// WITHDRAW ////////////////////////////
 requestWithdrawal: async (input: WithdrawalRequest) => {
-  const ref = doc(collection(db, "withdrawals"));
+  const userRef = doc(db, "users", input.uid);
+  const withdrawRef = doc(collection(db, "withdrawals"));
 
-  await setDoc(ref, {
-    ...input,
-    id: ref.id,
-    status: "PENDING",
-    createdAt: new Date().toISOString()
+  await runTransaction(db, async (transaction) => {
+    const userSnap = await transaction.get(userRef);
+
+    if (!userSnap.exists()) {
+      throw new Error("User not found");
+    }
+
+    const userData = userSnap.data();
+
+    // ✅ Check balance again (important for security)
+    if (userData.balance < input.amount) {
+      throw new Error("Insufficient balance");
+    }
+
+    // ✅ Deduct balance
+    const newBalance = userData.balance - input.amount;
+
+    transaction.update(userRef, {
+      balance: newBalance
+    });
+
+    // ✅ Create withdrawal record
+    transaction.set(withdrawRef, {
+      ...input,
+      id: withdrawRef.id,
+      status: "PENDING",
+      requestedAt: new Date().toISOString()
+    });
   });
 },
-
 getWithdrawals: async (uid?: string): Promise<WithdrawalRequest[]> => {
 
   let q: any;
