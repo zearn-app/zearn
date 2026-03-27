@@ -93,11 +93,16 @@ const App: React.FC = () => {
               
               {/* Protected Routes */}
               <Route path="/home" element={user ? <Home /> : <Navigate to="/login" />} />
+             
               <Route path="/tasks/:type" element={user ? <TaskList /> : <Navigate to="/login" />} />
               <Route path="/task-check/:taskId" element={user ? <TaskCheck /> : <Navigate to="/login" />} />
+             
               <Route path="/withdrawal" element={user ? <Withdrawal /> : <Navigate to="/login" />} />
+              
               <Route path="/leaderboard" element={user ? <Leaderboard /> : <Navigate to="/login" />} />
+             
               <Route path="/winner" element={user ? <RandomWinner /> : <Navigate to="/login" />} />
+             
               <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
               <Route path="/profile/edit" element={user ? <EditProfile /> : <Navigate to="/login" />} />
               <Route path="/settings" element={user ? <Settings /> : <Navigate to="/login" />} />
@@ -105,15 +110,13 @@ const App: React.FC = () => {
               <Route path="/history" element={user ? <HistoryPage /> : <Navigate to="/login" />} />
               
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin-tasks" element={<AdminTasks />} />
+              <Route path="/admin-withdrawals" element={<AdminWithdrawals />} />
+              <Route path="/admin-users" element={<AdminUsers />} />
+              <Route path="/admin-settings" element={<AdminSettings />} />
+
               
-<Route path="/admin-tasks" element={user?.isAdmin ? <AdminTasks /> : <Navigate to="/home" />} />
-
-<Route path="/admin-withdrawals" element={user?.isAdmin ? <AdminWithdrawals /> : <Navigate to="/home" />} />
-
-<Route path="/admin-users" element={user?.isAdmin ? <AdminUsers /> : <Navigate to="/home" />} />
-
-<Route path="/admin-settings" element={user?.isAdmin ? <AdminSettings /> : <Navigate to="/home" />} />
-            </Routes>
+          </Routes>
           </HashRouter>
         </UserContext.Provider>
       </NotificationProvider>
