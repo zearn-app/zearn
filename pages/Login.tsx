@@ -21,7 +21,32 @@ const Login: React.FC = () => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
+  const STATE_DISTRICT_MAP: Record<string, string[]> = {
+  "Tamil Nadu": [
+    "Chennai",
+    "Coimbatore",
+    "Madurai",
+    "Salem",
+    "Trichy",
+    "Erode",
+    "Tirunelveli",
+    "Vellore",
+    "Thanjavur"
+  ],
+  "Karnataka": [
+    "Bangalore",
+    "Mysore",
+    "Mangalore",
+    "Hubli",
+    "Belgaum"
+  ],
+  "Kerala": [
+    "Kochi",
+    "Trivandrum",
+    "Kozhikode",
+    "Thrissur"
+  ]
+};
   const [formData, setFormData] = useState({
   name: '',
   mobile: '',
