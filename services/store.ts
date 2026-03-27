@@ -124,7 +124,10 @@ getCurrentUser: (): User | null => {
 
 registerUser: async (data: any) => {
   const ref = doc(collection(db, "users"));
+
+  // 🔥 Generate referral code (simple & unique)
   const referralCode = data.name.slice(0, 3).toUpperCase() + Math.floor(1000 + Math.random() * 9000);
+
   const user: User = {
     uid: ref.id,
     email: data.email,
@@ -134,17 +137,23 @@ registerUser: async (data: any) => {
     district: data.district,
     password: data.password,
     country: data.country,
+
     balance: 0,
     isBanned: false,
     isAdmin: false,
-    createdAt: new Date().toISOString()
-    referralCode: referralCode    
+    createdAt: new Date().toISOString(),
+
+    // ✅ NEW FIELDS
+    referralCode: referralCode,        // user's own code
+    referredBy: data.referredBy || null, // who invited this user
+    totalReferrals: 0                  // count of referrals
   };
 
   await setDoc(ref, user);
+
   return user;
 },
-
+  
 adminAddCoins: async (uid: string, amount: number) => {
   await updateDoc(doc(db, "users", uid), {
     balance: increment(amount)
