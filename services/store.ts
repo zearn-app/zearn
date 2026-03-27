@@ -145,7 +145,6 @@ registerUser: async (data: any) => {
 
     // ✅ NEW FIELDS
     referralCode: referralCode,        // user's own code
-    referredBy: data.referredBy || null, // who invited this user
     totalReferrals: 0                  // count of referrals
   };
 
