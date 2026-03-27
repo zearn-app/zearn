@@ -314,8 +314,11 @@ async completeTask(task: any, uid: string, zipFile: File) {
     profit: true
   };
 
+  // ✅ FIX: get reward from settings.rewards
+  const rewardValue = Number(settings.rewards || 0);
+
   if (!task.is_special) {
-    const amount = settings.standard_amount;
+    const amount = rewardValue;
 
     updateData.balance = increment(amount);
     updateData.lifetime_earnings = increment(amount);
@@ -324,7 +327,7 @@ async completeTask(task: any, uid: string, zipFile: File) {
 
     history.amount = amount;
   } else {
-    const reward = settings.special_reward;
+    const reward = rewardValue;
 
     updateData.balance = increment(reward);
     updateData.lifetime_earnings = increment(reward);
@@ -347,7 +350,6 @@ async completeTask(task: any, uid: string, zipFile: File) {
 
   return true;
 },
-
 //////////////////////////// WITHDRAW ////////////////////////////
 
 createWithdrawal: async (input: WithdrawalRequest) => {
