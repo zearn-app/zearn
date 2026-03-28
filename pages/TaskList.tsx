@@ -164,7 +164,7 @@ const TaskList: React.FC = () => {
         No completed tasks yet 🚀
       </div>
     ) : (
-      completedTasks.map(task => renderTaskCard(task, true))
+      completedTasks.map(task => renderTaskCard(task, false))
     )}
   </>
 )}
