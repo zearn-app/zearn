@@ -543,7 +543,9 @@ getLeaderboard: async () => {
       createdAt: Date.now(),
     };
 
+
     await setDoc(ref, newData);
+    
     return newData;
   }
 
