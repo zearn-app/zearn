@@ -78,7 +78,7 @@ const Profile: React.FC = () => {
             Current Balance
           </span>
           <span className="font-bold text-gray-900">
-            {balance} Coins
+            {balance.toFixed(4)} Coins
           </span>
         </div>
 
@@ -96,7 +96,7 @@ const Profile: React.FC = () => {
             Lifetime Earnings
           </span>
           <span className="font-bold text-green-600">
-            {lifetimeEarnings} Coins
+              {lifetimeEarnings.toFixed(4)} Coins
           </span>
         </div>
 
