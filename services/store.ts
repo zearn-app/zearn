@@ -579,30 +579,31 @@ async enterMonthlyRandom(uid: string, month: string, amount: number) {
       throw new Error("Insufficient balance");
     }
 
-    // Update user
+    // Create history entry
+    const historyEntry = {
+      type: "random_entry",
+      monthYear: month,
+      amount,
+      profit: false,
+      createdAt: Date.now(),
+    };
+
+    // ✅ Update user safely
     tx.update(userRef, {
       balance: user.balance - amount,
-      history: [
-        ...(user.history || []),
-        {
-          type: "random_entry",
-          monthYear: month,
-          amount,
-          profit: false,
-          createdAt: Date.now(),
-        },
-      ],
+      history: arrayUnion(historyEntry),
     });
 
-    // Update month
+    // ✅ Update month
     tx.update(monthRef, {
       userList: [...monthData.userList, uid],
       totalUsers: monthData.totalUsers + 1,
       totalAmount: monthData.totalAmount + amount,
     });
   });
-  },
+    },
 
+  
 async declareWinner(month: string, winnerId: string) {
   const userRef = doc(db, "users", winnerId);
   const monthRef = doc(db, "randomSettings", month);
