@@ -522,12 +522,12 @@ getLeaderboard: async () => {
 
 //////////////////////////// RANDOM WINNER ////////////////////////////
 
-static async getRandomConfig() {
+ async getRandomConfig() {
   const doc = await getDoc(doc(db, "randomSettings", "config"));
   return doc.data();
   },
 
-static async getOrCreateMonth(month: string) {
+ async getOrCreateMonth(month: string) {
   const ref = doc(db, "randomSettings", month);
   const snap = await getDoc(ref);
 
@@ -550,7 +550,8 @@ static async getOrCreateMonth(month: string) {
   return snap.data();
 },
 
-static async enterMonthlyRandom(uid: string, month: string, amount: number) {
+  
+async enterMonthlyRandom(uid: string, month: string, amount: number) {
   const userRef = doc(db, "users", uid);
   const monthRef = doc(db, "randomSettings", month);
 
@@ -596,7 +597,7 @@ static async enterMonthlyRandom(uid: string, month: string, amount: number) {
   });
   },
 
-static async declareWinner(month: string, winnerId: string) {
+async declareWinner(month: string, winnerId: string) {
   const userRef = doc(db, "users", winnerId);
   const monthRef = doc(db, "randomSettings", month);
 
