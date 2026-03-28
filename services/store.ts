@@ -284,6 +284,23 @@ async getTasks(isSpecial: boolean) {
   }));
 },
 
+  getCompletedTasks: async (uid: string) => {
+  const q = collection(db, "users", uid, "history");
+
+  const snap = await getDocs(q);
+
+  return snap.docs
+    .map(doc => doc.data())
+    .filter(item => item.type === "task" && item.profit === true) // ✅ only completed tasks
+    .map((item, index) => ({
+      id: index.toString(),
+      task_name: item.task_name || "Completed Task",
+      is_special: false,
+      is_started: true,
+      started_by: uid
+    }));
+},
+
 async startTask(taskId: string, uid: string) {
   const ref = doc(db, "tasks", taskId);
 
