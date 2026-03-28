@@ -72,9 +72,14 @@ useEffect(() => {
       await Store.initializeAdmin();
       // ✅ If user already loaded from cache, skip overwrite
       if (localStorage.getItem("user")) {
-          console.log("Using cached user, skipping refresh");
-          setLoading(false);
-          return;
+  console.log("Using cached user");
+
+  const cached = JSON.parse(localStorage.getItem("user")!);
+  setUser(cached);
+
+  // ❗ DO NOT RETURN
+  // Let Firebase continue to sync user
+
       }
 
       // ✅ Handle redirect (keep this)
