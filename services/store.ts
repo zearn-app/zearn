@@ -293,12 +293,14 @@ async getTasks(isSpecial: boolean) {
     .map(doc => doc.data())
     .filter(item => item.type === "task" && item.profit === true)
     .map((item) => ({
-      id: item.task_id, // ✅ MUST exist
-      task_name: item.task_name || "Completed Task",
-      is_special: false,
-      is_started: true,
-      started_by: uid
-    }))
+  id: item.task_id,
+  task_name: item.task_name || "Completed Task",
+  is_special: false,
+  is_started: true,
+  started_by: uid,
+  is_completed: true // ✅ ADD THIS
+}))
+  
     .filter(task => task.id); // ✅ remove invalid ones
 },
   
