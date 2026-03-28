@@ -128,7 +128,9 @@ const Home: React.FC = () => {
                 <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Total Balance</p>
                 <div className="flex items-center space-x-2">
                     <span className="text-3xl font-bold">₹</span>
-                    <h1 className="text-5xl font-black tracking-tighter">{user?.balance}</h1>
+                    <h1 className="text-5xl font-black tracking-tighter">
+                      {user?.balance?.toFixed(4)}</h1>
+                
                 </div>
                 
                 <div className="mt-4 flex items-center space-x-3">
