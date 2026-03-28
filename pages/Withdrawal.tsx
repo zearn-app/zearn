@@ -151,7 +151,7 @@ const navigate = useNavigate();
 
   return (
    
-      
+      <Layout>
       <div className="flex items-center mb-4">
   <button
     onClick={() => navigate(-1)}
