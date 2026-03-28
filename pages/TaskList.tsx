@@ -12,7 +12,7 @@ const TaskList: React.FC = () => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [tab, setTab] = useState("all");
   const [loading, setLoading] = useState(true);
-
+  const [completedTasks, setCompletedTasks] = useState<any[]>([]);
   useEffect(() => {
     if (!user?.uid) return;
     loadTasks();
