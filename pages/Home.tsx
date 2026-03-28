@@ -14,11 +14,22 @@ const Home: React.FC = () => {
   const [claimedToday, setClaimedToday] = useState(false);
 
   useEffect(() => {
-    if (user) {
-        Store.checkDailyClaimStatus(user.uid).then(status => setClaimedToday(status));
-    }
-  }, [user]);
+  const fetchUserData = async () => {
+    if (!user) return;
 
+    try {
+      // Fetch latest user from Store (Firestore / DB)
+      const freshUser = await Store.getUserById(user.uid);
+      if (freshUser) {
+        refreshUser(); // updates UserContext
+      }
+    } catch (e) {
+      console.error("Failed to refresh user data:", e);
+    }
+  };
+
+  fetchUserData();
+}, []); 
   const handleDailyClaim = async () => {
     if (!user) return;
 
