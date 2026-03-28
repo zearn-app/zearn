@@ -158,8 +158,9 @@ const navigate = useNavigate();
       <div className="bg-gray-900 text-white p-6 rounded-2xl mb-6 flex justify-between items-center shadow-lg">
         <div>
             <p className="text-gray-400 text-xs font-bold uppercase">Available Balance</p>
-            <h2 className="text-3xl font-bold">₹ {user?.balance}</h2>
-        </div>
+            <h2 className="text-3xl font-bold">
+  ₹ {(user?.balance ?? 0).toFixed(4)}
+</h2> </div>
         <div className="bg-gray-800 p-3 rounded-full">
             <Wallet size={24} className="text-blue-400"/>
         </div>
