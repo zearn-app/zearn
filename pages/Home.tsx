@@ -13,23 +13,18 @@ const Home: React.FC = () => {
   const { notify } = useNotification();
   const [claimedToday, setClaimedToday] = useState(false);
 
+
   useEffect(() => {
-  const fetchUserData = async () => {
+  const interval = setInterval(async () => {
     if (!user) return;
+    const freshUser = await Store.getUserById(user.uid);
+    if (freshUser) refreshUser();
+  }, 30000); // every 30s
 
-    try {
-      // Fetch latest user from Store (Firestore / DB)
-      const freshUser = await Store.getUserById(user.uid);
-      if (freshUser) {
-        refreshUser(); // updates UserContext
-      }
-    } catch (e) {
-      console.error("Failed to refresh user data:", e);
-    }
-  };
+  return () => clearInterval(interval);
+}, [user]);
 
-  fetchUserData();
-}, []); 
+  
   const handleDailyClaim = async () => {
     if (!user) return;
 
