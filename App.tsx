@@ -155,14 +155,58 @@ useEffect(() => {
   if (loading) return <div className="flex h-screen items-center justify-center bg-blue-50 font-bold text-blue-600">Loading Zearn...</div>;
 
   const location = useLocation();
-    
+
+
+
+const AppRoutes = () => {
+  const location = useLocation();
+
+  return (
+    <Routes location={location} key={location.pathname}>
+      <Route path="/" element={<Navigate to="/login" />} />
+      <Route path="/onboarding" element={<Onboarding />} />
+      <Route path="/login" element={<Login />} />
+
+      <Route path="/home" element={user ? <Home /> : <Navigate to="/login" />} />
+      <Route path="/tasks/:type" element={user ? <TaskList /> : <Navigate to="/login" />} />
+      <Route path="/task-check/:taskId" element={user ? <TaskCheck /> : <Navigate to="/login" />} />
+      <Route path="/withdrawal" element={user ? <Withdrawal /> : <Navigate to="/login" />} />
+      <Route path="/leaderboard" element={user ? <Leaderboard /> : <Navigate to="/login" />} />
+      <Route path="/winner" element={user ? <RandomWinner /> : <Navigate to="/login" />} />
+      <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
+      <Route path="/profile/edit" element={user ? <EditProfile /> : <Navigate to="/login" />} />
+      <Route path="/settings" element={user ? <Settings /> : <Navigate to="/login" />} />
+      <Route path="/history" element={user ? <HistoryPage /> : <Navigate to="/login" />} />
+
+      <Route path="/about" element={<About />} />
+
+      <Route path="/admin" element={<AdminDashboard />} />
+      <Route path="/admin-tasks" element={<AdminTasks />} />
+      <Route path="/admin-withdrawals" element={<AdminWithdrawals />} />
+      <Route path="/admin-users" element={<AdminUsers />} />
+      <Route path="/admin-settings" element={<AdminSettings />} />
+    </Routes>
+  );
+};
+
+
+
+
+
+  
+
+
+
+  
   return (
     <ErrorBoundary>
       <NotificationProvider>
         <UserContext.Provider value={{ user, refreshUser }}>
-          <HashRouter>
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<Navigate to="/login" />} />
+        <HashRouter>
+  <AppRoutes />
+</HashRouter>
+          
+          <Route path="/" element={<Navigate to="/login" />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/login" element={<Login />} />
               
