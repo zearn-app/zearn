@@ -19,7 +19,17 @@ const TaskList: React.FC = () => {
     loadCompleted();
   }, [type, user]);
 
-  
+  useEffect(() => {
+  const handleBack = () => {
+    navigate("/home"); // 👈 change if your home route is different
+  };
+
+  window.addEventListener("popstate", handleBack);
+
+  return () => {
+    window.removeEventListener("popstate", handleBack);
+  };
+}, [navigate]);
   const loadCompleted = async () => {
   if (!user?.uid) return;
 
@@ -101,11 +111,21 @@ const TaskList: React.FC = () => {
   return (
     <div className="p-4 max-w-xl mx-auto">
 
-      {/* Title */}
-      <h1 className="text-2xl font-bold mb-4 text-gray-800">
-        Tasks
-      </h1>
 
+
+      
+           <div className="flex items-center gap-3 mb-4">
+  <button
+    onClick={() => navigate("/home")}
+    className="text-gray-700 text-xl font-bold px-2"
+  >
+    ←
+  </button>
+
+  <h1 className="text-2xl font-bold text-gray-800">
+    Tasks
+  </h1>
+</div>
       {/* Tabs */}
       <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-xl">
         {["all", "process", "done"].map(t => (
