@@ -22,7 +22,6 @@ const Withdrawal: React.FC = () => {
   // Dynamic Inputs
   const [name, setName] = useState('');
   const [upiId, setUpiId] = useState('');
-  const [whatsapp, setWhatsapp] = useState('');
   const [email, setEmail] = useState('');
   const [bankDetails, setBankDetails] = useState({ acct: '', ifsc: '' });
   useEffect(() => {
@@ -65,10 +64,8 @@ const Withdrawal: React.FC = () => {
         if (!bankDetails.acct || !bankDetails.ifsc) { notify("Enter Bank Account & IFSC", 'error'); return; }
         detailsStr = `Bank: ${bankDetails.acct} | IFSC: ${bankDetails.ifsc} | Name: ${name}`;
     }
-    else if (method === WithdrawalMethod.WHATSAPP_PAY) {
-        if (!whatsapp) { notify("Enter WhatsApp Number", 'error'); return; }
-        detailsStr = `WhatsApp: ${whatsapp} | Name: ${name}`;
-    }
+
+      
     else {
         // Gift Cards (Amazon, Flipkart, PlayStore)
         if (!email) { notify("Enter Email to receive code", 'error'); return; }
@@ -104,7 +101,7 @@ const navigate = useNavigate();
     { id: WithdrawalMethod.AMAZON, label: 'Amazon', icon: <ShoppingBag size={18}/> },
     { id: WithdrawalMethod.FLIPKART, label: 'Flipkart', icon: <Gift size={18}/> },
     { id: WithdrawalMethod.PLAYSTORE, label: 'Play Store', icon: <Smartphone size={18}/> },
-    { id: WithdrawalMethod.WHATSAPP_PAY, label: 'WhatsApp', icon: <MessageCircle size={18}/> },
+   
   ];
 
   const renderInputs = () => {
@@ -129,13 +126,8 @@ const navigate = useNavigate();
                      </div>
                 </div>
               );
-          case WithdrawalMethod.WHATSAPP_PAY:
-               return (
-                <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase ml-1 mb-1">WhatsApp Number</label>
-                    <input type="tel" className="w-full border p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-100" placeholder="9876543210" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} />
-                </div>
-              );
+
+          
           default: // Gift Cards
                return (
                 <div>
