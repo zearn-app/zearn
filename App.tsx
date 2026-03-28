@@ -29,7 +29,6 @@ import AdminSettings from './pages/AdminSettings';
 
 // Context
 
-const location = useLocation();
 
 
 export const UserContext = React.createContext<{
@@ -155,6 +154,8 @@ useEffect(() => {
   
   if (loading) return <div className="flex h-screen items-center justify-center bg-blue-50 font-bold text-blue-600">Loading Zearn...</div>;
 
+  const location = useLocation();
+    
   return (
     <ErrorBoundary>
       <NotificationProvider>
