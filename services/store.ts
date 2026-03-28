@@ -291,16 +291,17 @@ async getTasks(isSpecial: boolean) {
 
   return snap.docs
     .map(doc => doc.data())
-    .filter(item => item.type === "task" && item.profit === true) // ✅ only completed tasks
+    .filter(item => item.type === "task" && item.profit === true)
     .map((item, index) => ({
-      id: index.toString(),
+      id: item.task_id || index.toString(), // ✅ use real task_id
       task_name: item.task_name || "Completed Task",
       is_special: false,
-      is_started: true,
-      started_by: uid
+      is_started: true,       // ✅ required for UI
+      started_by: uid         // ✅ required for UI
     }));
 },
 
+  
 async startTask(taskId: string, uid: string) {
   const ref = doc(db, "tasks", taskId);
 
