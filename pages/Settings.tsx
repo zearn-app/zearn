@@ -7,6 +7,8 @@ import { useContext } from 'react';
 import { UserContext } from '../App';
 import { Bell, User, Shield, ChevronRight, LogOut, History } from 'lucide-react';
 import { useNotification } from '../components/NotificationSystem';
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 const Settings: React.FC = () => {
   const navigate = useNavigate();
@@ -65,7 +67,18 @@ const Settings: React.FC = () => {
   );
 
   return (
-    <Layout title="Settings" showBack>
+    
+    <Layout>
+      <div className="flex items-center mb-4">
+  <button
+    onClick={() => navigate(-1)}
+    className="p-2 rounded-full hover:bg-gray-100 transition"
+  >
+    <ArrowLeft size={20} />
+  </button>
+
+  <h1 className="ml-2 font-bold text-lg">Settings</h1>
+</div>
        <div className="space-y-3">
           <p className="text-xs font-bold text-gray-400 uppercase ml-2 mb-2 mt-2">General</p>
           <SettingItem 
