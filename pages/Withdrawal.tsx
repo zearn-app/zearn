@@ -154,7 +154,7 @@ const navigate = useNavigate();
       <Layout>
       <div className="flex items-center mb-4">
   <button
-    onClick={() => navigate(-1)}
+    onClick={() => navigate("/login")}
     className="p-2 rounded-full hover:bg-gray-100 transition"
   >
     <ArrowLeft size={20} />
