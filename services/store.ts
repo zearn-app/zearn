@@ -1,5 +1,7 @@
 import { db } from "./firebase";
 import JSZip from "jszip";
+import { arrayUnion } from "firebase/firestore";
+
 import { runTransaction } from "firebase/firestore";
 import {
   collection,
