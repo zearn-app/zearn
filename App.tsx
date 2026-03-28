@@ -56,6 +56,24 @@ const App: React.FC = () => {
     console.error("User fetch error", e);
   }
 };
+
+
+const navigate = useNavigate();
+
+  useEffect(() => {
+    const handlePopState = () => {
+      // push user back to current page
+      navigate(1);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [navigate]);
+  
+  
 useEffect(() => {
   const cachedUser = localStorage.getItem("user");
 
