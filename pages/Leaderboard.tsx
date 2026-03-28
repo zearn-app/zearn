@@ -21,7 +21,7 @@ const Leaderboard: React.FC = () => {
                         🥈
                     </div>
                     <span className="font-bold text-xs text-gray-700 mb-1">{users[1].name}</span>
-                    <span className="font-bold text-blue-600 text-xs">{users[1].balance}</span>
+                    <span className="font-bold text-blue-600 text-xs">{users[1].balance.toFixed(4)}</span>
                 </div>
             )}
             
@@ -34,7 +34,7 @@ const Leaderboard: React.FC = () => {
                         <div className="absolute -bottom-2 bg-yellow-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">#1</div>
                     </div>
                     <span className="font-bold text-sm text-gray-900 mb-1">{users[0].name}</span>
-                    <span className="font-bold text-blue-600">{users[0].balance}</span>
+                    <span className="font-bold text-blue-600">{users[0].balance.toFixed(4)}</span>
                 </div>
             )}
 
@@ -45,7 +45,7 @@ const Leaderboard: React.FC = () => {
                         🥉
                     </div>
                     <span className="font-bold text-xs text-gray-700 mb-1">{users[2].name}</span>
-                    <span className="font-bold text-blue-600 text-xs">{users[2].balance}</span>
+                    <span className="font-bold text-blue-600 text-xs">{users[2].balance.toFixed(4)}</span>
                 </div>
             )}
          </div>
@@ -62,7 +62,7 @@ const Leaderboard: React.FC = () => {
               <h4 className="font-bold text-gray-800 text-sm">{u.name}</h4>
             </div>
             <div className="font-mono font-bold text-blue-600 text-sm">
-              {u.balance}
+              {u.balance.toFixed(4)}
             </div>
           </div>
         ))}
