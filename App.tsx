@@ -6,7 +6,7 @@ import { getRedirectResult } from 'firebase/auth';
 import { User } from './types';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { NotificationProvider } from './components/NotificationSystem';
-
+import { useLocation } from 'react-router-dom';
 // Pages
 import HistoryPage from './pages/History';
 import Onboarding from './pages/Onboarding';
@@ -28,6 +28,10 @@ import AdminUsers from './pages/AdminUsers';
 import AdminSettings from './pages/AdminSettings';
 
 // Context
+
+const location = useLocation();
+
+
 export const UserContext = React.createContext<{
   user: User | null;
   refreshUser: () => void;
@@ -69,7 +73,7 @@ useEffect(() => {
       console.log("Initializing app...");
       await Store.initializeAdmin();
       // ✅ If user already loaded from cache, skip overwrite
-      if (user) {
+      if (localStorage.getItem("user")) {
           console.log("Using cached user, skipping refresh");
           setLoading(false);
           return;
@@ -127,8 +131,23 @@ useEffect(() => {
   init();
 }, []);
 
+
   useEffect(() => {
-  if (user) {
+  const handleHashChange = () => {
+    console.log("Route changed:", window.location.hash);
+  };
+
+  window.addEventListener("hashchange", handleHashChange);
+
+  return () => {
+    window.removeEventListener("hashchange", handleHashChange);
+  };
+}, []);
+
+  
+
+  useEffect(() => {
+  if(user) {
     localStorage.setItem("user", JSON.stringify(user));
   }
 }, [user]);
@@ -141,7 +160,7 @@ useEffect(() => {
       <NotificationProvider>
         <UserContext.Provider value={{ user, refreshUser }}>
           <HashRouter>
-            <Routes>
+            <Routes location={location} key={location.pathname}>
               <Route path="/" element={<Navigate to="/login" />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/login" element={<Login />} />
