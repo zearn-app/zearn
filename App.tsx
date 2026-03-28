@@ -142,7 +142,7 @@ useEffect(() => {
         <UserContext.Provider value={{ user, refreshUser }}>
           <HashRouter>
             <Routes>
-              <Route path="/" element={<Navigate to="/login" />} />
+              <Route path="/" element={<Navigate to="/onboarding" />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/login" element={<Login />} />
               
