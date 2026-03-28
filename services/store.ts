@@ -112,8 +112,22 @@ loginUser: async (user: User) => {
   return user;
 },
 
-logoutUser: () => {
-  localStorage.removeItem("zearn_user");
+logoutUser: async () => {
+  try {
+    // 1️⃣ Firebase sign out
+    await auth.signOut();
+
+    // 2️⃣ Remove cached user from localStorage
+    localStorage.removeItem("zearn_user");
+
+    // 3️⃣ Clear any internal Store cache
+    await Store.setCurrentUser(null);
+
+    console.log("User logged out successfully");
+  } catch (err) {
+    console.error("Logout failed:", err);
+    throw err;
+  }
 },
 
 getCurrentUser: (): User | null => {
