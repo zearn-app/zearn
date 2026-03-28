@@ -6,7 +6,7 @@ import { getRedirectResult } from 'firebase/auth';
 import { User } from './types';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { NotificationProvider } from './components/NotificationSystem';
-import { useLocation } from 'react-router-dom';
+
 // Pages
 import HistoryPage from './pages/History';
 import Onboarding from './pages/Onboarding';
@@ -28,8 +28,6 @@ import AdminUsers from './pages/AdminUsers';
 import AdminSettings from './pages/AdminSettings';
 
 // Context
-
-
 export const UserContext = React.createContext<{
   user: User | null;
   refreshUser: () => void;
@@ -71,15 +69,10 @@ useEffect(() => {
       console.log("Initializing app...");
       await Store.initializeAdmin();
       // ✅ If user already loaded from cache, skip overwrite
-      if (localStorage.getItem("user")) {
-  console.log("Using cached user");
-
-  const cached = JSON.parse(localStorage.getItem("user")!);
-  setUser(cached);
-
-  // ❗ DO NOT RETURN
-  // Let Firebase continue to sync user
-
+      if (user) {
+          console.log("Using cached user, skipping refresh");
+          setLoading(false);
+          return;
       }
 
       // ✅ Handle redirect (keep this)
@@ -134,23 +127,8 @@ useEffect(() => {
   init();
 }, []);
 
-
   useEffect(() => {
-  const handleHashChange = () => {
-    console.log("Route changed:", window.location.hash);
-  };
-
-  window.addEventListener("hashchange", handleHashChange);
-
-  return () => {
-    window.removeEventListener("hashchange", handleHashChange);
-  };
-}, []);
-
-  
-
-  useEffect(() => {
-  if(user) {
+  if (user) {
     localStorage.setItem("user", JSON.stringify(user));
   }
 }, [user]);
@@ -158,60 +136,82 @@ useEffect(() => {
   
   if (loading) return <div className="flex h-screen items-center justify-center bg-blue-50 font-bold text-blue-600">Loading Zearn...</div>;
 
-  const location = useLocation();
-
-
-
-const AppRoutes = () => {
-  const location = useLocation();
-
   return (
-    <Routes location={location} key={location.pathname}>
-      <Route path="/" element={<Navigate to="/login" />} />
-      <Route path="/onboarding" element={<Onboarding />} />
-      <Route path="/login" element={<Login />} />
+    <ErrorBoundary>
+      <NotificationProvider>
+        <UserContext.Provider value={{ user, refreshUser }}>
+          <HashRouter>
+            <Routes>
+              <Route path="/" element={<Navigate to="/login" />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/login" element={<Login />} />
+              
+              {/* Protected Routes */}
 
-      <Route path="/home" element={user ? <Home /> : <Navigate to="/login" />} />
-      <Route path="/tasks/:type" element={user ? <TaskList /> : <Navigate to="/login" />} />
-      <Route path="/task-check/:taskId" element={user ? <TaskCheck /> : <Navigate to="/login" />} />
-      <Route path="/withdrawal" element={user ? <Withdrawal /> : <Navigate to="/login" />} />
-      <Route path="/leaderboard" element={user ? <Leaderboard /> : <Navigate to="/login" />} />
-      <Route path="/winner" element={user ? <RandomWinner /> : <Navigate to="/login" />} />
-      <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
-      <Route path="/profile/edit" element={user ? <EditProfile /> : <Navigate to="/login" />} />
-      <Route path="/settings" element={user ? <Settings /> : <Navigate to="/login" />} />
-      <Route path="/history" element={user ? <HistoryPage /> : <Navigate to="/login" />} />
+<Route
+  path="/home"
+  element={loading ? null : user ? <Home /> : <Navigate to="/login" />}
+/>
+              
+<Route
+  path="/tasks/:type"
+  element={loading ? null : user ? <TaskList /> : <Navigate to="/login" />}
+/>
+              
+<Route
+  path="/task-check/:taskId"
+  element={loading ? null : user ? <TaskCheck /> : <Navigate to="/login" />}
+/>
+              
+<Route
+  path="/withdrawal"
+  element={loading ? null : user ? <Withdrawal /> : <Navigate to="/login" />}
+/>
+              
+<Route
+  path="/leaderboard"
+  element={loading ? null : user ? <Leaderboard /> : <Navigate to="/login" />}
+/>
+              
+<Route
+  path="/winner"
+  element={loading ? null : user ? <RandomWinner /> : <Navigate to="/login" />}
+/>
+              
+<Route
+  path="/profile"
+  element={loading ? null : user ? <Profile /> : <Navigate to="/login" />}
+/>
+              
+<Route
+  path="/profile/edit"
+  element={loading ? null : user ? <EditProfile /> : <Navigate to="/login" />}
+/>
+              
+<Route
+  path="/settings"
+  element={loading ? null : user ? <Settings /> : <Navigate to="/login" />}
+/>
+              
+<Route
+  path="/history"
+  element={loading ? null : user ? <HistoryPage /> : <Navigate to="/login" />}
+/>
+              
 
-      <Route path="/about" element={<About />} />
+{/* Public routes */}
+<Route path="/about" element={<About />} />
 
-      <Route path="/admin" element={<AdminDashboard />} />
-      <Route path="/admin-tasks" element={<AdminTasks />} />
-      <Route path="/admin-withdrawals" element={<AdminWithdrawals />} />
-      <Route path="/admin-users" element={<AdminUsers />} />
-      <Route path="/admin-settings" element={<AdminSettings />} />
-    </Routes>
+{/* Admin routes with isAdmin check */}
+
+
+              
+          </Routes>
+          </HashRouter>
+        </UserContext.Provider>
+      </NotificationProvider>
+    </ErrorBoundary>
   );
-};
-
-
-
-
-
-  
-
-return (
-  <ErrorBoundary>
-    <NotificationProvider>
-      <UserContext.Provider value={{ user, refreshUser }}>
-        <HashRouter>
-          <AppRoutes />
-        </HashRouter>
-      </UserContext.Provider>
-    </NotificationProvider>
-  </ErrorBoundary>
-);
-
-  
 };
 
 export default App;
