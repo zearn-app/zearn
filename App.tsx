@@ -46,7 +46,7 @@ const App: React.FC = () => {
     const u = await Store.getCurrentUser();
 
     if (!u) {
-      console.warn("No user in Store");
+      console.warn("No user  in Store");
     }
     if (u) {
       setUser(u);
