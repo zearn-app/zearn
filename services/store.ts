@@ -522,49 +522,115 @@ getLeaderboard: async () => {
 
 //////////////////////////// RANDOM WINNER ////////////////////////////
 
-getWinnerEntries: async (): Promise<WinnerEntry[]> => {
-  const snap = await getDocs(collection(db, "winners"));
+static async getRandomConfig() {
+  const doc = await getDoc(doc(db, "randomSettings", "config"));
+  return doc.data();
+  },
 
-  return snap.docs.map(d => ({
-    id: d.id,
-    ...(d.data() as any)
-  })) as WinnerEntry[];
+static async getOrCreateMonth(month: string) {
+  const ref = doc(db, "randomSettings", month);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    const newData = {
+      userList: [],
+      winner: null,
+      winnerName: null,
+      winningAmount: 0,
+      totalUsers: 0,
+      totalAmount: 0,
+      status: "process",
+      createdAt: Date.now(),
+    };
+
+    await setDoc(ref, newData);
+    return newData;
+  }
+
+  return snap.data();
 },
 
-enterRandomWinner: async (uid: string, fee: number) => {
-
+static async enterMonthlyRandom(uid: string, month: string, amount: number) {
   const userRef = doc(db, "users", uid);
-  const snap = await getDoc(userRef);
+  const monthRef = doc(db, "randomSettings", month);
 
-  if (!snap.exists()) throw new Error("User not found");
+  await runTransaction(db, async (tx) => {
+    const userSnap = await tx.get(userRef);
+    const monthSnap = await tx.get(monthRef);
 
-  const data = snap.data();
-  if (!data) throw new Error("User data missing");
+    if (!userSnap.exists()) throw new Error("User not found");
+    if (!monthSnap.exists()) throw new Error("Month not found");
 
-  if (data.balance < fee) throw new Error("Low balance");
+    const user = userSnap.data();
+    const monthData = monthSnap.data();
 
-  const batch = writeBatch(db);
+    if (monthData.userList.includes(uid)) {
+      throw new Error("Already joined");
+    }
 
-  batch.update(userRef, {
-    balance: increment(-fee)
+    if (user.balance < amount) {
+      throw new Error("Insufficient balance");
+    }
+
+    // Update user
+    tx.update(userRef, {
+      balance: user.balance - amount,
+      history: [
+        ...(user.history || []),
+        {
+          type: "random_entry",
+          monthYear: month,
+          amount,
+          profit: false,
+          createdAt: Date.now(),
+        },
+      ],
+    });
+
+    // Update month
+    tx.update(monthRef, {
+      userList: [...monthData.userList, uid],
+      totalUsers: monthData.totalUsers + 1,
+      totalAmount: monthData.totalAmount + amount,
+    });
   });
+  },
 
-  const entry: WinnerEntry = {
-    uid,
-    name: data.name,
-    avatarChar: data.name.charAt(0),
-    amountSpent: fee,
-    month: new Date().toISOString(),
-    timestamp: new Date().toISOString()
-  };
+static async declareWinner(month: string, winnerId: string) {
+  const userRef = doc(db, "users", winnerId);
+  const monthRef = doc(db, "randomSettings", month);
 
-  const ref = doc(collection(db, "winners"));
+  await runTransaction(db, async (tx) => {
+    const userSnap = await tx.get(userRef);
+    const monthSnap = await tx.get(monthRef);
 
-  batch.set(ref, entry);
+    const monthData = monthSnap.data();
+    const user = userSnap.data();
 
-  await batch.commit();
-},
+    const amount = monthData.totalAmount;
 
+    tx.update(userRef, {
+      balance: user.balance + amount,
+      history: [
+        ...(user.history || []),
+        {
+          type: "random_win",
+          monthYear: month,
+          amount,
+          profit: true,
+          createdAt: Date.now(),
+        },
+      ],
+    });
+
+    tx.update(monthRef, {
+      winner: winnerId,
+      winnerName: user.name,
+      winningAmount: amount,
+      status: "completed",
+    });
+  });
+      },
 //////////////////////////// DAILY CLAIM ////////////////////////////
 
 checkDailyClaimStatus: async (uid: string): Promise<boolean> => {
