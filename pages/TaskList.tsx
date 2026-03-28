@@ -19,6 +19,19 @@ const TaskList: React.FC = () => {
     loadCompleted();
   }, [type, user]);
 
+  
+  const loadCompleted = async () => {
+  if (!user?.uid) return;
+
+  try {
+    const history = await Store.getCompletedTasks(user.uid);
+    setCompletedTasks(history);
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+  
   const loadTasks = async () => {
     setLoading(true);
     const data = await Store.getTasks(type === "special");
