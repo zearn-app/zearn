@@ -16,6 +16,7 @@ const TaskList: React.FC = () => {
   useEffect(() => {
     if (!user?.uid) return;
     loadTasks();
+    loadCompleted();
   }, [type, user]);
 
   const loadTasks = async () => {
