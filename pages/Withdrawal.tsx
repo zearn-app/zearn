@@ -5,6 +5,8 @@ import { WithdrawalMethod, WithdrawalRequest, WithdrawalStatus } from '../types'
 import { Store } from '../services/store';
 import { useNotification } from '../components/NotificationSystem';
 import { Wallet, Send, Building2, Smartphone, Gift, ShoppingBag, MessageCircle, Mail } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 const Withdrawal: React.FC = () => {
   const { user, refreshUser } = useContext(UserContext);
@@ -95,7 +97,7 @@ const Withdrawal: React.FC = () => {
       notify(e.message || "Withdrawal failed", 'error');
     }
   };
-
+const navigate = useNavigate();
   const methods = [
     { id: WithdrawalMethod.UPI, label: 'UPI', icon: <Smartphone size={18}/> },
     { id: WithdrawalMethod.BANK, label: 'Bank', icon: <Building2 size={18}/> },
@@ -148,7 +150,18 @@ const Withdrawal: React.FC = () => {
   };
 
   return (
-    <Layout title="Withdrawal" showBack>
+   
+      
+      <div className="flex items-center mb-4">
+  <button
+    onClick={() => navigate(-1)}
+    className="p-2 rounded-full hover:bg-gray-100 transition"
+  >
+    <ArrowLeft size={20} />
+  </button>
+
+  <h1 className="ml-2 font-bold text-lg">Withdrawal</h1>
+</div>
       {/* Balance Header */}
       <div className="bg-gray-900 text-white p-6 rounded-2xl mb-6 flex justify-between items-center shadow-lg">
         <div>
@@ -196,6 +209,7 @@ const Withdrawal: React.FC = () => {
                 {renderInputs()}
 
                 <div>
+                  
                     <label className="block text-xs font-bold text-gray-500 uppercase ml-1 mb-1">Amount</label>
                     <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-400">₹</span>
