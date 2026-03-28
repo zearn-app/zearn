@@ -30,7 +30,6 @@ import AdminSettings from './pages/AdminSettings';
 // Context
 
 
-
 export const UserContext = React.createContext<{
   user: User | null;
   refreshUser: () => void;
@@ -195,93 +194,19 @@ const AppRoutes = () => {
 
   
 
-
+return (
+  <ErrorBoundary>
+    <NotificationProvider>
+      <UserContext.Provider value={{ user, refreshUser }}>
+        <HashRouter>
+          <AppRoutes />
+        </HashRouter>
+      </UserContext.Provider>
+    </NotificationProvider>
+  </ErrorBoundary>
+);
 
   
-  return (
-    <ErrorBoundary>
-      <NotificationProvider>
-        <UserContext.Provider value={{ user, refreshUser }}>
-        <HashRouter>
-  <AppRoutes />
-</HashRouter>
-          
-          <Route path="/" element={<Navigate to="/login" />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/login" element={<Login />} />
-              
-              {/* Protected Routes */}
-
-<Route
-  path="/home"
-  element={loading ? null : user ? <Home /> : <Navigate to="/login" />}
-/>
-              
-<Route
-  path="/tasks/:type"
-  element={loading ? null : user ? <TaskList /> : <Navigate to="/login" />}
-/>
-              
-<Route
-  path="/task-check/:taskId"
-  element={loading ? null : user ? <TaskCheck /> : <Navigate to="/login" />}
-/>
-              
-<Route
-  path="/withdrawal"
-  element={loading ? null : user ? <Withdrawal /> : <Navigate to="/login" />}
-/>
-              
-<Route
-  path="/leaderboard"
-  element={loading ? null : user ? <Leaderboard /> : <Navigate to="/login" />}
-/>
-              
-<Route
-  path="/winner"
-  element={loading ? null : user ? <RandomWinner /> : <Navigate to="/login" />}
-/>
-              
-<Route
-  path="/profile"
-  element={loading ? null : user ? <Profile /> : <Navigate to="/login" />}
-/>
-              
-<Route
-  path="/profile/edit"
-  element={loading ? null : user ? <EditProfile /> : <Navigate to="/login" />}
-/>
-              
-<Route
-  path="/settings"
-  element={loading ? null : user ? <Settings /> : <Navigate to="/login" />}
-/>
-              
-<Route
-  path="/history"
-  element={loading ? null : user ? <HistoryPage /> : <Navigate to="/login" />}
-/>
-              
-
-{/* Public routes */}
-<Route path="/about" element={<About />} />
-
-{/* Admin routes with isAdmin check */}
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin-tasks" element={<AdminTasks />} />
-              <Route path="/admin-withdrawals" element={<AdminWithdrawals />} />
-              <Route path="/admin-users" element={<AdminUsers />} />
-              <Route path="/admin-settings" element={<AdminSettings />} />
-
-              
-
-              
-          </Routes>
-          </HashRouter>
-        </UserContext.Provider>
-      </NotificationProvider>
-    </ErrorBoundary>
-  );
 };
 
 export default App;
