@@ -24,12 +24,18 @@ const Settings: React.FC = () => {
   }, [notifications]);
 
   const handleLogout = async () => {
-    if (window.confirm("Are you sure you want to logout?")) {
-        Store.logoutUser();
-        await refreshUser(); 
-    }
+  if (!window.confirm("Are you sure you want to logout?")) return;
+
+  try {
+    await Store.logoutUser();       // clear Store + Firebase + localStorage
+    refreshUser();                  // refresh context
+    navigate("/login", { replace: true }); // redirect immediately
+  } catch (e) {
+    notify("Logout failed. Try again.", "error");
+  }
   };
 
+  
   const handleToggle = (type: 'notif') => {
       setNotifications(!notifications);
       notify(notifications ? "Notifications Disabled" : "Notifications Enabled", 'success');
