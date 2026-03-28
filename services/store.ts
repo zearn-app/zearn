@@ -522,11 +522,15 @@ getLeaderboard: async () => {
 
 //////////////////////////// RANDOM WINNER ////////////////////////////
 
- async getRandomConfig() {
-  const doc = await getDoc(doc(db, "randomSettings", "config"));
-  return doc.data();
-  },
+async getRandomConfig() {
+  const snap = await getDoc(doc(db, "randomSettings", "config"));
 
+  if (!snap.exists()) {
+    throw new Error("Config not found");
+  }
+
+  return snap.data();
+  },
  async getOrCreateMonth(month: string) {
   const ref = doc(db, "randomSettings", month);
   const snap = await getDoc(ref);
