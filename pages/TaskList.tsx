@@ -155,12 +155,17 @@ const TaskList: React.FC = () => {
       )}
 
       {/* Completed */}
-      {!loading && tab === "done" && (
-        <div className="text-center text-gray-400">
-          No completed tasks yet 🚀
-        </div>
-      )}
-
+{!loading && tab === "done" && (
+  <>
+    {completedTasks.length === 0 ? (
+      <div className="text-center text-gray-400">
+        No completed tasks yet 🚀
+      </div>
+    ) : (
+      completedTasks.map(task => renderTaskCard(task, true))
+    )}
+  </>
+)}
     </div>
   );
 };
