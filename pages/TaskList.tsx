@@ -21,7 +21,7 @@ const TaskList: React.FC = () => {
 
   useEffect(() => {
   const handleBack = () => {
-    navigate("/home"); // 👈 change if your home route is different
+    navigate("/login"); // 👈 change if your home route is different
   };
 
   window.addEventListener("popstate", handleBack);
@@ -116,7 +116,7 @@ const TaskList: React.FC = () => {
       
            <div className="flex items-center gap-3 mb-4">
   <button
-    onClick={() => navigate("/home")}
+    onClick={() => navigate("/login")}
     className="text-gray-700 text-xl font-bold px-2"
   >
     ←
