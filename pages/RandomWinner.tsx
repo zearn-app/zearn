@@ -33,20 +33,28 @@ const RandomWinner: React.FC = () => {
     init();
   }, []);
 
-  const init = async () => {
-    try {
-      const config = await Store.getRandomConfig();
-      setEntryAmount(config.entryAmount);
+const init = async () => {
+  try {
+    console.log("Loading Random System...");
 
-      const data = await Store.getOrCreateMonth(currentMonth);
-      setMonthData(data);
-    } catch (e) {
-      notify("Failed to load data", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const config = await Store.getRandomConfig();
+    console.log("Config:", config);
 
+    const data = await Store.getOrCreateMonth(currentMonth);
+    console.log("Month Data:", data);
+
+    setEntryAmount(config?.entryAmount || 0);
+    setMonthData(data);
+
+  } catch (e: any) {
+    console.error("FULL ERROR:", e);
+    notify(e.message || "Failed to load data", "error");
+  } finally {
+    setLoading(false);
+  }
+};
+
+  
   const handleEnter = async () => {
     if (!user) return;
 
