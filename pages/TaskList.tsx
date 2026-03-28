@@ -62,11 +62,13 @@ const TaskList: React.FC = () => {
   const renderTaskCard = (task: any, isProcess = false) => (
     <div
       key={task.id}
-      onClick={() =>
-        isProcess
-          ? navigate(`/task-check/${task.id}`)
-          : handleStart(task)
-      }
+      onClick={() => {
+  if (isProcess && task.id) {
+    navigate(`/task-check/${task.id}`);
+  } else if (!isProcess) {
+    handleStart(task);
+  }
+}}
       className="bg-white rounded-2xl shadow-md p-4 mb-4 cursor-pointer 
                  hover:shadow-xl transition-all duration-300 border"
     >
