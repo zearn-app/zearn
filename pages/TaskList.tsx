@@ -89,10 +89,12 @@ const TaskList: React.FC = () => {
       </div>
 
       <div className="mt-2 text-sm text-gray-500">
-        {isProcess
-          ? "Continue your task →"
-          : "Tap to start task"}
-      </div>
+       {task.is_completed
+           ? "Task is completed"
+           : isProcess
+           ? "Continue your task →"
+           : "Tap to start task"}
+       </div>
     </div>
   );
 
