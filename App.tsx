@@ -6,7 +6,8 @@ import { getRedirectResult } from 'firebase/auth';
 import { User } from './types';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { NotificationProvider } from './components/NotificationSystem';
-
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 // Pages
 import HistoryPage from './pages/History';
 import Onboarding from './pages/Onboarding';
