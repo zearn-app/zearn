@@ -6,8 +6,7 @@ import { getRedirectResult } from 'firebase/auth';
 import { User } from './types';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { NotificationProvider } from './components/NotificationSystem';
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+
 // Pages
 import HistoryPage from './pages/History';
 import Onboarding from './pages/Onboarding';
@@ -58,21 +57,7 @@ const App: React.FC = () => {
 };
 
 
-const navigate = useNavigate();
 
-  useEffect(() => {
-    const handlePopState = () => {
-      // push user back to current page
-      navigate(1);
-    };
-
-    window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [navigate]);
-  
   
 useEffect(() => {
   const cachedUser = localStorage.getItem("user");
