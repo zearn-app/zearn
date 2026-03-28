@@ -15,15 +15,31 @@ const Home: React.FC = () => {
 
 
   useEffect(() => {
-  const interval = setInterval(async () => {
+  let isMounted = true;
+
+  const fetchUserData = async () => {
     if (!user) return;
-    const freshUser = await Store.getUserById(user.uid);
-    if (freshUser) refreshUser();
-  }, 30000); // every 30s
+    try {
+      const freshUser = await Store.getUserById(user.uid); // Fetch latest from backend
+      if (freshUser && isMounted) {
+        refreshUser(freshUser); // Pass the new user to update context
+      }
+    } catch (e) {
+      console.error("Failed to refresh user:", e);
+    }
+  };
 
-  return () => clearInterval(interval);
-}, [user]);
+  // Initial fetch on mount
+  fetchUserData();
 
+  // Interval fetch every 30 seconds
+  const interval = setInterval(fetchUserData, 30000);
+
+  return () => {
+    isMounted = false;
+    clearInterval(interval);
+  };
+}, [user, refreshUser]);
   
   const handleDailyClaim = async () => {
     if (!user) return;
