@@ -558,7 +558,6 @@ async getRandomConfig() {
   return snap.data();
 },
 
-  
 async enterMonthlyRandom(uid: string, month: string, amount: number) {
   const userRef = doc(db, "users", uid);
   const monthRef = doc(db, "randomSettings", month);
@@ -581,19 +580,9 @@ async enterMonthlyRandom(uid: string, month: string, amount: number) {
       throw new Error("Insufficient balance");
     }
 
-    // Create history entry
-    const historyEntry = {
-      type: "random_entry",
-      monthYear: month,
-      amount,
-      profit: false,
-      createdAt: Date.now(),
-    };
-
-    // ✅ Update user safely
+    // ✅ Deduct balance
     tx.update(userRef, {
       balance: user.balance - amount,
-      history: arrayUnion(historyEntry),
     });
 
     // ✅ Update month
@@ -603,9 +592,20 @@ async enterMonthlyRandom(uid: string, month: string, amount: number) {
       totalAmount: monthData.totalAmount + amount,
     });
   });
-    },
 
-  
+  // ✅ OUTSIDE transaction → add history document
+  const historyRef = collection(db, "users", uid, "history");
+
+  await addDoc(historyRef, {
+    type: "random_entry",
+    monthYear: month,
+    amount,
+    profit: false,
+    createdAt: Date.now(),
+  });
+},
+
+
 async declareWinner(month: string, winnerId: string) {
   const userRef = doc(db, "users", winnerId);
   const monthRef = doc(db, "randomSettings", month);
