@@ -352,7 +352,7 @@ async completeTask(task: any, uid: string, zipFile: File) {
     task_name: task.task_name,
     task_id: task.id,
     date: new Date(),
-    type: task.is_special ? "special" : "standard",
+    type: task.is_special ? "special" : "task",
     profit: true
   };
 
