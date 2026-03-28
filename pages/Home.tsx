@@ -89,9 +89,9 @@ const Home: React.FC = () => {
   action: () => navigate('/tasks/special', { replace: true }) 
 },
     
-    { label: 'Withdraw', icon: <Wallet className="text-blue-500" />, action: () => navigate('/withdrawal') },
-    { label: 'Leaderboard', icon: <Trophy className="text-orange-500" />, action: () => navigate('/leaderboard') },
-    { label: 'Lucky Winner', icon: <Shuffle className="text-pink-500" />, action: () => navigate('/winner') },
+    { label: 'Withdraw', icon: <Wallet className="text-blue-500" />, action: () => navigate('/withdrawal', { replace: true })},
+    { label: 'Leaderboard', icon: <Trophy className="text-orange-500" />, action: () => navigate('/leaderboard',{ replace: true }) },
+    { label: 'Lucky Winner', icon: <Shuffle className="text-pink-500" />, action: () => navigate('/winner' , { replace: true })},
   ];
 
   const getDayCount = () => {
