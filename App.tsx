@@ -153,27 +153,57 @@ useEffect(() => {
   element={loading ? null : user ? <Home /> : <Navigate to="/login" />}
 />
               
-      
-              <Route path="/tasks/:type" element={user ? <TaskList /> : <Navigate to="/login" />} />
-              <Route path="/task-check/:taskId" element={user ? <TaskCheck /> : <Navigate to="/login" />} />
-             
-              <Route path="/withdrawal" element={user ? <Withdrawal /> : <Navigate to="/login" />} />
+<Route
+  path="/tasks/:type"
+  element={loading ? null : user ? <TaskList /> : <Navigate to="/login" />}
+/>
               
-              <Route path="/leaderboard" element={user ? <Leaderboard /> : <Navigate to="/login" />} />
-             
-              <Route path="/winner" element={user ? <RandomWinner /> : <Navigate to="/login" />} />
-             
-              <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
-              <Route path="/profile/edit" element={user ? <EditProfile /> : <Navigate to="/login" />} />
-              <Route path="/settings" element={user ? <Settings /> : <Navigate to="/login" />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/history" element={user ? <HistoryPage /> : <Navigate to="/login" />} />
+<Route
+  path="/task-check/:taskId"
+  element={loading ? null : user ? <TaskCheck /> : <Navigate to="/login" />}
+/>
               
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin-tasks" element={<AdminTasks />} />
-              <Route path="/admin-withdrawals" element={<AdminWithdrawals />} />
-              <Route path="/admin-users" element={<AdminUsers />} />
-              <Route path="/admin-settings" element={<AdminSettings />} />
+<Route
+  path="/withdrawal"
+  element={loading ? null : user ? <Withdrawal /> : <Navigate to="/login" />}
+/>
+              
+<Route
+  path="/leaderboard"
+  element={loading ? null : user ? <Leaderboard /> : <Navigate to="/login" />}
+/>
+              
+<Route
+  path="/winner"
+  element={loading ? null : user ? <RandomWinner /> : <Navigate to="/login" />}
+/>
+              
+<Route
+  path="/profile"
+  element={loading ? null : user ? <Profile /> : <Navigate to="/login" />}
+/>
+              
+<Route
+  path="/profile/edit"
+  element={loading ? null : user ? <EditProfile /> : <Navigate to="/login" />}
+/>
+              
+<Route
+  path="/settings"
+  element={loading ? null : user ? <Settings /> : <Navigate to="/login" />}
+/>
+              
+<Route
+  path="/history"
+  element={loading ? null : user ? <HistoryPage /> : <Navigate to="/login" />}
+/>
+              
+
+{/* Public routes */}
+<Route path="/about" element={<About />} />
+
+{/* Admin routes with isAdmin check */}
+
 
               
           </Routes>
