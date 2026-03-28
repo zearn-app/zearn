@@ -159,7 +159,7 @@ const Home: React.FC = () => {
 
       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-4 mb-6 text-white flex justify-between items-center shadow-md relative overflow-hidden">
           <div className="z-10">
-              <h3 className="font-bold text-lg">Refer & Earn ₹50</h3>
+              <h3 className="font-bold text-lg">Refer & Earn 1 referal coin </h3>
               <p className="text-indigo-100 text-xs mb-2">Invite friends with your code</p>
               <button onClick={copyReferral} className="bg-white text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center shadow-sm active:scale-95 transition">
                   <Copy size={12} className="mr-1"/> {user?.referralCode || '...'}
