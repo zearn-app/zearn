@@ -27,6 +27,7 @@ import AdminTasks from './pages/AdminTasks';
 import AdminWithdrawals from './pages/AdminWithdrawals';
 import AdminUsers from './pages/AdminUsers';
 import AdminSettings from './pages/AdminSettings';
+import referal from './pages/referal';
 
 // Context
 export const UserContext = React.createContext<{
