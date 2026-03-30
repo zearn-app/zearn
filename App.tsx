@@ -212,7 +212,11 @@ useEffect(() => {
 <Route path="/about" element={<About />} />
 
 {/* Admin routes with isAdmin check */}
-
+<Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin-tasks" element={<AdminTasks />} />
+              <Route path="/admin-withdrawals" element={<AdminWithdrawals />} />
+              <Route path="/admin-users" element={<AdminUsers />} />
+              <Route path="/admin-settings" element={<AdminSettings />} />
 
               
           </Routes>
