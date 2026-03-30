@@ -641,6 +641,76 @@ async declareWinner(month: string, winnerId: string) {
     });
   });
       },
+//////////////////////////// referal  ////////////////////////////
+
+export const applyReferralCode = async (uid: string, code: string) => {
+  const userRef = doc(db, "users", uid);
+  const userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) throw new Error("User not found");
+
+  const userData = userSnap.data();
+
+  // ❌ Already used
+  if (userData.referredBy) {
+    throw new Error("Referral already used");
+  }
+
+  // ❌ Own code
+  if (userData.referralCode === code) {
+    throw new Error("You cannot use your own code");
+  }
+
+  // 🔍 Find user with this code
+  const usersRef = collection(db, "users");
+  const snapshot = await getDocs(usersRef);
+
+  let referrer: any = null;
+
+  snapshot.forEach((docSnap) => {
+    if (docSnap.data().referralCode === code) {
+      referrer = { id: docSnap.id, ...docSnap.data() };
+    }
+  });
+
+  if (!referrer) throw new Error("Invalid referral code");
+
+  // 🎁 Reward Config
+  const RP = 1;
+
+  // ✅ Update current user
+  await updateDoc(userRef, {
+    referredBy: code,
+    balance: increment(RP)
+  });
+
+  // ✅ Update referrer
+  const referrerRef = doc(db, "users", referrer.id);
+  await updateDoc(referrerRef, {
+    balance: increment(RP),
+    totalReferrals: increment(1)
+  });
+
+  // 📜 History (User B)
+  await addDoc(collection(db, "users", uid, "history"), {
+    type: "referral",
+    amount: RP,
+    profit: true,
+    createdAt: new Date()
+  });
+
+  // 📜 History (User A)
+  await addDoc(collection(db, "users", referrer.id, "history"), {
+    type: "referral",
+    amount: RP,
+    profit: true,
+    createdAt: new Date()
+  });
+},
+
+
+
+
 //////////////////////////// DAILY CLAIM ////////////////////////////
 
 checkDailyClaimStatus: async (uid: string): Promise<boolean> => {
