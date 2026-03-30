@@ -177,6 +177,32 @@ adminAddCoins: async (uid: string, amount: number) => {
   });
 },
 
+adminLogin: async (password: string) => {
+    try {
+      const snap = await getDoc(doc(db, "settings", "admin"));
+
+      if (!snap.exists()) {
+        return { success: password === "admin" }; // fallback
+      }
+
+      const data = snap.data();
+
+      if (data?.adminPassword === password) {
+        return { success: true };
+      }
+
+      return { success: false };
+    } catch (e) {
+      console.log("Admin login error:", e);
+      return { success: false };
+    }
+  },
+
+  adminAddCoins: async (uid: string, amount: number) => {
+    await updateDoc(doc(db, "users", uid), {
+      balance: increment(amount),
+    });
+  },  
 //////////////////////////// SETTINGS ////////////////////////////
 
 getSettings: async (): Promise<AdminSettings> => {
