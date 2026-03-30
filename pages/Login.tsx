@@ -226,7 +226,7 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleAdminLogin = async () => {
+ const handleAdminLogin = async () => {
   if (!adminPass) {
     notify("Enter Admin Password", "error");
     return;
@@ -235,26 +235,13 @@ const Login: React.FC = () => {
   setLoading(true);
 
   try {
-    // Default password
-    let isValid = adminPass === "admin";
+    const res = await Store.adminLogin(adminPass); // 🔥 call backend
 
-    // Optional: check from settings (if exists)
-    try {
-      const settings = await Store.getSettings();
-      if (settings?.adminPassword === adminPass) {
-        isValid = true;
-      }
-    } catch (e) {
-      console.log("Settings fetch failed, using default password");
-    }
-
-    if (!isValid) {
+    if (!res?.success) {
       notify("Invalid Admin Password", "error");
-      setLoading(false);
       return;
     }
 
-    // ✅ DIRECT NAVIGATION (NO USER LOGIN)
     notify("Welcome Admin 🚀", "success");
     setShowAdminDialog(false);
     setAdminPass("");
