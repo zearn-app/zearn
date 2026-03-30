@@ -198,11 +198,7 @@ adminLogin: async (password: string) => {
     }
   },
 
-  adminAddCoins: async (uid: string, amount: number) => {
-    await updateDoc(doc(db, "users", uid), {
-      balance: increment(amount),
-    });
-  },  
+    
 //////////////////////////// SETTINGS ////////////////////////////
 
 getSettings: async (): Promise<AdminSettings> => {
