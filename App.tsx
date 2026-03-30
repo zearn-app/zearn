@@ -162,7 +162,7 @@ useEffect(() => {
   element={loading ? null : user ? <Home /> : <Navigate to="/login" />}
 />
 
-<Route path="/referral" element={<Referral />} />
+<Route path="/referal" element={<referal />} />
               
 <Route
   path="/tasks/:type"
