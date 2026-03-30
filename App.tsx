@@ -27,8 +27,7 @@ import AdminTasks from './pages/AdminTasks';
 import AdminWithdrawals from './pages/AdminWithdrawals';
 import AdminUsers from './pages/AdminUsers';
 import AdminSettings from './pages/AdminSettings';
-import referal from './pages/referal';
-
+import Referral from './pages/referal';
 // Context
 export const UserContext = React.createContext<{
   user: User | null;
@@ -161,8 +160,7 @@ useEffect(() => {
   path="/home"
   element={loading ? null : user ? <Home /> : <Navigate to="/login" />}
 />
-
-<Route path="/referal" element={<referal />} />
+<Route path="/referal" element={<Referral />} />
               
 <Route
   path="/tasks/:type"
