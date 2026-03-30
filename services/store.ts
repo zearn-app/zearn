@@ -643,7 +643,8 @@ async declareWinner(month: string, winnerId: string) {
       },
 //////////////////////////// referal  ////////////////////////////
 
-export const applyReferralCode = async (uid: string, code: string) => {
+
+applyReferralCode = async (uid: string, code: string) => {
   const userRef = doc(db, "users", uid);
   const userSnap = await getDoc(userRef);
 
