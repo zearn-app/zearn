@@ -96,6 +96,12 @@ const Settings: React.FC = () => {
   label="History" 
   action={() => navigate('/history')} 
 />
+
+<SettingItem   
+  icon={<Users size={20}/>}   
+  label="Referral"   
+  action={() => navigate('/referral')}   
+/>
           <SettingItem 
             icon={<User size={20}/>} 
             label="About Us"
