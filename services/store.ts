@@ -644,7 +644,7 @@ async declareWinner(month: string, winnerId: string) {
 //////////////////////////// referal  ////////////////////////////
 
 
-applyReferralCode = async (uid: string, code: string) => {
+export async function applyReferralCode(uid: string, code: string) {
   const userRef = doc(db, "users", uid);
   const userSnap = await getDoc(userRef);
 
