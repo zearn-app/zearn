@@ -681,20 +681,20 @@ applyReferralCode: async (uid: string, code: string) => {
   // ✅ Update current user
   await updateDoc(userRef, {
     referredBy: code,
-    balance: increment(RP)
+    RP: increment(RP)
   });
 
   // ✅ Update referrer
   const referrerRef = doc(db, "users", referrer.id);
   await updateDoc(referrerRef, {
-    balance: increment(RP),
+    RP: increment(RP),
     totalReferrals: increment(1)
   });
 
   // 📜 History (User B)
   await addDoc(collection(db, "users", uid, "history"), {
     type: "referral",
-    amount: RP,
+    amount: "1 RP",
     profit: true,
     createdAt: new Date()
   });
@@ -702,7 +702,7 @@ applyReferralCode: async (uid: string, code: string) => {
   // 📜 History (User A)
   await addDoc(collection(db, "users", referrer.id, "history"), {
     type: "referral",
-    amount: RP,
+    amount: "1 RP",
     profit: true,
     createdAt: new Date()
   });
