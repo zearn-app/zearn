@@ -709,7 +709,36 @@ applyReferralCode: async (uid: string, code: string) => {
 },
 
 
+  async getReferredUsers(uid: string) {
+    try {
+      // 1. Get current user to access their referralCode
+      const currentUser = await this.getCurrentUser();
 
+      if (!currentUser?.referralCode) {
+        console.warn("No referral code found for user");
+        return [];
+      }
+
+      // 2. Query users where referredBy = my referralCode
+      const q = query(
+        collection(db, "users"),
+        where("referredBy", "==", currentUser.referralCode)
+      );
+
+      const snapshot = await getDocs(q);
+
+      // 3. Map results
+      const users = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      return users;
+    } catch (error) {
+      console.error("Error fetching referred users:", error);
+      return [];
+    }
+  },
 
 //////////////////////////// DAILY CLAIM ////////////////////////////
 
