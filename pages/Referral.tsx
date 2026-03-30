@@ -63,7 +63,7 @@ const Referral: React.FC = () => {
 
       {/* ✅ NEW: Total RP Card */}
       <div className="bg-yellow-50 p-4 rounded-xl shadow mb-4 border border-yellow-200">
-        <p className="text-yellow-600 text-sm">Total Referral RP</p>
+        <p className="text-yellow-600 text-sm">Total user referred by you !</p>
         <h2 className="text-2xl font-bold text-yellow-700">{totalRP} RP</h2>
       </div>
 
