@@ -57,7 +57,8 @@ const Referral: React.FC = () => {
       {user?.referredBy && (
         <div className="bg-green-50 p-4 rounded-xl shadow mb-4 border border-green-200">
           <p className="text-green-700 text-sm font-medium">
-            You have been referred by <span className="font-bold">{user.referredBy}</span>.
+            You have been referred by{" "}
+            <span className="font-bold">{user.referredBy}</span>.
           </p>
           <p className="text-green-600 text-sm mt-1">
             You can't use another referral code to get extra RP.
@@ -68,26 +69,27 @@ const Referral: React.FC = () => {
         </div>
       )}
 
-      {/* Enter Code */}
-      <div className="bg-blue-50 p-4 rounded-xl shadow border border-blue-100">
-        <p className="text-blue-500 text-sm">Enter Referral Code</p>
+      {/* Enter Code (ONLY if NOT referred) */}
+      {!user?.referredBy && (
+        <div className="bg-blue-50 p-4 rounded-xl shadow border border-blue-100">
+          <p className="text-blue-500 text-sm">Enter Referral Code</p>
 
-        <input
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="Enter code"
-          className="w-full border border-blue-200 p-2 rounded mt-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          disabled={user?.referredBy}
-        />
+          <input
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="Enter code"
+            className="w-full border border-blue-200 p-2 rounded mt-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
 
-        <button
-          onClick={applyCode}
-          disabled={loading || user?.referredBy}
-          className="mt-3 w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition disabled:bg-blue-200 disabled:cursor-not-allowed"
-        >
-          {user?.referredBy ? "Already Used" : "Apply Code"}
-        </button>
-      </div>
+          <button
+            onClick={applyCode}
+            disabled={loading}
+            className="mt-3 w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition disabled:bg-blue-200 disabled:cursor-not-allowed"
+          >
+            Apply Code
+          </button>
+        </div>
+      )}
     </Layout>
   );
 };
