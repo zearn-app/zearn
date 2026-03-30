@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Layout } from "../components/Layout";
 import { UserContext } from "../App";
 import { Store } from "../services/store";
@@ -10,6 +10,10 @@ const Referral: React.FC = () => {
 
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // ✅ NEW STATES
+  const [referredUsers, setReferredUsers] = useState<any[]>([]);
+  const [totalRP, setTotalRP] = useState(0);
 
   const myCode = user?.referralCode || "";
 
@@ -34,9 +38,34 @@ const Referral: React.FC = () => {
     setLoading(false);
   };
 
+  // ✅ NEW: Fetch referred users
+  useEffect(() => {
+    const fetchReferrals = async () => {
+      if (!user) return;
+
+      try {
+        const list = await Store.getReferredUsers(user.uid); // 👈 backend function
+        setReferredUsers(list || []);
+
+        // assume each referral = 1 RP
+        setTotalRP((list || []).length);
+      } catch (e) {
+        console.error("Failed to load referrals", e);
+      }
+    };
+
+    fetchReferrals();
+  }, [user]);
+
   return (
     <Layout>
       <h1 className="text-xl font-bold mb-4 text-blue-700">Referral</h1>
+
+      {/* ✅ NEW: Total RP Card */}
+      <div className="bg-yellow-50 p-4 rounded-xl shadow mb-4 border border-yellow-200">
+        <p className="text-yellow-600 text-sm">Total Referral RP</p>
+        <h2 className="text-2xl font-bold text-yellow-700">{totalRP} RP</h2>
+      </div>
 
       {/* My Code */}
       <div className="bg-blue-50 p-4 rounded-xl shadow mb-4 border border-blue-100">
@@ -71,7 +100,7 @@ const Referral: React.FC = () => {
 
       {/* Enter Code (ONLY if NOT referred) */}
       {!user?.referredBy && (
-        <div className="bg-blue-50 p-4 rounded-xl shadow border border-blue-100">
+        <div className="bg-blue-50 p-4 rounded-xl shadow border border-blue-100 mb-4">
           <p className="text-blue-500 text-sm">Enter Referral Code</p>
 
           <input
@@ -90,6 +119,31 @@ const Referral: React.FC = () => {
           </button>
         </div>
       )}
+
+      {/* ✅ NEW: Referred Users List */}
+      <div className="bg-white p-4 rounded-xl shadow border border-gray-100">
+        <p className="text-gray-600 text-sm mb-2">People you referred</p>
+
+        {referredUsers.length === 0 ? (
+          <p className="text-gray-400 text-sm">No referrals yet</p>
+        ) : (
+          <ul className="space-y-2">
+            {referredUsers.map((u, i) => (
+              <li
+                key={i}
+                className="flex justify-between items-center bg-gray-50 p-2 rounded-lg"
+              >
+                <span className="text-sm text-gray-700">
+                  {u.name || u.email || "User"}
+                </span>
+                <span className="text-green-600 font-semibold text-sm">
+                  +1 RP
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </Layout>
   );
 };
