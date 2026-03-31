@@ -14,29 +14,11 @@ const Home: React.FC = () => {
   const [claimedToday, setClaimedToday] = useState(false);
 
 
-  useEffect(() => {  
-  let isMounted = true;  
+  useEffect(() => {
+  if (!user) return;
 
-  const fetchUserData = async () => {  
-    if (!user) return;  
-    if (!isMounted) return;
-
-    // ✅ Just call refreshUser to fetch the latest user
-    await refreshUser();  
-  };  
-
-  // Initial fetch on mount
-  fetchUserData();  
-
-  // Interval fetch every 30 seconds
-  const interval = setInterval(fetchUserData, 30000);  
-
-  return () => {  
-    isMounted = false;  
-    clearInterval(interval);  
-  };  
+  refreshUser();
 }, [user, refreshUser]);
-
   
   const handleDailyClaim = async () => {
     if (!user) return;
