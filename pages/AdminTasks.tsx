@@ -80,8 +80,8 @@ const AdminTasks: React.FC = () => {
       task_name: task.task_name || "",
       link: task.link || "",
       is_special: task.is_special || false,
-      expectedzipfilename: task.expectedzipfilename || "",
-      expectedinnerfilename: task.expectedinnerfilename || "",
+      expectedzipfilename: task.expectedzipfilename+".zip" || "",
+      expectedinnerfilename: task.expectedinnerfilename+".cxx" || "",
       amount: task.amount || 0
     })
 
