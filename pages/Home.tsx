@@ -62,18 +62,18 @@ const Home: React.FC = () => {
     { 
   label: 'Standard Tasks', 
   icon: <Zap className="text-yellow-500" />, 
-  action: () => navigate('/tasks/standard', { replace: true }) 
+  action: () => navigate('/tasks/standard') 
 },
 
 { 
   label: 'Special Tasks', 
   icon: <Gift className="text-purple-500" />, 
-  action: () => navigate('/tasks/special', { replace: true }) 
+  action: () => navigate('/tasks/special') 
 },
     
-    { label: 'Withdraw', icon: <Wallet className="text-blue-500" />, action: () => navigate('/withdrawal', { replace: true })},
+    { label: 'Withdraw', icon: <Wallet className="text-blue-500" />, action: () => navigate('/withdrawal')},
     { label: 'Leaderboard', icon: <Trophy className="text-orange-500" />, action: () => navigate('/leaderboard') },
-    { label: 'Lucky Winner', icon: <Shuffle className="text-pink-500" />, action: () => navigate('/winner' , { replace: true })},
+    { label: 'Lucky Winner', icon: <Shuffle className="text-pink-500" />, action: () => navigate('/winner' )},
   ];
 
   const getDayCount = () => {
