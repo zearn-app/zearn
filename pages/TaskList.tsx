@@ -19,18 +19,7 @@ const TaskList: React.FC = () => {
     loadCompleted();
   }, [type, user]);
 
-  useEffect(() => {
-  const handleBack = () => {
-    navigate("/login"); // 👈 change if your home route is different
-  };
-
-  window.addEventListener("popstate", handleBack);
-
-  return () => {
-    window.removeEventListener("popstate", handleBack);
-  };
-}, [navigate]);
-  const loadCompleted = async () => {
+   const loadCompleted = async () => {
   if (!user?.uid) return;
 
   try {
