@@ -5,7 +5,7 @@ import { Store } from '../services/store';
 import { UserContext } from '../App';
 import { useNotification } from '../components/NotificationSystem';
 import { Mail, User, Lock, X, Loader2, Eye, EyeOff } from 'lucide-react';
-
+import logo from '../components/logo.png';
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { refreshUser } = useContext(UserContext);
@@ -501,11 +501,15 @@ const Login: React.FC = () => {
 
     <div className="flex-1 flex flex-col items-center justify-center w-full select-none">
       <div
-        onClick={handleLogoTap}
-        className="w-28 h-28 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl mb-8 cursor-pointer active:scale-95 transition-transform"
-      >
-        <span className="text-6xl font-black text-white">Z</span>
-      </div>
+  onClick={handleLogoTap}
+  className="w-28 h-28 rounded-3xl overflow-hidden shadow-2xl mb-8 cursor-pointer active:scale-95 transition-transform"
+>
+  <img
+    src={logo}
+    alt="Zearning Logo"
+    className="w-full h-full object-contain"
+  />
+</div>
 
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
         Zearn App
