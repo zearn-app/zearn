@@ -146,8 +146,7 @@ useEffect(() => {
       <NotificationProvider>
         <UserContext.Provider value={{ user, refreshUser }}>
           <HashRouter>
-
-           <DisableBack />  
+            
             
             <Routes>
               <Route path="/" element={<Navigate to="/onboarding" />} />
