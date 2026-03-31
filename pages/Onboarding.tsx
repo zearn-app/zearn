@@ -1,92 +1,110 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Layout } from '../components/Layout';
-import { ChevronRight, Star, ShieldCheck, Zap } from 'lucide-react';
+import { useEffect } from "react"; import { useNavigate } from "react-router-dom";
 
-const Onboarding: React.FC = () => {
-  const navigate = useNavigate();
-  const [step, setStep] = useState(0);
+export default function LandingPage() { const navigate = useNavigate();
 
-  const steps = [
-    { 
-      title: "Earn Everyday", 
-      desc: "Turn your free time into real cash. Complete simple tasks and get rewarded instantly.",
-      icon: <Star size={48} className="text-yellow-400" />,
-      bg: "bg-gray-900" 
-    },
-    { 
-      title: "Secure & Fast", 
-      desc: "Your data is safe, and withdrawals are processed at lightning speed via UPI or Bank.",
-      icon: <ShieldCheck size={48} className="text-blue-400" />,
-      bg: "bg-gray-800"
-    },
-    { 
-      title: "Limitless Growth", 
-      desc: "Level up, unlock diamonds, and access premium tasks for higher earnings.",
-      icon: <Zap size={48} className="text-purple-400" />,
-      bg: "bg-gray-900"
+useEffect(() => { const stars = document.querySelector(".stars"); for (let i = 0; i < 80; i++) { const star = document.createElement("div"); star.className = "star"; star.style.top = Math.random() * 100 + "%"; star.style.left = Math.random() * 100 + "%"; star.style.animationDuration = 2 + Math.random() * 3 + "s"; stars.appendChild(star); } }, []);
+
+return ( <div className="container"> <div className="stars"></div>
+
+<div className="content">
+    <h1 className="title">Earnify</h1>
+    <p className="subtitle">Start earning smarter, faster, better</p>
+
+    <button
+      className="login-btn"
+      onClick={() => navigate("/login")}
+    >
+      Login
+    </button>
+  </div>
+
+  <style>{`
+    .container {
+      height: 100vh;
+      width: 100%;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Poppins', sans-serif;
     }
-  ];
 
-  const handleNext = () => {
-    if (step < steps.length - 1) {
-      setStep(step + 1);
-    } else {
-      navigate('/login');
+    .content {
+      text-align: center;
+      color: white;
+      animation: fadeIn 2s ease-in-out;
     }
-  };
 
-  return (
-    <Layout noPadding>
-      <div className={`h-screen flex flex-col relative text-white transition-colors duration-700 ${steps[step].bg}`}>
-        
-        {/* Abstract Background Shapes */}
-        <div className="absolute top-0 left-0 w-full h-1/2 overflow-hidden pointer-events-none">
-            <div className="absolute -top-20 -left-20 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute top-20 right-0 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-700"></div>
-        </div>
+    .title {
+      font-size: 4rem;
+      letter-spacing: 3px;
+      animation: float 3s ease-in-out infinite;
+    }
 
-        <div className="flex-1 flex flex-col items-center justify-center p-8 z-10">
-           <div className="mb-8 p-6 bg-white/10 rounded-3xl backdrop-blur-lg border border-white/10 shadow-2xl animate-[float_3s_ease-in-out_infinite]">
-              {steps[step].icon}
-           </div>
-           
-           <h1 className="text-4xl font-black text-center mb-4 tracking-tight leading-tight">
-             {steps[step].title}
-           </h1>
-           <p className="text-gray-400 text-center text-lg leading-relaxed max-w-xs">
-             {steps[step].desc}
-           </p>
-        </div>
+    .subtitle {
+      margin-top: 10px;
+      font-size: 1.2rem;
+      opacity: 0.8;
+      animation: fadeInUp 2s ease;
+    }
 
-        {/* Bottom Navigation */}
-        <div className="p-8 z-10">
-           <div className="flex items-center justify-between">
-              <div className="flex space-x-2">
-                 {steps.map((_, i) => (
-                    <div key={i} className={`h-1.5 rounded-full transition-all duration-500 ${i === step ? 'w-8 bg-white' : 'w-2 bg-gray-600'}`} />
-                 ))}
-              </div>
+    .login-btn {
+      margin-top: 30px;
+      padding: 12px 30px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 30px;
+      background: linear-gradient(45deg, #ff6a00, #ee0979);
+      color: white;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
 
-              <button 
-                onClick={handleNext}
-                className="group flex items-center bg-white text-gray-900 px-6 py-4 rounded-2xl font-bold shadow-lg shadow-white/10 active:scale-95 transition-all"
-              >
-                <span>{step === steps.length - 1 ? "Get Started" : "Next"}</span>
-                <ChevronRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
-              </button>
-           </div>
-        </div>
+    .login-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(255, 105, 180, 0.7);
+    }
 
-        <style>{`
-          @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-          }
-        `}</style>
-      </div>
-    </Layout>
-  );
-};
+    .stars {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+    }
 
-export default Onboarding;
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle infinite ease-in-out;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+  `}</style>
+</div>
+
+); }
