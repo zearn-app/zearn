@@ -14,11 +14,6 @@ const Home: React.FC = () => {
   const [claimedToday, setClaimedToday] = useState(false);
 
 
-  useEffect(() => {
-  if (!user) return;
-
-  refreshUser();
-}, [user, refreshUser]);
   
   const handleDailyClaim = async () => {
     if (!user) return;
