@@ -6,7 +6,6 @@ import { getRedirectResult } from 'firebase/auth';
 import { User } from './types';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { NotificationProvider } from './components/NotificationSystem';
-import DisableBack from './components/DisableBack'; // adjust path if needed
 // Pages
 
 import HistoryPage from './pages/History';
