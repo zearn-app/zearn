@@ -166,19 +166,21 @@ const AdminTasks: React.FC = () => {
   return (
     <Layout>
 
-      <div className="p-4 space-y-4">
+      <div className="flex justify-between items-center">
+  <div>
+    <h1 className="text-xl font-bold">Admin Tasks</h1>
+    <div className="text-sm text-gray-500">
+      Total Tasks: {tasks.length}
+    </div>
+  </div>
 
-        <div className="flex justify-between items-center">
-          <h1 className="text-xl font-bold">Admin Tasks</h1>
-
-          <button
-            onClick={openCreate}
-            className="bg-blue-600 text-white px-4 py-2 rounded"
-          >
-            Create Task
-          </button>
-        </div>
-
+  <button
+    onClick={openCreate}
+    className="bg-blue-600 text-white px-4 py-2 rounded"
+  >
+    Create Task
+  </button>
+</div>
         {loading && <div>Loading...</div>}
 
         {!loading && tasks.map(t => (
