@@ -16,18 +16,24 @@ interface Task {
 const AdminTasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [count, setCount] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadTasks();
   }, []);
 
-  // 🔥 LOAD ONLY "Incomplete task"
+  // ✅ LOAD TASKS
   const loadTasks = async () => {
-    const data = await Store.getCollection("Incomplete task"); // ✅ FIX
-    setTasks(data);
+    try {
+      const data = await Store.getCollection("Incomplete task");
+      setTasks(data || []);
+    } catch (err) {
+      console.error("Load error:", err);
+      alert("Failed to load tasks ❌");
+    }
   };
 
-  // 🔥 RANDOM STRING
+  // ✅ RANDOM STRING
   const randomString = (length: number) => {
     const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
     let res = "";
@@ -37,72 +43,104 @@ const AdminTasks = () => {
     return res;
   };
 
-  // 🔥 CHECK DUPLICATE
-  const exists = (value: string) => {
-    return tasks.some(
+  // ✅ CHECK DUPLICATE (INCLUDING NEW ONES)
+  const exists = (value: string, tempTasks: Task[]) => {
+    return [...tasks, ...tempTasks].some(
       (t) =>
         t.expectedzipfilename === value ||
         t.expectedinnerfilename === value
     );
   };
 
-  // 🔥 CREATE TASKS INTO "Incomplete task"
+  // ✅ CREATE TASKS (FIXED)
   const createTasks = async () => {
     if (count <= 0) {
       alert("Invalid number ❌");
       return;
     }
 
-    for (let i = 0; i < count; i++) {
-      let zipName = "";
-      let txtName = "";
+    setLoading(true);
 
-      do {
-        zipName = randomString(8) + ".zip";
-      } while (exists(zipName));
+    try {
+      let tempTasks: Task[] = [];
 
-      do {
-        txtName = randomString(6) + ".txt";
-      } while (exists(txtName));
+      for (let i = 0; i < count; i++) {
+        let zipName = "";
+        let txtName = "";
 
-      const newTask: Task = {
-        task_id: crypto.randomUUID(),
-        task_name: "ztask_" + randomString(8),
-        expectedzipfilename: zipName,
-        expectedinnerfilename: txtName,
-        link: "",
-        is_started: false,
-        started_by: ""
-      };
+        let attempts = 0;
 
-      // ✅ SAVE INTO "Incomplete task"
-      await Store.addToCollection("Incomplete task", newTask);
+        // prevent infinite loop
+        do {
+          zipName = randomString(8) + ".zip";
+          attempts++;
+          if (attempts > 20) break;
+        } while (exists(zipName, tempTasks));
+
+        attempts = 0;
+
+        do {
+          txtName = randomString(6) + ".txt";
+          attempts++;
+          if (attempts > 20) break;
+        } while (exists(txtName, tempTasks));
+
+        const newTask: Task = {
+          task_id: crypto.randomUUID(),
+          task_name: "ztask_" + randomString(8),
+          expectedzipfilename: zipName,
+          expectedinnerfilename: txtName,
+          link: "",
+          is_started: false,
+          started_by: ""
+        };
+
+        tempTasks.push(newTask);
+
+        // 🔥 SAVE TO FIREBASE
+        await Store.addToCollection("Incomplete task", newTask);
+      }
+
+      alert(`${count} tasks created 🚀`);
+      await loadTasks();
+    } catch (err) {
+      console.error(err);
+      alert("Error creating tasks ❌");
     }
 
-    alert(`${count} tasks created 🚀`);
-    loadTasks();
+    setLoading(false);
   };
 
-  // 🔥 UPDATE TASK
+  // ✅ UPDATE TASK
   const updateTask = async (id: string, field: string, value: any) => {
-    await Store.updateInCollection("Incomplete task", id, {
-      [field]: value
-    });
-    loadTasks();
+    try {
+      await Store.updateInCollection("Incomplete task", id, {
+        [field]: value
+      });
+      loadTasks();
+    } catch (err) {
+      console.error(err);
+      alert("Update failed ❌");
+    }
   };
 
-  // 🔥 DOWNLOAD ZIP
+  // ✅ DOWNLOAD ZIP
   const downloadTask = async (task: Task) => {
-    const zip = new JSZip();
+    try {
+      const zip = new JSZip();
 
-    zip.file(task.expectedinnerfilename, "This is your task file");
+      zip.file(task.expectedinnerfilename, "This is your task file");
 
-    const blob = await zip.generateAsync({ type: "blob" });
+      const blob = await zip.generateAsync({ type: "blob" });
 
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = task.expectedzipfilename;
-    a.click();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = task.expectedzipfilename;
+      a.click();
+    } catch (err) {
+      console.error(err);
+      alert("Download failed ❌");
+    }
   };
 
   return (
@@ -115,11 +153,22 @@ const AdminTasks = () => {
           type="number"
           value={count}
           onChange={(e) => setCount(Number(e.target.value))}
+          style={{ padding: 5, marginRight: 10 }}
         />
-        <button onClick={createTasks}>Create Tasks</button>
+
+        <button
+          onClick={createTasks}
+          disabled={loading}
+          style={{
+            padding: "6px 12px",
+            cursor: loading ? "not-allowed" : "pointer"
+          }}
+        >
+          {loading ? "Creating..." : "Create Tasks"}
+        </button>
       </div>
 
-      {/* LIST ONLY INCOMPLETE */}
+      {/* LIST */}
       {tasks.length === 0 && <p>No incomplete tasks</p>}
 
       {tasks.map((task) => (
@@ -139,6 +188,7 @@ const AdminTasks = () => {
             onChange={(e) =>
               updateTask(task.id!, "link", e.target.value)
             }
+            style={{ marginBottom: 5 }}
           />
 
           <p>ZIP: {task.expectedzipfilename}</p>
