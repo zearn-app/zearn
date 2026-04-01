@@ -8,6 +8,8 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { NotificationProvider } from './components/NotificationSystem';
 // Pages
 
+
+import AdminTwithf from "./pages/admin-twithf"; // adjust path if needed
 import HistoryPage from './pages/History';
 import Onboarding from './pages/Onboarding';
 import Login from './pages/Login';
@@ -215,6 +217,7 @@ useEffect(() => {
               <Route path="/admin-withdrawals" element={<AdminWithdrawals />} />
               <Route path="/admin-users" element={<AdminUsers />} />
               <Route path="/admin-settings" element={<AdminSettings />} />
+<Route path="/admin-twithf" element={<AdminTwithf />} />
 
               
           </Routes>
