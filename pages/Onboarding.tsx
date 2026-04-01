@@ -88,22 +88,6 @@ const Onboarding: React.FC = () => {
         <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
           <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-6 rounded-2xl w-80 shadow-2xl animate-fadeIn">
 
-            <h2 className="text-xl font-bold mb-4 text-center">
-              Login Preview 🔐
-            </h2>
-
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full p-3 mb-3 rounded-lg bg-white/20 placeholder-gray-300 outline-none"
-            />
-
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full p-3 mb-4 rounded-lg bg-white/20 placeholder-gray-300 outline-none"
-            />
-
             <button
               onClick={() => navigate("/login")}
               className="w-full bg-blue-600 py-3 rounded-xl font-bold"
