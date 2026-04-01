@@ -45,6 +45,22 @@ const Onboarding: React.FC = () => {
 
       {/* BACKGROUND */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
+
+        {/* 💰 FLOATING COINS */}
+        {[...Array(25)].map((_, i) => (
+          <div
+            key={i}
+            className="coin"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 10}s`,
+              animationDuration: `${6 + Math.random() * 6}s`
+            }}
+          >
+            💰
+          </div>
+        ))}
+
         <div className="mesh-gradient opacity-30"></div>
 
         <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-cyan-600/20 rounded-full blur-[120px] animate-pulse"></div>
@@ -58,7 +74,6 @@ const Onboarding: React.FC = () => {
           className="spotlight-card p-12 rounded-[48px] border border-white/10 relative group transition-all duration-700"
         >
 
-          {/* BADGE */}
           <div className="inline-block px-4 py-1.5 mb-6 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
             <span className="text-[10px] font-bold tracking-[3px] text-cyan-400 uppercase">
               Trusted Platform 🚀
@@ -73,7 +88,6 @@ const Onboarding: React.FC = () => {
             Join thousands of users already earning daily rewards. Safe, fast, and growing every day.
           </p>
 
-          {/* TRUST STATS */}
           <div className="flex flex-col sm:flex-row justify-center gap-6 mb-8">
             <div className="stat-box">
               <span className="text-sm text-gray-500">Happy Users</span>
@@ -86,7 +100,6 @@ const Onboarding: React.FC = () => {
             </div>
           </div>
 
-          {/* EARNING STATS */}
           <div className="flex flex-col sm:flex-row justify-center gap-6 mb-12">
             <div className="stat-box">
               <span className="text-sm font-medium text-gray-500 mb-1">Total Earnings</span>
@@ -99,7 +112,6 @@ const Onboarding: React.FC = () => {
             </div>
           </div>
 
-          {/* CTA */}
           <button
             onClick={() => setShowPopup(true)}
             className="group relative px-14 py-6 bg-white text-black font-black text-xl rounded-2xl transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-2xl overflow-hidden shimmer-btn"
@@ -112,7 +124,6 @@ const Onboarding: React.FC = () => {
             </span>
           </button>
 
-          {/* EXTRA TRUST LINE */}
           <p className="text-xs text-gray-500 mt-6">
             🔒 Secure • ⚡ Instant Rewards • 💸 Real Withdrawals
           </p>
@@ -158,6 +169,26 @@ const Onboarding: React.FC = () => {
       )}
 
       <style>{`
+        .coin {
+          position: absolute;
+          top: -10%;
+          font-size: 22px;
+          opacity: 0.8;
+          animation: floatCoin linear infinite;
+        }
+
+        @keyframes floatCoin {
+          0% {
+            transform: translateY(0) rotate(0deg);
+            opacity: 0;
+          }
+          10% { opacity: 1; }
+          100% {
+            transform: translateY(120vh) rotate(360deg);
+            opacity: 0;
+          }
+        }
+
         .perspective-2000 { perspective: 2000px; }
 
         .mesh-gradient {
