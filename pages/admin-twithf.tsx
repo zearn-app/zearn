@@ -18,6 +18,8 @@ const AdminTasks = () => {
   const [count, setCount] = useState(1);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
+  const [editedLinks, setEditedLinks] = useState<{ [key: string]: string }>({});
+  const [moving, setMoving] = useState(false);
 
   useEffect(() => {
     loadTasks();
@@ -92,14 +94,63 @@ const AdminTasks = () => {
     setLoading(false);
   };
 
-  const updateTask = async (id: string, field: string, value: any) => {
+  const handleLinkChange = (id: string, value: string) => {
+    setEditedLinks((prev) => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+
+  const updateTask = async (id: string) => {
+    const newLink = editedLinks[id];
+    if (!newLink) return alert("Enter link first ❌");
+
     await Store.updateInCollection("Incomplete task", id, {
-      [field]: value
+      link: newLink
     });
+
+    alert("Updated ✅");
+
+    setEditedLinks((prev) => {
+      const copy = { ...prev };
+      delete copy[id];
+      return copy;
+    });
+
     loadTasks();
   };
 
-  // 🔥 SINGLE DOWNLOAD
+  // 🔥 MOVE COMPLETED TASKS
+  const moveCompletedTasks = async () => {
+    setMoving(true);
+
+    try {
+      const completed = tasks.filter((t) => t.link && t.link.trim() !== "");
+
+      if (completed.length === 0) {
+        alert("No completed tasks to move ❌");
+        setMoving(false);
+        return;
+      }
+
+      for (let task of completed) {
+        // ✅ Add to "tasks"
+        await Store.addToCollection("tasks", task);
+
+        // ✅ Remove from "Incomplete task"
+        await Store.deleteFromCollection("Incomplete task", task.id!);
+      }
+
+      alert(`${completed.length} tasks moved to tasks 🚀`);
+      loadTasks();
+    } catch (err) {
+      console.error(err);
+      alert("Move failed ❌");
+    }
+
+    setMoving(false);
+  };
+
   const downloadTask = async (task: Task) => {
     const zip = new JSZip();
     zip.file(task.expectedinnerfilename, "This is your task file");
@@ -112,7 +163,6 @@ const AdminTasks = () => {
     a.click();
   };
 
-  // 🔥 MULTI DOWNLOAD (MAIN FEATURE)
   const downloadSelected = async () => {
     if (selected.length === 0) {
       alert("Select at least one task ❌");
@@ -139,7 +189,6 @@ const AdminTasks = () => {
     a.click();
   };
 
-  // 🔥 SELECT TOGGLE
   const toggleSelect = (id: string) => {
     setSelected((prev) =>
       prev.includes(id)
@@ -180,15 +229,20 @@ const AdminTasks = () => {
           {selected.length === tasks.length ? "Unselect All" : "Select All"}
         </button>
 
-        <button
-          onClick={downloadSelected}
-          style={{ marginLeft: 10 }}
-        >
+        <button onClick={downloadSelected} style={{ marginLeft: 10 }}>
           ⬇ Download Selected
+        </button>
+
+        {/* 🔥 NEW BUTTON */}
+        <button
+          onClick={moveCompletedTasks}
+          disabled={moving}
+          style={{ marginLeft: 10, background: "#4CAF50", color: "#fff" }}
+        >
+          {moving ? "Moving..." : "Move Completed"}
         </button>
       </div>
 
-      {/* LIST */}
       {tasks.length === 0 && <p>No incomplete tasks</p>}
 
       {tasks.map((task) => (
@@ -198,8 +252,7 @@ const AdminTasks = () => {
             border: "1px solid #ddd",
             borderRadius: 10,
             padding: 15,
-            marginBottom: 10,
-            boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
+            marginBottom: 10
           }}
         >
           <div style={{ display: "flex", alignItems: "center" }}>
@@ -212,14 +265,20 @@ const AdminTasks = () => {
             <h4 style={{ marginLeft: 10 }}>{task.task_name}</h4>
           </div>
 
-          <input
-            value={task.link}
-            placeholder="Enter link"
-            onChange={(e) =>
-              updateTask(task.id!, "link", e.target.value)
-            }
-            style={{ width: "100%", marginTop: 8, padding: 6 }}
-          />
+          <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+            <input
+              value={editedLinks[task.id!] ?? task.link}
+              placeholder="Enter link"
+              onChange={(e) =>
+                handleLinkChange(task.id!, e.target.value)
+              }
+              style={{ flex: 1, padding: 6 }}
+            />
+
+            <button onClick={() => updateTask(task.id!)}>
+              Update
+            </button>
+          </div>
 
           <p>📦 ZIP: {task.expectedzipfilename}</p>
           <p>📄 TXT: {task.expectedinnerfilename}</p>
