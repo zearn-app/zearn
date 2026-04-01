@@ -21,12 +21,13 @@ const AdminTasks = () => {
     loadTasks();
   }, []);
 
+  // 🔥 LOAD ONLY "Incomplete task"
   const loadTasks = async () => {
-    const data = await Store.getadminTasks();
+    const data = await Store.getCollection("Incomplete task"); // ✅ FIX
     setTasks(data);
   };
 
-  // 🔥 Random string (like C++)
+  // 🔥 RANDOM STRING
   const randomString = (length: number) => {
     const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
     let res = "";
@@ -36,7 +37,7 @@ const AdminTasks = () => {
     return res;
   };
 
-  // 🔥 Check duplicates
+  // 🔥 CHECK DUPLICATE
   const exists = (value: string) => {
     return tasks.some(
       (t) =>
@@ -45,25 +46,21 @@ const AdminTasks = () => {
     );
   };
 
-  // 🔥 CREATE TASKS (C++ LOOP LOGIC)
+  // 🔥 CREATE TASKS INTO "Incomplete task"
   const createTasks = async () => {
     if (count <= 0) {
       alert("Invalid number ❌");
       return;
     }
 
-    let newTasks: Task[] = [];
-
     for (let i = 0; i < count; i++) {
       let zipName = "";
       let txtName = "";
 
-      // unique zip
       do {
         zipName = randomString(8) + ".zip";
       } while (exists(zipName));
 
-      // unique txt
       do {
         txtName = randomString(6) + ".txt";
       } while (exists(txtName));
@@ -78,17 +75,19 @@ const AdminTasks = () => {
         started_by: ""
       };
 
-      await Store.createTask(newTask);
-      newTasks.push(newTask);
+      // ✅ SAVE INTO "Incomplete task"
+      await Store.addToCollection("Incomplete task", newTask);
     }
 
     alert(`${count} tasks created 🚀`);
     loadTasks();
   };
 
-  // 🔥 EDIT TASK
+  // 🔥 UPDATE TASK
   const updateTask = async (id: string, field: string, value: any) => {
-    await Store.updateTask(id, { [field]: value });
+    await Store.updateInCollection("Incomplete task", id, {
+      [field]: value
+    });
     loadTasks();
   };
 
@@ -108,7 +107,7 @@ const AdminTasks = () => {
 
   return (
     <div style={{ padding: 20 }}>
-      <h2>Admin Task Manager 🚀</h2>
+      <h2>Incomplete Task Manager 🚀</h2>
 
       {/* CREATE */}
       <div style={{ marginBottom: 20 }}>
@@ -120,7 +119,9 @@ const AdminTasks = () => {
         <button onClick={createTasks}>Create Tasks</button>
       </div>
 
-      {/* LIST */}
+      {/* LIST ONLY INCOMPLETE */}
+      {tasks.length === 0 && <p>No incomplete tasks</p>}
+
       {tasks.map((task) => (
         <div
           key={task.id}
