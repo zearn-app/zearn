@@ -120,7 +120,7 @@ const AdminTasks = () => {
     loadTasks();
   };
 
-  // 🔥 MOVE COMPLETED TASKS
+  // 🔥 MOVE COMPLETED TASKS (SAFE MOVE)
   const moveCompletedTasks = async () => {
     setMoving(true);
 
@@ -128,20 +128,22 @@ const AdminTasks = () => {
       const completed = tasks.filter((t) => t.link && t.link.trim() !== "");
 
       if (completed.length === 0) {
-        alert("No completed tasks to move ❌");
+        alert("No completed tasks ❌");
         setMoving(false);
         return;
       }
 
       for (let task of completed) {
-        // ✅ Add to "tasks"
-        await Store.addToCollection("tasks", task);
+        const { id, ...taskData } = task; // ✅ remove old id
 
-        // ✅ Remove from "Incomplete task"
-        await Store.deleteFromCollection("Incomplete task", task.id!);
+        // ✅ Add to "tasks"
+        await Store.addToCollection("tasks", taskData);
+
+        // ✅ Remove from "Incomplete task" (only reference removal)
+        await Store.deleteFromCollection("Incomplete task", id!);
       }
 
-      alert(`${completed.length} tasks moved to tasks 🚀`);
+      alert(`${completed.length} tasks moved 🚀`);
       loadTasks();
     } catch (err) {
       console.error(err);
@@ -209,7 +211,6 @@ const AdminTasks = () => {
     <div style={{ padding: 20, maxWidth: 800, margin: "auto" }}>
       <h2 style={{ textAlign: "center" }}>📋 Incomplete Task Manager</h2>
 
-      {/* CREATE */}
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
         <input
           type="number"
@@ -223,7 +224,6 @@ const AdminTasks = () => {
         </button>
       </div>
 
-      {/* ACTIONS */}
       <div style={{ marginBottom: 15 }}>
         <button onClick={selectAll}>
           {selected.length === tasks.length ? "Unselect All" : "Select All"}
@@ -233,7 +233,6 @@ const AdminTasks = () => {
           ⬇ Download Selected
         </button>
 
-        {/* 🔥 NEW BUTTON */}
         <button
           onClick={moveCompletedTasks}
           disabled={moving}
@@ -261,7 +260,6 @@ const AdminTasks = () => {
               checked={selected.includes(task.id!)}
               onChange={() => toggleSelect(task.id!)}
             />
-
             <h4 style={{ marginLeft: 10 }}>{task.task_name}</h4>
           </div>
 
