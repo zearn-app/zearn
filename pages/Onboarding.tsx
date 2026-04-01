@@ -1,14 +1,21 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import { UserContext } from "../App"; // Adjust as per your context setup
 
 const Onboarding: React.FC = () => {
   const navigate = useNavigate();
-  // const { user } = useContext(UserContext);
-
   const [coins, setCoins] = useState(0);
   const [money, setMoney] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
+
+  // For the mouse spotlight effect
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    card.style.setProperty("--mouse-x", `${x}px`);
+    card.style.setProperty("--mouse-y", `${y}px`);
+  };
 
   useEffect(() => {
     let c = 0;
@@ -24,102 +31,92 @@ const Onboarding: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-[#05070a] overflow-hidden flex flex-col justify-center items-center text-white font-sans selection:bg-cyan-500/30">
+    <div className="relative min-h-screen bg-[#020408] overflow-hidden flex flex-col justify-center items-center text-white font-sans selection:bg-cyan-500/30">
       
-      {/* ================= DYNAMIC MESH BACKGROUND ================= */}
+      {/* ================= BACKGROUND ELEMENTS ================= */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="mesh-gradient opacity-40"></div>
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/30 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/30 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="mesh-gradient opacity-30"></div>
+        {/* Animated Glows */}
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-cyan-600/20 rounded-full blur-[120px] animate-pulse"></div>
+        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '3s' }}></div>
       </div>
 
-      {/* ================= FLOATING PARTICLES ================= */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(15)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute animate-float opacity-30"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDuration: `${15 + Math.random() * 10}s`,
-              animationDelay: `${Math.random() * 5}s`,
-            }}
-          >
-            <div className="h-2 w-2 bg-cyan-400 rounded-full blur-[2px]"></div>
-          </div>
-        ))}
-      </div>
-
-      {/* ================= MAIN 3D CONTAINER ================= */}
+      {/* ================= MAIN CONTENT ================= */}
       <div className="z-10 text-center px-6 perspective-2000">
-        <div className="glass-card-3d p-10 rounded-[40px] border border-white/10 relative group transition-all duration-500 hover:border-cyan-500/50">
-          
-          {/* Subtle Shine Effect */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-[40px] pointer-events-none" />
+        <div 
+          onMouseMove={handleMouseMove}
+          className="spotlight-card p-12 rounded-[48px] border border-white/10 relative group transition-all duration-700"
+        >
+          {/* Badge */}
+          <div className="inline-block px-4 py-1.5 mb-6 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+            <span className="text-[10px] font-bold tracking-[3px] text-cyan-400 uppercase">Beta Access Live</span>
+          </div>
 
-          <h1 className="text-5xl font-black mb-2 tracking-tight">
-            Earn <span className="text-3d-gradient">Real Cash</span>
+          <h1 className="text-6xl font-black mb-4 tracking-tighter leading-none">
+            Earn <span className="text-3d-gradient">Digital Gold</span>
           </h1>
-          <p className="text-blue-200/60 font-medium mb-10 tracking-wide uppercase text-xs">
-            The world's first decentralized reward system
+          <p className="text-gray-400 font-medium mb-12 max-w-md mx-auto leading-relaxed">
+            Join the decentralized economy and turn your engagement into real-world rewards.
           </p>
 
-          {/* COUNTERS WITH ISOMETRIC TILT */}
-          <div className="flex flex-col sm:flex-row justify-center gap-8 mb-12">
-            <div className="stat-card-3d group">
-              <div className="flex flex-col">
-                <span className="text-3xl font-black text-white">₹{money.toLocaleString()}</span>
-                <span className="text-[10px] uppercase tracking-[2px] text-cyan-400 font-bold">Total Earned</span>
-              </div>
+          {/* COUNTERS */}
+          <div className="flex flex-col sm:flex-row justify-center gap-6 mb-12">
+            <div className="stat-box">
+              <span className="text-sm font-medium text-gray-500 mb-1">Total Earnings</span>
+              <span className="text-4xl font-black tabular-nums">₹{money.toLocaleString()}</span>
             </div>
 
-            <div className="stat-card-3d group">
-              <div className="flex flex-col">
-                <span className="text-3xl font-black text-white">{coins.toLocaleString()}</span>
-                <span className="text-[10px] uppercase tracking-[2px] text-purple-400 font-bold">Gold Coins</span>
-              </div>
+            <div className="stat-box">
+              <span className="text-sm font-medium text-gray-500 mb-1">Available Coins</span>
+              <span className="text-4xl font-black tabular-nums">{coins.toLocaleString()}</span>
             </div>
           </div>
 
-          {/* MASSIVE 3D BUTTON */}
+          {/* CTA BUTTON */}
           <button
             onClick={() => setShowPopup(true)}
-            className="group relative px-12 py-5 bg-white text-black font-black text-lg rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(79,172,254,0.4)] overflow-hidden"
+            className="group relative px-14 py-6 bg-white text-black font-black text-xl rounded-2xl transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-2xl overflow-hidden shimmer-btn"
           >
-            <span className="relative z-10 flex items-center gap-2">
-              START EARNING <span className="group-hover:translate-x-1 transition-transform">→</span>
+            <span className="relative z-10 flex items-center gap-3">
+              GET STARTED NOW
+              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
             </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="absolute inset-0 bg-white group-hover:hidden" />
           </button>
         </div>
       </div>
 
-      {/* ================= MODAL WITH OVERLAY ================= */}
+      {/* ================= MODAL ================= */}
       {showPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-[#05070a]/90 backdrop-blur-md transition-all animate-fade-in"
-            onClick={() => setShowPopup(false)} 
-          />
-          <div className="bg-[#11141d] border border-white/10 p-8 rounded-[32px] w-full max-w-sm z-10 shadow-2xl animate-modal-in">
-            <h2 className="text-2xl font-bold mb-2">Welcome Back</h2>
-            <p className="text-gray-400 text-sm mb-6">Connect your account to claim your ₹{money} daily bonus.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-xl animate-fade-in" onClick={() => setShowPopup(false)} />
+          <div className="bg-[#0f1117] border border-white/10 p-10 rounded-[40px] w-full max-w-md z-10 shadow-3xl animate-modal-in relative overflow-hidden">
+             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-purple-500"></div>
+             
+             <div className="h-16 w-16 bg-cyan-500/10 rounded-2xl flex items-center justify-center mb-6 border border-cyan-500/20">
+                <div className="h-3 w-3 bg-cyan-400 rounded-full animate-ping"></div>
+             </div>
 
-            <button
-              onClick={() => navigate("/login")}
-              className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-xl transition-all mb-3 shadow-lg shadow-cyan-500/20"
-            >
-              Go to Dashboard
-            </button>
+            <h2 className="text-3xl font-bold mb-3 tracking-tight">Ready to claim?</h2>
+            <p className="text-gray-400 leading-relaxed mb-8">
+              Your daily bonus of <span className="text-white font-bold">₹{money}</span> is waiting. Connect your wallet to proceed to the dashboard.
+            </p>
 
-            <button
-              onClick={() => setShowPopup(false)}
-              className="w-full py-3 text-sm font-medium text-gray-500 hover:text-white transition-colors"
-            >
-              Maybe Later
-            </button>
+            <div className="space-y-4">
+              <button
+                onClick={() => navigate("/login")}
+                className="w-full py-5 bg-cyan-500 hover:bg-cyan-400 text-black font-black rounded-2xl transition-all shadow-lg shadow-cyan-500/20"
+              >
+                Connect Dashboard
+              </button>
+              <button
+                onClick={() => setShowPopup(false)}
+                className="w-full py-2 text-sm font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
+              >
+                Dismiss
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -127,77 +124,82 @@ const Onboarding: React.FC = () => {
       <style>{`
         .perspective-2000 { perspective: 2000px; }
 
-        /* MESH BACKGROUND */
         .mesh-gradient {
           position: absolute;
-          width: 100%;
-          height: 100%;
+          width: 100%; height: 100%;
           background-image: 
-            radial-gradient(at 0% 0%, hsla(210,100%,10%,1) 0, transparent 50%), 
-            radial-gradient(at 100% 0%, hsla(255,100%,10%,1) 0, transparent 50%), 
-            radial-gradient(at 100% 100%, hsla(210,100%,10%,1) 0, transparent 50%), 
-            radial-gradient(at 0% 100%, hsla(255,100%,10%,1) 0, transparent 50%);
+            radial-gradient(at 0% 0%, #0a1628 0, transparent 50%), 
+            radial-gradient(at 100% 100%, #1a0b2e 0, transparent 50%);
         }
 
-        /* 3D MAIN CARD */
-        .glass-card-3d {
+        /* SPOTLIGHT CARD */
+        .spotlight-card {
+          background: rgba(255, 255, 255, 0.02);
+          backdrop-filter: blur(20px);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        
+        .spotlight-card::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(255,255,255,0.06), transparent 40%);
+          border-radius: inherit;
+          pointer-events: none;
+        }
+
+        .stat-box {
           background: rgba(255, 255, 255, 0.03);
-          backdrop-filter: blur(25px);
-          transform: rotateX(5deg);
-          box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.5), 
-                      inset 0 1px 1px rgba(255, 255, 255, 0.1);
-        }
-
-        /* 3D STAT CARDS */
-        .stat-card-3d {
-          background: rgba(255, 255, 255, 0.05);
-          padding: 24px 40px;
-          border-radius: 24px;
+          padding: 2rem;
+          border-radius: 30px;
           border: 1px solid rgba(255, 255, 255, 0.05);
-          transform: rotateY(15deg);
-          transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-          box-shadow: -10px 10px 20px rgba(0,0,0,0.3);
+          display: flex;
+          flex-direction: column;
+          min-width: 200px;
+          transition: all 0.4s ease;
+        }
+        .stat-box:hover {
+          background: rgba(255, 255, 255, 0.06);
+          transform: translateY(-5px);
+          border-color: rgba(255, 255, 255, 0.1);
         }
 
-        .stat-card-3d:hover {
-          transform: rotateY(0deg) rotateX(0deg) scale(1.1) translateY(-10px);
-          border-color: rgba(255, 255, 255, 0.2);
-          box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
-
-        /* TEXT GRADIENT */
         .text-3d-gradient {
-          background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+          background: linear-gradient(to right, #22d3ee, #818cf8);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
-          filter: drop-shadow(0 5px 15px rgba(79,172,254,0.4));
         }
 
-        /* ANIMATIONS */
-        @keyframes float {
-          0% { transform: translate(0, 0) rotate(0deg); }
-          50% { transform: translate(20px, -20px) rotate(180deg); }
-          100% { transform: translate(0, 0) rotate(360deg); }
+        /* SHIMMER ANIMATION */
+        .shimmer-btn::after {
+          content: "";
+          position: absolute;
+          top: -50%; left: -50%;
+          width: 200%; height: 200%;
+          background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+          transform: rotate(45deg);
+          animation: shimmer 3s infinite;
         }
 
-        .animate-float {
-          animation: float linear infinite;
+        @keyframes shimmer {
+          0% { transform: translateX(-100%) rotate(45deg); }
+          100% { transform: translateX(100%) rotate(45deg); }
         }
 
         @keyframes modal-in {
-          from { opacity: 0; transform: scale(0.9) translateY(20px); filter: blur(10px); }
-          to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+          from { opacity: 0; transform: scale(0.95) translateY(30px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
         }
-        .animate-modal-in { animation: modal-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-modal-in { animation: modal-in 0.5s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+        .animate-fade-in { animation: fadeIn 0.4s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        .animate-fade-in { animation: fade-in 0.3s ease forwards; }
+        /* TABULAR NUMS prevents jumping during count up */
+        .tabular-nums { font-variant-numeric: tabular-nums; }
       `}</style>
     </div>
   );
 };
 
 export default Onboarding;
+        
