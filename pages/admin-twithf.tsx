@@ -77,7 +77,8 @@ const AdminTasks = () => {
           expectedinnerfilename: txtName,
           link: "",
           is_started: false,
-          started_by: ""
+          started_by: "",
+          is_special: false
         };
 
         tempTasks.push(newTask);
