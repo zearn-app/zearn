@@ -312,6 +312,11 @@ updateSettings: async (settings: AdminSettings) => {
     const { doc, updateDoc } = await import("firebase/firestore");
     return await updateDoc(doc(db, name, id), data);
         },
+
+  async deleteFromCollection(name: string, id: string) {
+  const { doc, deleteDoc } = await import("firebase/firestore");
+  return await deleteDoc(doc(db, name, id));
+  },
 //////////////////////////// TASK ////////////////////////////
 
 generateTaskName() {
