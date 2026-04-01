@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Store } from "../store";
+import { Store } from "../services/store";
 import JSZip from "jszip";
 
 interface Task {
