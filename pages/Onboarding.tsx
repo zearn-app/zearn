@@ -11,12 +11,7 @@ const Onboarding: React.FC = () => {
   const [showPopup, setShowPopup] = useState(false);
 
   /* ================= AUTO REDIRECT ================= */
-  useEffect(() => {
-    if (user) {
-      navigate("/home");
-    }
-  }, [user]);
-
+ 
   /* ================= COUNTER ================= */
   useEffect(() => {
     let c = 0;
