@@ -288,6 +288,30 @@ updateSettings: async (settings: AdminSettings) => {
       throw err
     }
   },
+
+  async getCollection(name: string) {
+    try {
+      const snapshot = await getDocs(collection(db, name));
+
+      return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error("Firestore error:", error);
+      throw error;
+    }
+  },
+
+  async addToCollection(name: string, data: any) {
+    const { addDoc, collection } = await import("firebase/firestore");
+    return await addDoc(collection(db, name), data);
+  },
+
+  async updateInCollection(name: string, id: string, data: any) {
+    const { doc, updateDoc } = await import("firebase/firestore");
+    return await updateDoc(doc(db, name, id), data);
+        },
 //////////////////////////// TASK ////////////////////////////
 
 generateTaskName() {
