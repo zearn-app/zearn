@@ -81,7 +81,7 @@ const Onboarding: React.FC = () => {
           </div>
 
           <h1 className="text-6xl font-black mb-4 tracking-tighter leading-none">
-            Earn <span className="text-3d-gradient">Digital Gold</span>
+            Earn <span className="text-3d-gradient">Digital money </span>
           </h1>
 
           <p className="text-gray-400 font-medium mb-10 max-w-md mx-auto leading-relaxed">
