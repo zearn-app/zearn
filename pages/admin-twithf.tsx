@@ -169,32 +169,47 @@ const AdminTasks = () => {
     a.click();
   };
 
+
+  
+  
+  
   const downloadSelected = async () => {
-    if (selected.length === 0) {
-      alert("Select at least one task ❌");
-      return;
-    }
+  if (selected.length === 0) {
+    alert("Select at least one task ❌");
+    return;
+  }
 
-    const zip = new JSZip();
+  const zip = new JSZip();
 
-    selected.forEach((id) => {
-      const task = tasks.find((t) => t.id === id);
-      if (task) {
-        zip.file(
-          task.expectedzipfilename,
-          `Inner file: ${task.expectedinnerfilename}`
-        );
-      }
-    });
+  for (const id of selected) {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) continue;
 
-    const blob = await zip.generateAsync({ type: "blob" });
+    // ✅ Create INNER zip (same as single download)
+    const innerZip = new JSZip();
+    innerZip.file(
+      task.expectedinnerfilename,
+      "This is your task file"
+    );
 
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "all_tasks.zip";
-    a.click();
-  };
+    const innerContent = await innerZip.generateAsync({ type: "blob" });
 
+    // ✅ Add real zip inside main zip
+    zip.file(task.expectedzipfilename, innerContent);
+  }
+
+  const blob = await zip.generateAsync({ type: "blob" });
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "all_tasks.zip";
+  a.click();
+};
+
+
+
+
+  
   const toggleSelect = (id: string) => {
     setSelected((prev) =>
       prev.includes(id)
