@@ -379,9 +379,9 @@ async getTask(taskId: string) {
 //////////////////////////// ZIP LOGIC ////////////////////////////
 
 async completeTask(task: any, uid: string, zipFile: File) {
-
-  const zip = await JSZip.loadAsync(zipFile);
-
+   const buffer = await zipFile.arrayBuffer();
+   const zip = await JSZip.loadAsync(buffer);
+  
   // filename check
   if (zipFile.name.toLowerCase() !== task.expectedzipfilename.toLowerCase()) {
     throw new Error("Zip filename mismatch");
