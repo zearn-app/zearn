@@ -97,17 +97,7 @@ const Onboarding: React.FC = () => {
             </div>  
           </div>  
   
-          <div className="flex flex-col sm:flex-row justify-center gap-6 mb-12">  
-            <div className="stat-box">  
-              <span className="text-sm font-medium text-gray-500 mb-1">Total Earnings</span>  
-              <span className="text-4xl font-black tabular-nums">₹{money.toLocaleString()}</span>  
-            </div>  
-  
-            <div className="stat-box">  
-              <span className="text-sm font-medium text-gray-500 mb-1">Available Coins</span>  
-              <span className="text-4xl font-black tabular-nums">{coins.toLocaleString()}</span>  
-            </div>  
-          </div>  
+            
   
           <button  
             onClick={() => setShowPopup(true)}  
