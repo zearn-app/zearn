@@ -180,9 +180,11 @@ const AdminTasks: React.FC = () => {
   >
     Create Task
   </button>
+   </div>
+      
 
         {loading && <div>Loading...</div>}
-
+        <div className="space-y-3">
         {!loading && tasks.map(t => (
 
           <div
