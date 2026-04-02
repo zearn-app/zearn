@@ -519,8 +519,7 @@ const Login: React.FC = () => {
       </p>
     </div>
 
-    <div className="w-full max-w-sm mb-12 space-y-4">
-
+    <div className={`login-form active w-full mb-12 space-y-4`}>
       <input
         type="email"
         placeholder="Email"
