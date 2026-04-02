@@ -156,8 +156,11 @@ const AdminTasks = () => {
 
   const downloadTask = async (task: Task) => {
     const zip = new JSZip();
-    zip.file(task.expectedinnerfilename, "This is your task file");
+    const innerZip = new JSZip();
+          innerZip.file(task.expectedinnerfilename, "This is your task file");
 
+    const content = await innerZip.generateAsync({ type: "blob" });
+          zip.file(task.expectedzipfilename, content);
     const blob = await zip.generateAsync({ type: "blob" });
 
     const a = document.createElement("a");
