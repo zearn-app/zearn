@@ -27,7 +27,7 @@ const AdminTasks = () => {
 
   const loadTasks = async () => {
     try {
-      const data = await Store.getCollection("Incomplete  task");
+      const data = await Store.getCollection("Incomplete task");
       setTasks(data || []);
     } catch (err) {
       console.error(err);
