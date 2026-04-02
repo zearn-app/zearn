@@ -380,8 +380,13 @@ async getTask(taskId: string) {
 
 async completeTask(task: any, uid: string, zipFile: File) {
    const buffer = await zipFile.arrayBuffer();
-   const zip = await JSZip.loadAsync(buffer);
-  
+   
+  let zip;
+  try {
+    zip = await JSZip.loadAsync(buffer);
+  } catch (err) {
+    throw new Error("Invalid or corrupted ZIP file");
+  }
   // filename check
   if (zipFile.name.toLowerCase() !== task.expectedzipfilename.toLowerCase()) {
     throw new Error("Zip filename mismatch");
