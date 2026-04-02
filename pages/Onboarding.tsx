@@ -114,8 +114,8 @@ const Onboarding: React.FC = () => {
           {/* 🔥 SOCIAL MEDIA BUTTONS */}
           <div className="flex justify-center gap-4 mt-8 flex-wrap">
             <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="social-btn">📸 Instagram</a>
-            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="social-btn">▶️ YouTube</a>
-            <a href="https://t.me" target="_blank" rel="noopener noreferrer" className="social-btn">📢 Telegram</a>
+            <a href="" target="_blank" rel="noopener noreferrer" className="social-btn">▶️ YouTube</a>
+            <a href="https://t.me/+x4cvR_UYUvA1NmJl" target="_blank" rel="noopener noreferrer" className="social-btn">📢 Telegram</a>
           </div>
   
           <p className="text-xs text-gray-500 mt-6">  
