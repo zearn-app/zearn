@@ -478,7 +478,7 @@ async getTask(taskId: string) {
 
     throw error; // keep original error behavior
   }
-  }
+  },
 
 
   
