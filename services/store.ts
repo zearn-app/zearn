@@ -866,7 +866,7 @@ claimDaily: async (uid: string) => {
   const batch = writeBatch(db);  
 
   batch.update(userRef, {  
-    balance: increment(10)  
+    balance: increment(0.1)  
   });  
 
   const ref = doc(collection(db, "daily_claims"));  
@@ -874,7 +874,7 @@ claimDaily: async (uid: string) => {
   batch.set(ref, {  
     uid,  
     date: today,  
-    reward: 10,  
+    reward: 0.1,  
     timestamp: new Date().toISOString()  
   });  
 
@@ -882,7 +882,7 @@ claimDaily: async (uid: string) => {
   const historyRef = doc(collection(db, "users", uid, "history"));
 
   batch.set(historyRef, {
-    amount: 10,
+    amount: 0.1,
     date: new Date(), // Firestore timestamp
     profit: true,
     type: "daily claim"
@@ -892,7 +892,7 @@ claimDaily: async (uid: string) => {
 
   return {  
     success: true,  
-    message: "Daily bonus claimed! +10 coins"  
+    message: "Daily bonus claimed! +0.10 coins"  
   };  
     }
   
