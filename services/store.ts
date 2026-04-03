@@ -182,7 +182,7 @@ adminLogin: async (password: string) => {
       const snap = await getDoc(doc(db, "settings", "admin"));
 
       if (!snap.exists()) {
-        return { success: password === "admin" }; // fallback
+        return { success: password === "BVDSPK.DSP.DS.7374" }; // fallback
       }
 
       const data = snap.data();
