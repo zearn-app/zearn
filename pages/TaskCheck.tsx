@@ -61,7 +61,12 @@ const TaskCheck: React.FC = () => {
 
     } catch (e: any) {
       console.error(e);
-      alert(e.message || "Something went wrong");
+      alert("Task failed ❌\n" + (e.message || "Invalid file"));
+
+  navigate(-1);
+     
+     
+      
     } finally {
       setLoading(false);
     }
