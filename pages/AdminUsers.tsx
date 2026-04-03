@@ -14,6 +14,9 @@ const [search,setSearch] = useState("")
 const [modal,setModal] = useState(false)
 const [editingUser,setEditingUser] = useState<User | null>(null)
 
+// ✅ NEW: view modal
+const [viewUser,setViewUser] = useState<User | null>(null)
+
 const [form,setForm] = useState({
 name:"",
 email:"",
@@ -31,25 +34,17 @@ const loadUsers = async ()=>{
 setLoading(true)
 
 try{
-
 const u = await Store.getAllUsers()
-
 setUsers(u)
-
 }catch(err){
-
 console.error(err)
-
 }
 
 setLoading(false)
-
 }
 
 useEffect(()=>{
-
 loadUsers()
-
 },[])
 
 ////////////////////////////////////////////////////
@@ -69,7 +64,6 @@ isBanned:user.isBanned || false
 })
 
 setModal(true)
-
 }
 
 ////////////////////////////////////////////////////
@@ -92,17 +86,12 @@ isBanned:form.isBanned
 })
 
 setModal(false)
-
 await loadUsers()
 
 }catch(err){
-
 console.error(err)
-
 alert("Update failed")
-
 }
-
 }
 
 ////////////////////////////////////////////////////
@@ -110,21 +99,14 @@ alert("Update failed")
 ////////////////////////////////////////////////////
 
 const toggleBan = async(user:User)=>{
-
 try{
-
 await Store.updateUser(user.uid,{
 isBanned:!user.isBanned
 })
-
 await loadUsers()
-
 }catch(err){
-
 console.error(err)
-
 }
-
 }
 
 ////////////////////////////////////////////////////
@@ -132,16 +114,12 @@ console.error(err)
 ////////////////////////////////////////////////////
 
 const filteredUsers = users.filter(u=>{
-
 const text = search.toLowerCase()
-
 return (
 (u.name || "").toLowerCase().includes(text) ||
 (u.email || "").toLowerCase().includes(text)
 )
-
 })
-
 
 ////////////////////////////////////////////////////
 //////////////// TOTALS ////////////////////////////
@@ -150,8 +128,9 @@ return (
 const totalUsers = users.length;
 
 const totalBalance = users.reduce((sum, u) => {
-  return sum + (Number(u.balance) || 0);
+return sum + (Number(u.balance) || 0);
 }, 0);
+
 ////////////////////////////////////////////////////
 //////////////// UI ////////////////////////////////
 ////////////////////////////////////////////////////
@@ -161,13 +140,14 @@ return(
 <Layout>
 
 <div className="p-4 space-y-4">
+
 <div className="bg-white p-3 rounded border space-y-1">
-  <div className="font-semibold">
-    Total Users: {totalUsers}
-  </div>
-  <div className="font-semibold">
-    Total Balance: {totalBalance} Coins
-  </div>
+<div className="font-semibold">
+Total Users: {totalUsers}
+</div>
+<div className="font-semibold">
+Total Balance: {totalBalance} Coins
+</div>
 </div>
 
 <h1 className="text-xl font-bold">Admin Users</h1>
@@ -185,13 +165,13 @@ className="border p-2 rounded w-full"
 
 <div
 key={u.uid}
-className="border bg-white p-3 rounded flex justify-between items-center"
+onClick={()=>setViewUser(u)} // ✅ CLICK TO VIEW
+className="border bg-white p-3 rounded flex justify-between items-center cursor-pointer"
 >
 
 <div>
 
 <div className="font-bold">{u.name}</div>
-
 <div className="text-xs text-gray-500">{u.email}</div>
 
 <div className="text-xs">
@@ -211,14 +191,20 @@ Rank: {u.rank || "none"}
 <div className="flex gap-2">
 
 <button
-onClick={()=>openEdit(u)}
+onClick={(e)=>{
+e.stopPropagation()
+openEdit(u)
+}}
 className="bg-yellow-400 px-3 py-1 rounded"
 >
 Edit
 </button>
 
 <button
-onClick={()=>toggleBan(u)}
+onClick={(e)=>{
+e.stopPropagation()
+toggleBan(u)
+}}
 className={`px-3 py-1 rounded text-white ${
 u.isBanned ? "bg-green-600":"bg-red-600"
 }`}
@@ -234,7 +220,60 @@ u.isBanned ? "bg-green-600":"bg-red-600"
 
 </div>
 
-{/* EDIT USER MODAL */}
+////////////////////////////////////////////////////
+//////////////// VIEW USER MODAL ///////////////////
+////////////////////////////////////////////////////
+
+{viewUser && (
+
+<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
+<div className="bg-white p-5 rounded w-[95%] max-w-md space-y-3">
+
+<div className="flex justify-between">
+<h3 className="font-bold">User Details</h3>
+<button onClick={()=>setViewUser(null)}>
+<X/>
+</button>
+</div>
+
+<div className="text-sm space-y-1">
+
+<div><b>Name:</b> {viewUser.name}</div>
+<div><b>Email:</b> {viewUser.email}</div>
+<div><b>Mobile:</b> {viewUser.mobile}</div>
+<div><b>Country:</b> {viewUser.country}</div>
+<div><b>District:</b> {viewUser.district}</div>
+<div><b>DOB:</b> {viewUser.dob}</div>
+
+<div><b>Coins:</b> {viewUser.balance}</div>
+<div><b>Gold:</b> {viewUser.gold}</div>
+
+<div><b>Lifetime Earnings:</b> {viewUser.lifetime_earnings}</div>
+<div><b>Lifetime Gold:</b> {viewUser.lifetime_gold}</div>
+
+<div><b>Today Tasks:</b> {viewUser.noOfTodayTask}</div>
+
+<div><b>Referral Code:</b> {viewUser.referralCode}</div>
+<div><b>Total Referrals:</b> {viewUser.totalReferrals}</div>
+
+<div><b>UID:</b> {viewUser.uid}</div>
+
+<div className={viewUser.isBanned ? "text-red-600":"text-green-600"}>
+<b>Status:</b> {viewUser.isBanned ? "Banned":"Active"}
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+)}
+
+////////////////////////////////////////////////////
+//////////////// EDIT USER MODAL ///////////////////
+////////////////////////////////////////////////////
 
 {modal &&(
 
@@ -313,9 +352,7 @@ Save Changes
 )}
 
 </Layout>
-
 )
-
 }
 
-export default AdminUsers
+export default AdminUsers;
