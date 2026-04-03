@@ -378,81 +378,110 @@ async getTask(taskId: string) {
 
 //////////////////////////// ZIP LOGIC ////////////////////////////
 
-async completeTask(task: any, uid: string, zipFile: File) {
-   const buffer = await zipFile.arrayBuffer();
-   
-  let zip;
-  try {
-    zip = await JSZip.loadAsync(buffer);
-  } catch (err) {
-    throw new Error("Invalid or corrupted ZIP file");
-  }
-  // filename check
-  if (zipFile.name.toLowerCase() !== task.expectedzipfilename.toLowerCase()) {
-    throw new Error("Zip filename mismatch");
-  }
 
-  // inner file check (handles folders)
-  const innerFile = Object.keys(zip.files).find(f =>
-    f.endsWith(task.expectedinnerfilename)
-  );
-
-  if (!innerFile) {
-    throw new Error("Inner file mismatch");
-  }
-
-  const settings = await Store.getSettings();
-  
+  async completeTask(task: any, uid: string, zipFile: File) {
   const userRef = doc(db, "users", uid);
 
-  let updateData: any = {
-    noOfTodayTask: increment(1)
-  };
+  try {
+    const buffer = await zipFile.arrayBuffer();
 
-  let history: any = {
-    task_name: task.task_name,
-    task_id: task.id,
-    date: new Date(),
-    type: task.is_special ? "special" : "task",
-    profit: true
-  };
+    let zip;
+    try {
+      zip = await JSZip.loadAsync(buffer);
+    } catch (err) {
+      throw new Error("Invalid or corrupted ZIP file");
+    }
 
-  // ✅ FIX: get reward from settings.rewards
-  const rewardValue = Number(settings.rewards || 0);
+    // filename check
+    if (zipFile.name.toLowerCase() !== task.expectedzipfilename.toLowerCase()) {
+      throw new Error("Zip filename mismatch");
+    }
 
-  if (!task.is_special) {
-    const amount = rewardValue;
+    // inner file check (handles folders)
+    const innerFile = Object.keys(zip.files).find(f =>
+      f.endsWith(task.expectedinnerfilename)
+    );
 
-    updateData.balance = increment(amount);
-    updateData.lifetime_earnings = increment(amount);
-    updateData.gold = increment(1);
-    updateData.lifetime_gold = increment(1);
+    if (!innerFile) {
+      throw new Error("Inner file mismatch");
+    }
 
-    history.amount = amount;
-  } else {
-    const reward = rewardValue;
+    const settings = await Store.getSettings();
 
-    updateData.balance = increment(reward);
-    updateData.lifetime_earnings = increment(reward);
-    updateData.diamond = increment(1);
-    updateData.lifetime_diamond = increment(1);
+    let updateData: any = {
+      noOfTodayTask: increment(1)
+    };
 
-    history.amount = reward;
+    let history: any = {
+      task_name: task.task_name,
+      task_id: task.id,
+      date: new Date(),
+      type: task.is_special ? "special" : "task",
+      profit: true
+    };
+
+    const rewardValue = Number(settings.rewards || 0);
+
+    if (!task.is_special) {
+      const amount = rewardValue;
+
+      updateData.balance = increment(amount);
+      updateData.lifetime_earnings = increment(amount);
+      updateData.gold = increment(1);
+      updateData.lifetime_gold = increment(1);
+
+      history.amount = amount;
+    } else {
+      const reward = rewardValue;
+
+      updateData.balance = increment(reward);
+      updateData.lifetime_earnings = increment(reward);
+      updateData.diamond = increment(1);
+      updateData.lifetime_diamond = increment(1);
+
+      history.amount = reward;
+    }
+
+    await updateDoc(userRef, updateData);
+
+    await addDoc(collection(db, "users", uid, "history"), history);
+
+    await updateDoc(doc(db, "tasks", task.id), {
+      task_name: this.generateTaskName(),
+      is_started: false,
+      started_by: "",
+      started_at: null
+    });
+
+    return true;
+
+  } catch (error: any) {
+    // ❌ FAILURE HANDLING
+
+    // add failed history
+    await addDoc(collection(db, "users", uid, "history"), {
+      task_name: task.task_name,
+      task_id: task.id,
+      date: new Date(),
+      type: task.is_special ? "special" : "task",
+      profit: false,
+      amount: "failed"
+    });
+
+    // reset task
+    await updateDoc(doc(db, "tasks", task.id), {
+      task_name: this.generateTaskName(),
+      is_started: false,
+      started_by: "",
+      started_at: null
+    });
+
+    throw error; // keep original error behavior
+  }
   }
 
-  await updateDoc(userRef, updateData);
 
-  await addDoc(collection(db, "users", uid, "history"), history);
-
-  await updateDoc(doc(db, "tasks", task.id), {
-    task_name: this.generateTaskName(),
-    is_started: false,
-    started_by: "",
-    started_at: null
-  });
-
-  return true;
-},
+  
 //////////////////////////// WITHDRAW ////////////////////////////
 requestWithdrawal: async (input: WithdrawalRequest) => {
   const userRef = doc(db, "users", input.uid);
