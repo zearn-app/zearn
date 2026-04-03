@@ -142,6 +142,16 @@ return (
 
 })
 
+
+////////////////////////////////////////////////////
+//////////////// TOTALS ////////////////////////////
+////////////////////////////////////////////////////
+
+const totalUsers = users.length;
+
+const totalBalance = users.reduce((sum, u) => {
+  return sum + (Number(u.balance) || 0);
+}, 0);
 ////////////////////////////////////////////////////
 //////////////// UI ////////////////////////////////
 ////////////////////////////////////////////////////
@@ -151,6 +161,14 @@ return(
 <Layout>
 
 <div className="p-4 space-y-4">
+<div className="bg-white p-3 rounded border space-y-1">
+  <div className="font-semibold">
+    Total Users: {totalUsers}
+  </div>
+  <div className="font-semibold">
+    Total Balance: {totalBalance} Coins
+  </div>
+</div>
 
 <h1 className="text-xl font-bold">Admin Users</h1>
 
