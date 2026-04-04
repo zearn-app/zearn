@@ -170,7 +170,12 @@ className="border p-2 rounded w-full"
 
 <div
 key={u.uid}
-onClick={()=>setViewUser(u)} // ✅ CLICK TO VIEW
+onClick={async ()=>{
+  setViewUser(u)
+
+  const stats = await Store.getUserTaskStats(u.uid)
+  setTaskStats(stats)
+}}// ✅ CLICK TO VIEW
 className="border bg-white p-3 rounded flex justify-between items-center cursor-pointer"
 >
 
@@ -259,6 +264,8 @@ u.isBanned ? "bg-green-600":"bg-red-600"
 
 <div><b>Referral Code:</b> {viewUser.referralCode}</div>
 <div><b>Total Referrals:</b> {viewUser.totalReferrals}</div>
+  <div><b>✅ Profited Tasks:</b> {taskStats.success}</div>
+<div><b>❌ Failed Tasks:</b> {taskStats.failed}</div>
 
 <div><b>UID:</b> {viewUser.uid}</div>
 
