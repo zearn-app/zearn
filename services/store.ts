@@ -215,7 +215,27 @@ updateSettings: async (settings: AdminSettings) => {
   await setDoc(doc(db, "settings", "config"), settings);
 },
 //////////////////////////// admin task ////////////////////////////
- getadminTasks: async () => {
+getUserTaskStats: async (uid: string) => {
+  const q = collection(db, "users", uid, "history");
+  const snap = await getDocs(q);
+
+  let success = 0;
+  let failed = 0;
+
+  snap.docs.forEach(doc => {
+    const d = doc.data();
+
+    // Only count tasks (ignore withdrawal, referral, etc.)
+    if (d.type === "task" || d.type === "special") {
+      if (d.profit === true) success++;
+      else if (d.profit === false) failed++;
+    }
+  });
+
+  return { success, failed };
+},
+  
+  getadminTasks: async () => {
     try {
       const q = query(
         collection(db, "tasks"),
