@@ -29,6 +29,11 @@ isBanned:false
 //////////////// LOAD USERS ////////////////////////
 ////////////////////////////////////////////////////
 
+const [taskStats,setTaskStats] = useState<{success:number,failed:number}>({
+  success:0,
+  failed:0
+})
+
 const loadUsers = async ()=>{
 
 setLoading(true)
