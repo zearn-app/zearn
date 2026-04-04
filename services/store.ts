@@ -339,6 +339,34 @@ getUserTaskStats: async (uid: string) => {
   },
 //////////////////////////// TASK ////////////////////////////
 
+
+getUserTaskStats: async (uid: string) => {
+  try {
+    const snap = await getDocs(collection(db, "users", uid, "history"));
+
+    let success = 0;
+    let failed = 0;
+
+    snap.docs.forEach(doc => {
+      const data = doc.data();
+
+      // Only count task type
+      if (data.type === "task" || data.type === "special") {
+        if (data.profit === true) success++;
+        if (data.profit === false) failed++;
+      }
+    });
+
+    return {
+      success,
+      failed
+    };
+
+  } catch (err) {
+    console.error("Error fetching stats:", err);
+    return { success: 0, failed: 0 };
+  }
+},
 generateTaskName() {
   return "ztask_" + Math.random().toString(36).substring(2, 10);
 },
