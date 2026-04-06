@@ -35,11 +35,17 @@ useEffect(() => {
   
   
   const loadTasks = async () => {
-    setLoading(true);
-    const data = await Store.getTasks(type === "special");
-    setTasks(data);
-    setLoading(false);
-  };
+  setLoading(true);
+
+  const data = await Store.getTasks(type === "special");
+
+  // Optional: force new array reference (prevents stale UI)
+  setTasks([...data]);
+
+  setLoading(false);
+};
+
+  
 
   if (!user?.uid) {
     return (
