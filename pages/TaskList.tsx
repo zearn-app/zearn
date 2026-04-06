@@ -66,6 +66,8 @@ useEffect(() => {
 
   const handleStart = async (task: any) => {
     await Store.startTask(task.id, user.uid);
+    await loadTasks();
+    await loadCompleted();
     if (task.link) window.open(task.link, "_blank");
     loadTasks();
   };
