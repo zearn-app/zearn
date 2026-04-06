@@ -13,23 +13,26 @@ const TaskList: React.FC = () => {
   const [tab, setTab] = useState("all");
   const [loading, setLoading] = useState(true);
   const [completedTasks, setCompletedTasks] = useState<any[]>([]);
-  useEffect(() => {
-    if (!user?.uid) return;
-    loadTasks();
-    loadCompleted();
-  }, [type, user]);
 
-   const loadCompleted = async () => {
+
+useEffect(() => {
   if (!user?.uid) return;
 
-  try {
-    const history = await Store.getCompletedTasks(user.uid);
-    setCompletedTasks(history);
-  } catch (e) {
-    console.error(e);
-  }
-};
+  loadTasks();
+  loadCompleted();
 
+  const handleFocus = () => {
+    loadTasks();
+    loadCompleted();
+  };
+
+  window.addEventListener("focus", handleFocus);
+
+  return () => {
+    window.removeEventListener("focus", handleFocus);
+  };
+}, [type, user]);
+  
   
   const loadTasks = async () => {
     setLoading(true);
