@@ -56,7 +56,10 @@ useEffect(() => {
   }
 
   // Filters
-  const allTasks = tasks.filter(t => !t.is_started);
+  const allTasks = tasks
+  .filter(t => !t.is_started)
+  .sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+  
   const inProcess = tasks.filter(
     t => t.is_started && t.started_by === user.uid
   );
